@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NODO Engine — Panel Empresa</title>
+<link rel="stylesheet" href="css/theme.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/layout.css">
+</head>
+<body>
+
+<div id="scr-panel" class="screen active">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="tb-logo">
+      <div class="tb-logo-icon" id="panel-logo"></div>
+      <span class="tb-logo-text"><span>NODO</span> Engine</span>
+    </div>
+    <div class="divider"></div>
+    <span class="fs-12 text-3">Panel de administración</span>
+    <div class="tb-spacer"></div>
+    <div class="tb-actions">
+      <button class="theme-btn" data-theme-icon onclick="toggleTheme()" title="Cambiar tema">☀️</button>
+      <div class="icon-btn" onclick="toggleNotif()" title="Notificaciones">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 01-3.46 0"/>
+        </svg>
+        <div class="notif-dot"></div>
+      </div>
+      <div class="divider"></div>
+      <div class="avatar">A</div>
+    </div>
+  </div>
+
+  <!-- NOTIF PANEL -->
+  <div class="notif-overlay" id="notif-overlay" onclick="toggleNotif()">
+    <div class="notif-panel" onclick="event.stopPropagation()">
+      <div class="np-head">Notificaciones <span style="font-size:11px;color:var(--orange);font-weight:400;cursor:pointer">Marcar leído</span></div>
+      <div class="ni"><div class="ni-dot"></div><div><div class="ni-title">⚠️ Certificado próximo a vencer</div><div class="ni-sub">Distribuidora Centro — 12 días</div></div></div>
+      <div class="ni"><div class="ni-dot" style="background:var(--red)"></div><div><div class="ni-title">❌ Error SET — lote #1028</div><div class="ni-sub">Farmacia Del Pueblo · Hace 15 min</div></div></div>
+      <div class="ni"><div class="ni-dot" style="background:var(--green)"></div><div><div class="ni-title">✅ Lote #1027 aprobado — 48 docs</div><div class="ni-sub">SuperMercado Luque · Hace 1 hora</div></div></div>
+    </div>
+  </div>
+
+  <!-- TENANT BAR -->
+  <div class="tenant-bar">
+    <div class="tb-back" onclick="window.location.href='index.html'">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      Empresas
+    </div>
+    <div class="tb-tenant-info">
+      <span class="tb-tenant-name" id="p-name">—</span>
+      <div class="tb-sep"></div>
+      <span class="tb-tenant-ruc mono fs-11 text-3" id="p-ruc">—</span>
+    </div>
+    <div class="tb-spacer"></div>
+    <div class="tb-env" id="p-env">⚙ Test</div>
+    <span class="badge badge-green" style="margin-right:16px"><span class="bd"></span>Activo</span>
+  </div>
+
+  <!-- PANEL BODY -->
+  <div class="panel-body">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sb-section">
+        <div class="sb-lbl">General</div>
+        <div class="nav on" onclick="showPage('dash')" id="n-dash">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Dashboard
+        </div>
+        <div class="nav" onclick="showPage('config')" id="n-config">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93L17.66 6.34M4.93 4.93L6.34 6.34M19.07 19.07L17.66 17.66M4.93 19.07L6.34 17.66M22 12h-2M4 12H2M12 22v-2M12 4V2"/></svg>
+          Configuración
+        </div>
+        <div class="nav" onclick="showPage('correo')" id="n-correo">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          Config. correo
+        </div>
+        <div class="nav" onclick="showPage('apikeys')" id="n-apikeys">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+          API Keys
+        </div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-lbl">Facturación</div>
+        <div class="nav" onclick="showPage('documentos')" id="n-documentos">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Documentos
+        </div>
+        <div class="nav" onclick="showPage('lotes')" id="n-lotes">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
+          Lotes de envío
+          <span class="nav-badge">2</span>
+        </div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-lbl">Sistema</div>
+        <div class="nav" onclick="showPage('webhooks')" id="n-webhooks">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+          Webhooks
+        </div>
+        <div class="nav" onclick="showPage('logs')" id="n-logs">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M9 13h6M9 17h4M9 9h1"/></svg>
+          Logs / Auditoría
+        </div>
+      </div>
+    </div><!-- /sidebar -->
+
+    <!-- MAIN CONTENT -->
+    <div class="main">
+
+      <!-- ══════ DASHBOARD ══════ -->
+      <div class="pg on" id="pg-dash">
+        <div class="ph">
+          <div><div class="ph-title">Dashboard</div><div class="ph-sub" id="ph-dash-sub">—</div></div>
+          <div class="ph-right"><span class="badge badge-green"><span class="bd"></span>Activo</span></div>
+        </div>
+
+        <div id="cert-warn-alert" style="display:none" class="alert alert-warn">
+          <span style="font-size:16px">⚠️</span>
+          <div><strong>Certificado próximo a vencer.</strong> Quedan <span id="cert-warn-days"></span> días. Renovalo antes de que expire. <span class="alert-link" onclick="showPage('config')">→ Ir a configuración</span></div>
+        </div>
+
+        <div class="grid-4 mb-20">
+          <div class="stat"><div class="stat-ico ico-o">🧾</div><div class="stat-val" id="stat-hoy">—</div><div class="stat-lbl">Facturas hoy</div><div class="stat-ch up" id="stat-hoy-ch"></div></div>
+          <div class="stat"><div class="stat-ico ico-g">✅</div><div class="stat-val" id="stat-mes">—</div><div class="stat-lbl">Este mes</div><div class="stat-ch up" id="stat-mes-ch"></div></div>
+          <div class="stat"><div class="stat-ico ico-b">🔄</div><div class="stat-val">48</div><div class="stat-lbl">Notas de crédito</div><div class="stat-ch up">Este mes</div></div>
+          <div class="stat"><div class="stat-ico ico-r">❌</div><div class="stat-val">12</div><div class="stat-lbl">Rechazadas</div><div class="stat-ch down">0.09% del total</div></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="tw">
+            <div class="tw-head"><div class="tw-title">Facturación — últimos 7 días</div></div>
+            <div style="padding:18px 20px">
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:6px"><span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Hoy</span></div>
+              <div class="mchart">
+                <div class="mb" style="height:62%"></div><div class="mb" style="height:82%"></div><div class="mb" style="height:51%"></div>
+                <div class="mb" style="height:88%"></div><div class="mb" style="height:73%"></div><div class="mb" style="height:42%"></div>
+                <div class="mb today" style="height:100%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="tw">
+            <div class="tw-head"><div class="tw-title">Últimos eventos</div></div>
+            <ul class="tl">
+              <li class="tl-item"><div class="tl-dot tl-ok">✓</div><div class="tl-body"><div class="tl-title">Lote #1027 aprobado — 48 docs</div><div class="tl-sub">Hace 1 hora · SET 0260</div></div></li>
+              <li class="tl-item"><div class="tl-dot tl-info">📋</div><div class="tl-body"><div class="tl-title">Certificado verificado OK</div><div class="tl-sub">Hace 2 horas · Vence en <span id="cert-days-tl">—</span> días</div></div></li>
+              <li class="tl-item"><div class="tl-dot tl-ok">✓</div><div class="tl-body"><div class="tl-title">Lote #1024 aprobado — 200 docs</div><div class="tl-sub">Ayer 18:30</div></div></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════ CONFIGURACIÓN ══════ -->
+      <div class="pg" id="pg-config">
+        <div class="ph">
+          <div><div class="ph-title">Configuración del emisor</div><div class="ph-sub" id="ph-cfg-sub">—</div></div>
+          <div class="ph-right">
+            <button class="btn btn-g btn-sm">Descartar</button>
+            <button class="btn btn-o btn-sm" onclick="saveConfig()">💾 Guardar cambios</button>
+          </div>
+        </div>
+
+        <!-- LOGO -->
+        <div class="fsec">
+          <div class="fsec-head"><div class="fsec-ico">🖼</div><div><div class="fsec-title">Logo del emisor</div><div class="fsec-desc">Aparece en el encabezado del KUDE (factura PDF) y en documentos electrónicos</div></div></div>
+          <div class="fsec-body">
+            <div class="logo-upload-wrap">
+              <div class="logo-preview" id="cfg-logo-preview">
+                <span class="logo-preview-placeholder">🏢</span>
+              </div>
+              <div style="flex:1">
+                <label class="upload-zone" for="cfg-logo-input">
+                  <div style="font-size:24px;margin-bottom:8px">📂</div>
+                  <div style="font-size:13px;font-weight:600;margin-bottom:4px">Subir o reemplazar logo</div>
+                  <div class="fs-11 text-3">PNG, JPG o SVG — máx. 2MB</div>
+                  <div class="fs-11 text-3" style="margin-top:4px">Recomendado: 300×100px, fondo transparente</div>
+                </label>
+                <input type="file" id="cfg-logo-input" accept="image/*" style="display:none" onchange="previewLogo(this,'cfg-logo-preview')">
+                <div style="margin-top:10px;display:flex;gap:8px">
+                  <button class="btn btn-g btn-sm" onclick="document.getElementById('cfg-logo-input').click()">📂 Seleccionar archivo</button>
+                  <button class="btn btn-d btn-sm" onclick="removeLogo()">🗑 Quitar logo</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DATOS FISCALES -->
+        <div class="fsec">
+          <div class="fsec-head"><div class="fsec-ico">🏢</div><div><div class="fsec-title">Datos fiscales</div><div class="fsec-desc">Información del contribuyente ante la SET</div></div></div>
+          <div class="fsec-body">
+            <div class="grid-3 gap-16">
+              <div class="field"><label>RUC *</label><input id="cfg-ruc" placeholder="80012345-6"></div>
+              <div class="field"><label>Razón social *</label><input id="cfg-razon" placeholder="Mi Empresa S.A."></div>
+              <div class="field"><label>Nombre fantasia</label><input id="cfg-fantasia" placeholder="Mi Empresa"></div>
+              <div class="field"><label>Dirección *</label><input id="cfg-dir" placeholder="Av. Principal 1234, Ciudad"></div>
+              <div class="field"><label>Teléfono</label><input id="cfg-tel" placeholder="021-555-1234"></div>
+              <div class="field"><label>Email</label><input type="email" id="cfg-email" placeholder="fe@empresa.py"></div>
+            </div>
+            <div class="grid-3 gap-16" style="margin-top:14px">
+              <div class="field"><label>Tipo contribuyente</label>
+                <select id="cfg-tipo"><option>Empresa</option><option>Persona física</option></select>
+              </div>
+              <div class="field"><label>Tipo de régimen</label>
+                <select id="cfg-regimen"><option>General</option><option>Simplificado</option></select>
+              </div>
+              <div class="field"><label>Departamento</label>
+                <select id="cfg-dept">
+                  <option>Central</option><option>Asunción</option><option>Alto Paraná</option>
+                  <option>Itapúa</option><option>Cordillera</option><option>Paraguarí</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEGURIDAD + AMBIENTE -->
+        <div class="grid-2">
+          <div class="fsec">
+            <div class="fsec-head"><div class="fsec-ico">🔐</div><div><div class="fsec-title">Seguridad SIFEN</div><div class="fsec-desc">Códigos para firma y QR</div></div></div>
+            <div class="fsec-body" style="display:grid;gap:14px">
+              <div class="field"><label>Código de Seguridad (CSC) *</label><input type="password" id="cfg-csc" placeholder="9 caracteres"></div>
+              <div class="field"><label>ID CSC</label><input id="cfg-id-csc" placeholder="0001" maxlength="4"></div>
+            </div>
+          </div>
+          <div class="fsec">
+            <div class="fsec-head"><div class="fsec-ico">🌐</div><div><div class="fsec-title">Ambiente</div><div class="fsec-desc">Modo de envío a SET</div></div></div>
+            <div class="fsec-body">
+              <div class="env-sw">
+                <div class="env-opt on" id="env-test" onclick="setEnv(this)"><div class="env-opt-ico">⚙️</div><div class="env-opt-lbl">Test</div><div class="env-opt-desc">Pruebas SIFEN</div></div>
+                <div class="env-opt" id="env-prod" onclick="setEnv(this)"><div class="env-opt-ico">🚀</div><div class="env-opt-lbl">Producción</div><div class="env-opt-desc">Envío real a SET</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CERTIFICADO -->
+        <div class="fsec">
+          <div class="fsec-head"><div class="fsec-ico">🔑</div><div><div class="fsec-title">Certificado digital</div><div class="fsec-desc">Archivo .p12 para firma de documentos electrónicos (PKCS#12)</div></div></div>
+          <div class="fsec-body">
+            <div id="cert-status-block" class="cert-ok">
+              <span style="font-size:18px">✅</span>
+              <div>
+                <div class="fw-600 fs-12">Certificado cargado y válido</div>
+                <div class="fs-12 text-2">Alias: <span class="mono" id="cert-alias-txt">—</span> · Vence el <span id="cert-date-txt">—</span> (<span id="cert-days-txt">—</span> días)</div>
+              </div>
+            </div>
+            <div class="grid-2">
+              <div>
+                <label class="upload-zone" for="cfg-cert-input">
+                  <div style="font-size:24px;margin-bottom:8px">📂</div>
+                  <div style="font-size:13px;font-weight:600;margin-bottom:4px">Subir / Reemplazar certificado</div>
+                  <div class="fs-11 text-3">Archivo .p12 (PKCS#12)</div>
+                </label>
+                <input type="file" id="cfg-cert-input" accept=".p12,.pfx" style="display:none" onchange="certFileSelected(this)">
+                <div id="cert-filename" class="fs-11 text-3" style="margin-top:8px;text-align:center"></div>
+              </div>
+              <div style="display:grid;gap:12px">
+                <div class="field"><label>Alias del certificado</label><input id="cfg-cert-alias" placeholder="MIEMPRESA"></div>
+                <div class="field"><label>Contraseña del certificado</label><input type="password" id="cfg-cert-pass" placeholder="••••••••"></div>
+                <div class="field"><label>Fecha de vencimiento</label><input type="date" id="cfg-cert-vence"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTIVIDADES ECONÓMICAS -->
+        <div class="fsec">
+          <div class="fsec-head"><div class="fsec-ico">🏷</div><div><div class="fsec-title">Actividades económicas</div><div class="fsec-desc">Códigos habilitados por la SET para este contribuyente</div></div></div>
+          <div class="fsec-body">
+            <div style="overflow-x:auto;margin-bottom:14px">
+              <table id="actividades-table">
+                <thead><tr><th>Código</th><th>Descripción</th><th></th></tr></thead>
+                <tbody id="actividades-body"></tbody>
+              </table>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center">
+              <input id="new-act-cod" placeholder="Código (ej: 47110)" class="field" style="width:160px;padding:7px 10px;font-size:12px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;color:var(--text)">
+              <input id="new-act-desc" placeholder="Descripción de la actividad" class="field" style="flex:1;padding:7px 10px;font-size:12px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;color:var(--text)">
+              <button class="btn btn-g btn-sm" onclick="addActividad()">+ Agregar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PUNTOS DE EXPEDICIÓN -->
+        <div class="fsec">
+          <div class="fsec-head"><div class="fsec-ico">🏭</div><div><div class="fsec-title">Puntos de expedición y timbrados</div><div class="fsec-desc">Establecimientos habilitados por la SET</div></div></div>
+          <div class="fsec-body">
+            <div style="overflow-x:auto;margin-bottom:14px">
+              <table id="puntos-table">
+                <thead><tr><th>Establecimiento</th><th>Punto</th><th>Descripción</th><th>Timbrado</th><th>Vigencia</th><th>Estado</th><th></th></tr></thead>
+                <tbody id="puntos-body"></tbody>
+              </table>
+            </div>
+            <button class="btn btn-g btn-sm" onclick="openModal('modal-punto')">+ Agregar punto de expedición</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════ CORREO ══════ -->
+      <div class="pg" id="pg-correo">
+        <div class="ph">
+          <div><div class="ph-title">Configuración de correo</div><div class="ph-sub">SMTP para envío de KUDE y notificaciones</div></div>
+          <div class="ph-right">
+            <button class="btn btn-g btn-sm" onclick="testSmtp()">🧪 Probar conexión</button>
+            <button class="btn btn-o btn-sm" onclick="saveSmtp()">💾 Guardar</button>
+          </div>
+        </div>
+        <div class="fsec">
+          <div class="fsec-head"><div class="fsec-ico">📧</div><div><div class="fsec-title">Servidor SMTP</div><div class="fsec-desc">Configuración del correo saliente para facturas y alertas</div></div></div>
+          <div class="fsec-body">
+            <div class="grid-2" style="gap:14px">
+              <div class="field"><label>SMTP Host</label><input id="smtp-host" placeholder="smtp.gmail.com"></div>
+              <div class="field"><label>Puerto</label><input id="smtp-port" type="number" placeholder="587"></div>
+              <div class="field"><label>Usuario</label><input id="smtp-user" placeholder="usuario@empresa.py"></div>
+              <div class="field"><label>Contraseña</label><input type="password" id="smtp-pass" placeholder="••••••••"></div>
+              <div class="field"><label>Email remitente</label><input id="smtp-from" placeholder="no-reply@empresa.py"></div>
+              <div class="field"><label>Nombre remitente</label><input id="smtp-fromname" placeholder="Mi Empresa Facturación"></div>
+            </div>
+            <div style="margin-top:18px">
+              <div class="tog-row">
+                <div><div class="tog-lbl">Usar TLS/SSL</div><div class="tog-desc">Cifrado de conexión recomendado (puerto 587 o 465)</div></div>
+                <label class="toggle"><input type="checkbox" id="smtp-ssl" checked><span class="ts"></span></label>
+              </div>
+              <div class="tog-row">
+                <div><div class="tog-lbl">Enviar KUDE al cliente automáticamente</div><div class="tog-desc">Adjunta el PDF al email del receptor al aprobar el DE</div></div>
+                <label class="toggle"><input type="checkbox" id="smtp-kude" checked><span class="ts"></span></label>
+              </div>
+              <div class="tog-row">
+                <div><div class="tog-lbl">Notificar errores de SET por email</div><div class="tog-desc">Alerta al administrador cuando falle un lote</div></div>
+                <label class="toggle"><input type="checkbox" id="smtp-errs" checked><span class="ts"></span></label>
+              </div>
+              <div class="tog-row">
+                <div><div class="tog-lbl">Enviar XML junto al KUDE</div><div class="tog-desc">Adjunta también el XML firmado al correo del receptor</div></div>
+                <label class="toggle"><input type="checkbox" id="smtp-xml"><span class="ts"></span></label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════ API KEYS ══════ -->
+      <div class="pg" id="pg-apikeys">
+        <div class="ph">
+          <div><div class="ph-title">API Keys</div><div class="ph-sub">Credenciales para integración con ERP y sistemas externos</div></div>
+          <div class="ph-right"><button class="btn btn-o btn-sm" onclick="openModal('modal-nueva-key')">+ Nueva API Key</button></div>
+        </div>
+        <div class="alert alert-info" style="margin-bottom:20px">
+          <span style="font-size:16px">ℹ️</span>
+          <div>Las API Keys se muestran <strong>una sola vez</strong> al crearlas. Guardá el valor completo en un lugar seguro. El endpoint de integración ERP es: <code class="mono" style="background:var(--bg4);padding:2px 6px;border-radius:4px">POST /api/v1/documentos/erp</code></div>
+        </div>
+        <div class="tw">
+          <div class="tw-head"><div class="tw-title">Keys activas</div></div>
+          <table>
+            <thead><tr><th>Nombre</th><th>Prefijo</th><th>Ambiente</th><th>Último uso</th><th>Creada</th><th>Estado</th><th></th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="fw-600">Default</td>
+                <td><code class="mono" style="background:var(--bg4);padding:2px 8px;border-radius:4px;font-size:12px">sk_test_aB3x</code></td>
+                <td><span class="badge badge-yellow">Test</span></td>
+                <td class="fs-12 text-2">Hace 5 min</td>
+                <td class="fs-12 text-2">01/01/2025</td>
+                <td><span class="badge badge-green">Activa</span></td>
+                <td><div class="td-act"><button class="btn btn-d btn-xs">Revocar</button></div></td>
+              </tr>
+              <tr>
+                <td class="fw-600">Producción ERP</td>
+                <td><code class="mono" style="background:var(--bg4);padding:2px 8px;border-radius:4px;font-size:12px">sk_live_cD7y</code></td>
+                <td><span class="badge badge-green">Prod</span></td>
+                <td class="fs-12 text-2">Hace 1 hora</td>
+                <td class="fs-12 text-2">15/03/2025</td>
+                <td><span class="badge badge-green">Activa</span></td>
+                <td><div class="td-act"><button class="btn btn-d btn-xs">Revocar</button></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══════ DOCUMENTOS ══════ -->
+      <div class="pg" id="pg-documentos">
+        <div class="ph">
+          <div><div class="ph-title">Documentos electrónicos</div><div class="ph-sub" id="ph-doc-sub">—</div></div>
+          <div class="ph-right"><button class="btn btn-g btn-sm">⬇ Exportar CSV</button></div>
+        </div>
+
+        <div data-tabs>
+          <div class="tabs">
+            <div class="tab on" onclick="swTab(this,'tb-fac',['tb-fac','tb-nc','tb-otros'])">
+              📄 Facturas <span class="tab-cnt tab-cnt-o">12,847</span>
+            </div>
+            <div class="tab" onclick="swTab(this,'tb-nc',['tb-fac','tb-nc','tb-otros'])">
+              🧾 Notas de crédito <span class="tab-cnt tab-cnt-g">48</span>
+            </div>
+            <div class="tab" onclick="swTab(this,'tb-otros',['tb-fac','tb-nc','tb-otros'])">
+              📑 Otros
+            </div>
+          </div>
+        </div>
+
+        <div id="tb-fac">
+          <div class="tw">
+            <div class="tw-head">
+              <div class="search-box" style="max-width:280px">
+                <svg width="12" height="12" fill="none" stroke="var(--text3)" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input placeholder="Número, cliente, RUC...">
+              </div>
+              <div class="filter-pill">Estado ▾</div>
+              <div class="filter-pill">Fecha ▾</div>
+            </div>
+            <div style="overflow-x:auto">
+              <table id="docs-table">
+                <thead><tr><th>Número</th><th>Cliente</th><th>Fecha</th><th>Monto</th><th>IVA</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <tbody id="docs-body"></tbody>
+              </table>
+            </div>
+            <div class="pag">
+              <div class="pag-info">487 documentos hoy · Página 1 de 49</div>
+              <div class="pb">‹</div><div class="pb on">1</div><div class="pb">2</div><div class="pb">3</div><div class="pb">…</div><div class="pb">49</div><div class="pb">›</div>
+            </div>
+          </div>
+        </div>
+        <div id="tb-nc" style="display:none">
+          <div class="tw"><div style="padding:48px;text-align:center;color:var(--text3)"><div style="font-size:32px;margin-bottom:10px">🧾</div><div>48 notas de crédito este mes</div></div></div>
+        </div>
+        <div id="tb-otros" style="display:none">
+          <div class="tw"><div style="padding:48px;text-align:center;color:var(--text3)"><div style="font-size:32px;margin-bottom:10px">📑</div><div>Sin otros documentos para mostrar</div></div></div>
+        </div>
+      </div>
+
+      <!-- ══════ LOTES ══════ -->
+      <div class="pg" id="pg-lotes">
+        <div class="ph">
+          <div><div class="ph-title">Lotes de envío</div><div class="ph-sub">Historial de envíos a la SET · SIFEN</div></div>
+          <div class="ph-right"><span class="badge badge-yellow">⏳ 1 procesando</span></div>
+        </div>
+        <div class="alert alert-err">
+          <span style="font-size:16px">❌</span>
+          <div><strong>Lote #1028 con error.</strong> Código SET 0300: "Datos incorrectos". 12 documentos rechazados. <span class="alert-link" onclick="openModal('modal-lote-error')">→ Ver detalle</span></div>
+        </div>
+        <div class="tw">
+          <div class="tw-head"><div class="tw-title">Todos los lotes</div><div class="filter-pill">Estado ▾</div><div class="filter-pill">Fecha ▾</div></div>
+          <div style="overflow-x:auto">
+            <table id="lotes-table">
+              <thead><tr><th>ID Lote</th><th>Documentos</th><th>Fecha envío</th><th>Estado</th><th>Respuesta SET</th><th>Acción</th></tr></thead>
+              <tbody id="lotes-body"></tbody>
+            </table>
+          </div>
+          <div class="pag"><div class="pag-info">34 lotes · Página 1 de 4</div><div class="pb">‹</div><div class="pb on">1</div><div class="pb">2</div><div class="pb">3</div><div class="pb">4</div><div class="pb">›</div></div>
+        </div>
+      </div>
+
+      <!-- ══════ WEBHOOKS ══════ -->
+      <div class="pg" id="pg-webhooks">
+        <div class="ph">
+          <div><div class="ph-title">Webhooks</div><div class="ph-sub">Notificaciones automáticas a tu ERP cuando cambia el estado de un DE</div></div>
+          <div class="ph-right"><button class="btn btn-o btn-sm" onclick="openModal('modal-webhook')">+ Nuevo webhook</button></div>
+        </div>
+        <div class="alert alert-info" style="margin-bottom:20px">
+          <span style="font-size:16px">ℹ️</span>
+          <div>Se envía un POST a tu URL con el CDC, estado, y datos del documento. Eventos disponibles: <span class="mono" style="font-size:12px">de.aprobado · de.rechazado · de.cancelado</span></div>
+        </div>
+        <div class="tw" style="margin-bottom:20px">
+          <div class="tw-head"><div class="tw-title">Webhooks configurados</div></div>
+          <table>
+            <thead><tr><th>URL destino</th><th>Eventos</th><th>Estado</th><th>Último disparo</th><th></th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="mono fs-12">https://erp.superluque.py/webhook/nodo</td>
+                <td><span class="badge badge-blue fs-11">de.aprobado</span> <span class="badge badge-blue fs-11">de.rechazado</span></td>
+                <td><span class="badge badge-green">Activo</span></td>
+                <td class="fs-12 text-2">Hace 1 hora · HTTP 200</td>
+                <td><div class="td-act"><button class="btn btn-g btn-xs">Probar</button><button class="btn btn-d btn-xs">Eliminar</button></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="fsec">
+          <div class="fsec-head"><div class="fsec-ico">📋</div><div><div class="fsec-title">Log de disparos recientes</div></div></div>
+          <div class="fsec-body" style="padding:0">
+            <div class="lrow"><div class="ldot lok"></div><div class="lmsg">de.aprobado → https://erp.superluque.py/webhook/nodo · CDC: 01800123456001001000012300920251234567890 · HTTP 200</div><div class="ltime">10:05:23</div></div>
+            <div class="lrow"><div class="ldot lerr"></div><div class="lmsg">de.rechazado → https://erp.superluque.py/webhook/nodo · Error: connection timeout · Reintento 1/3</div><div class="ltime">09:45:11</div></div>
+            <div class="lrow"><div class="ldot lok"></div><div class="lmsg">de.aprobado → https://erp.superluque.py/webhook/nodo · HTTP 200 · Duración: 142ms</div><div class="ltime">09:01:12</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════ LOGS ══════ -->
+      <div class="pg" id="pg-logs">
+        <div class="ph">
+          <div><div class="ph-title">Logs y auditoría</div><div class="ph-sub">Eventos del sistema, errores e integraciones API</div></div>
+          <div class="ph-right"><div class="filter-pill">Tipo ▾</div><div class="filter-pill">Hoy ▾</div></div>
+        </div>
+        <div class="tw">
+          <div class="tw-head">
+            <div class="tw-title">Eventos recientes</div>
+            <div class="search-box" style="max-width:240px">
+              <svg width="12" height="12" fill="none" stroke="var(--text3)" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input placeholder="Buscar en logs...">
+            </div>
+          </div>
+          <div class="lrow"><div class="ldot lok"></div><div class="lmsg"><strong style="color:var(--text)">SIFEN · envio</strong> — Lote #1027 aprobado · 48/48 · Código 0260 · 1.2s</div><div class="ltime">10:05:23</div></div>
+          <div class="lrow"><div class="ldot lerr"></div><div class="lmsg"><strong style="color:var(--text)">SIFEN · envio</strong> — Lote #1028 rechazado · 0300 · "RUC receptor inválido en 001-001-0001232"</div><div class="ltime">09:45:11</div></div>
+          <div class="lrow"><div class="ldot lok"></div><div class="lmsg"><strong style="color:var(--text)">API · /erp</strong> — POST recibido · ref: FAC-2025-0489 · 201 OK · 89ms</div><div class="ltime">09:43:55</div></div>
+          <div class="lrow"><div class="ldot lok"></div><div class="lmsg"><strong style="color:var(--text)">WEBHOOK · de.aprobado</strong> — Enviado a https://erp.superluque.py/webhook · HTTP 200 · 142ms</div><div class="ltime">09:01:12</div></div>
+          <div class="lrow"><div class="ldot lwarn"></div><div class="lmsg"><strong style="color:var(--text)">AUTH</strong> — API Key sk_test_aB3x · Nueva IP: 190.13.22.4 · Asunción, PY</div><div class="ltime">08:55:01</div></div>
+          <div class="lrow"><div class="ldot lok"></div><div class="lmsg"><strong style="color:var(--text)">SIFEN · consulta</strong> — Certificado OK · Alias: SUPERLUQUE · Días restantes: <span id="log-cert-days">—</span></div><div class="ltime">08:00:00</div></div>
+          <div class="lrow"><div class="ldot lerr"></div><div class="lmsg"><strong style="color:var(--text)">WEBHOOK</strong> — Fallo al notificar https://old-erp.py/hook · HTTP 503 · Reintento 3/3 agotado</div><div class="ltime">07:30:44</div></div>
+          <div class="lrow"><div class="ldot lok"></div><div class="lmsg"><strong style="color:var(--text)">SISTEMA</strong> — Servidor iniciado · Puerto 3000 · PostgreSQL OK · Ambiente: test</div><div class="ltime">00:00:01</div></div>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /panel-body -->
+</div><!-- /scr-panel -->
+
+<!-- ══ MODAL: NUEVA API KEY ══ -->
+<div class="modal-overlay" id="modal-nueva-key">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Nueva API Key</div><button class="modal-close" onclick="closeModal('modal-nueva-key')">✕</button></div>
+    <div class="modal-body">
+      <div style="display:grid;gap:14px">
+        <div class="field"><label>Nombre descriptivo</label><input placeholder="Producción ERP" id="key-nombre"></div>
+        <div class="field"><label>Ambiente</label>
+          <select id="key-env"><option value="test">Test (sk_test_...)</option><option value="live">Producción (sk_live_...)</option></select>
+        </div>
+        <div class="field"><label>Expira en</label>
+          <select id="key-expires"><option>Nunca</option><option>30 días</option><option>90 días</option><option>1 año</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-g btn-sm" onclick="closeModal('modal-nueva-key')">Cancelar</button>
+      <button class="btn btn-o btn-sm" onclick="createApiKey()">Generar key →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: API KEY GENERADA ══ -->
+<div class="modal-overlay" id="modal-key-generada">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">✅ API Key generada</div><button class="modal-close" onclick="closeModal('modal-key-generada')">✕</button></div>
+    <div class="modal-body">
+      <div class="alert alert-warn" style="margin-bottom:16px">
+        <span style="font-size:16px">⚠️</span>
+        <div><strong>Guardá este valor ahora.</strong> No se volverá a mostrar.</div>
+      </div>
+      <div class="field"><label>Tu API Key</label>
+        <div style="display:flex;gap:8px">
+          <input id="key-valor" readonly style="font-family:monospace;font-size:13px;flex:1;background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:10px 13px;color:var(--orange)">
+          <button class="btn btn-g btn-sm" onclick="copyKey()">📋 Copiar</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-o btn-sm" onclick="closeModal('modal-key-generada')">Entendido, ya guardé la key</button></div>
+  </div>
+</div>
+
+<!-- ══ MODAL: NUEVO PUNTO ══ -->
+<div class="modal-overlay" id="modal-punto">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Agregar punto de expedición</div><button class="modal-close" onclick="closeModal('modal-punto')">✕</button></div>
+    <div class="modal-body">
+      <div class="grid-2" style="gap:14px">
+        <div class="field"><label>Código establecimiento *</label><input placeholder="001" maxlength="3" id="pt-est"></div>
+        <div class="field"><label>Código punto *</label><input placeholder="001" maxlength="3" id="pt-punto"></div>
+        <div class="field"><label>Descripción</label><input placeholder="Sucursal Central" id="pt-desc"></div>
+        <div class="field"><label>Número de timbrado *</label><input placeholder="12345678" maxlength="8" id="pt-timbrado"></div>
+        <div class="field"><label>Tipo documento</label>
+          <select id="pt-tipo">
+            <option value="1">1 — Factura electrónica</option>
+            <option value="4">4 — Autofactura</option>
+            <option value="5">5 — Nota de crédito</option>
+            <option value="6">6 — Nota de débito</option>
+            <option value="7">7 — Nota de remisión</option>
+          </select>
+        </div>
+        <div class="field"><label>Número máximo</label><input placeholder="9999999" type="number" id="pt-max" value="9999999"></div>
+        <div class="field"><label>Vigencia desde *</label><input type="date" id="pt-desde"></div>
+        <div class="field"><label>Vigencia hasta *</label><input type="date" id="pt-hasta"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-g btn-sm" onclick="closeModal('modal-punto')">Cancelar</button>
+      <button class="btn btn-o btn-sm" onclick="addPunto()">Agregar punto →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: WEBHOOK ══ -->
+<div class="modal-overlay" id="modal-webhook">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Nuevo webhook</div><button class="modal-close" onclick="closeModal('modal-webhook')">✕</button></div>
+    <div class="modal-body">
+      <div style="display:grid;gap:14px">
+        <div class="field"><label>URL destino *</label><input type="url" placeholder="https://tuapp.com/webhook/nodo" id="wh-url"></div>
+        <div class="field"><label>Eventos a notificar</label>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+            <label class="chk"><input type="checkbox" checked> <span>de.aprobado — Documento aprobado por SET</span></label>
+            <label class="chk"><input type="checkbox" checked> <span>de.rechazado — Documento rechazado por SET</span></label>
+            <label class="chk"><input type="checkbox"> <span>de.cancelado — Documento cancelado</span></label>
+          </div>
+        </div>
+        <div class="field"><label>Secret (opcional)</label><input placeholder="Clave para verificar firma HMAC-SHA256" id="wh-secret"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-g btn-sm" onclick="closeModal('modal-webhook')">Cancelar</button>
+      <button class="btn btn-o btn-sm" onclick="addWebhook()">Guardar webhook →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: LOTE ERROR DETALLE ══ -->
+<div class="modal-overlay" id="modal-lote-error">
+  <div class="modal" style="width:600px">
+    <div class="modal-head"><div class="modal-title">❌ Detalle error — Lote #1028</div><button class="modal-close" onclick="closeModal('modal-lote-error')">✕</button></div>
+    <div class="modal-body">
+      <div class="alert alert-err" style="margin-bottom:16px">
+        <span style="font-size:16px">❌</span>
+        <div><strong>Código SET 0300</strong> — "Datos incorrectos". 12 documentos rechazados en este lote.</div>
+      </div>
+      <table>
+        <thead><tr><th>Número</th><th>Error</th><th>Acción</th></tr></thead>
+        <tbody>
+          <tr><td class="mono fs-12">001-001-0001232</td><td class="fs-12 text-2">RUC receptor inválido (null)</td><td><button class="btn btn-g btn-xs">Reintentar</button></td></tr>
+          <tr><td class="mono fs-12">001-001-0001240</td><td class="fs-12 text-2">Monto IVA no coincide con cálculo</td><td><button class="btn btn-g btn-xs">Reintentar</button></td></tr>
+          <tr><td class="mono fs-12">001-001-0001248</td><td class="fs-12 text-2">Fecha emisión fuera de rango</td><td><button class="btn btn-g btn-xs">Reintentar</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-g btn-sm" onclick="closeModal('modal-lote-error')">Cerrar</button>
+      <button class="btn btn-o btn-sm">↺ Reintentar todos</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { getTheme, applyTheme, toggleTheme, toggleNotif, openModal, closeModal, toast, nodoSvg, showPage, setEnv } from './js/app.js';
+import { MOCK_DOCS, MOCK_LOTES } from './js/data.js';
+
+// Expose globals
+window.toggleTheme = toggleTheme;
+window.toggleNotif = toggleNotif;
+window.openModal   = openModal;
+window.closeModal  = closeModal;
+window.showPage    = showPage;
+window.setEnv      = setEnv;
+
+// ── INIT ─────────────────────────────────────────────────────
+applyTheme(getTheme());
+document.getElementById('panel-logo').innerHTML = nodoSvg(17);
+
+// Load tenant from session
+const raw = sessionStorage.getItem('nodo-tenant');
+const tenant = raw ? JSON.parse(raw) : null;
+
+if (!tenant) {
+  // Fallback demo data
+  window.location.href = 'index.html';
+} else {
+  populatePanel(tenant);
+}
+
+function populatePanel(t) {
+  // Tenant bar
+  document.getElementById('p-name').textContent = t.name;
+  document.getElementById('p-ruc').textContent  = 'RUC: ' + t.ruc;
+  const envEl = document.getElementById('p-env');
+  if (t.env === 'prod') { envEl.textContent = '🚀 Producción'; envEl.classList.add('prod'); }
+  else                  { envEl.textContent = '⚙ Test'; }
+
+  // Page subtitles
+  document.getElementById('ph-dash-sub').textContent = t.name + ' · RUC ' + t.ruc;
+  document.getElementById('ph-cfg-sub').textContent  = t.name;
+  document.getElementById('ph-doc-sub').textContent  = t.name;
+
+  // Stats
+  document.getElementById('stat-hoy').textContent  = t.docsHoy.toLocaleString();
+  document.getElementById('stat-mes').textContent  = t.docsmes.toLocaleString();
+  document.getElementById('stat-hoy-ch').textContent = '↑ 23% vs ayer';
+  document.getElementById('stat-mes-ch').textContent = `↑ ${t.aprobados}% aprobadas`;
+
+  // Cert days
+  if (t.certDays !== null) {
+    ['cert-days-tl','cert-days-txt','log-cert-days'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = t.certDays;
+    });
+  }
+  if (t.certWarn) {
+    document.getElementById('cert-warn-alert').style.display = 'flex';
+    document.getElementById('cert-warn-days').textContent = t.certDays;
+    document.querySelector('.cert-status-block')?.classList.replace('cert-ok','cert-warn');
+  }
+
+  // Cert info in config
+  document.getElementById('cert-alias-txt').textContent = t.certAlias || '—';
+  document.getElementById('cert-date-txt').textContent  = t.certDate  || '31/12/2025';
+  document.getElementById('cert-days-txt').textContent  = t.certDays  || '—';
+
+  // Logo preview
+  if (t.logo) {
+    document.getElementById('cfg-logo-preview').innerHTML = `<img src="${t.logo}" alt="logo">`;
+  }
+
+  // Config fields
+  document.getElementById('cfg-ruc').value     = t.ruc      || '';
+  document.getElementById('cfg-razon').value   = t.name     || '';
+  document.getElementById('cfg-fantasia').value= t.nombreFantasia || '';
+  document.getElementById('cfg-dir').value     = t.direccion || '';
+  document.getElementById('cfg-tel').value     = t.telefono  || '';
+  document.getElementById('cfg-email').value   = t.email     || '';
+  document.getElementById('cfg-csc').value     = t.csc       || '';
+  document.getElementById('cfg-id-csc').value  = t.idCsc     || '0001';
+
+  // Ambiente
+  if (t.env === 'prod') {
+    document.getElementById('env-test').classList.remove('on');
+    document.getElementById('env-prod').classList.add('on');
+  }
+
+  // SMTP
+  document.getElementById('smtp-host').value     = t.smtpHost     || '';
+  document.getElementById('smtp-port').value     = t.smtpPort     || 587;
+  document.getElementById('smtp-user').value     = t.smtpUser     || '';
+  document.getElementById('smtp-from').value     = t.smtpFrom     || '';
+  document.getElementById('smtp-fromname').value = t.smtpFromName || '';
+  document.getElementById('smtp-ssl').checked    = t.smtpSsl !== undefined ? t.smtpSsl : true;
+
+  // Actividades
+  renderActividades(t.actividades || []);
+
+  // Puntos
+  renderPuntos(t.puntos || []);
+}
+
+// ── ACTIVIDADES ───────────────────────────────────────────────
+let actividades = [];
+function renderActividades(list) {
+  actividades = list;
+  const tbody = document.getElementById('actividades-body');
+  tbody.innerHTML = list.map((a,i) => `
+    <tr>
+      <td class="mono">${a.codigo}</td>
+      <td>${a.descripcion}</td>
+      <td><button class="btn btn-d btn-xs" onclick="removeActividad(${i})">Eliminar</button></td>
+    </tr>
+  `).join('') || `<tr><td colspan="3" style="color:var(--text3);font-size:12px;padding:16px 18px">Sin actividades registradas</td></tr>`;
+}
+window.addActividad = () => {
+  const cod  = document.getElementById('new-act-cod').value.trim();
+  const desc = document.getElementById('new-act-desc').value.trim();
+  if (!cod || !desc) { toast('Ingresá código y descripción', 'err'); return; }
+  actividades.push({ codigo: cod, descripcion: desc });
+  renderActividades(actividades);
+  document.getElementById('new-act-cod').value  = '';
+  document.getElementById('new-act-desc').value = '';
+  toast('Actividad agregada', 'ok');
+};
+window.removeActividad = (i) => {
+  actividades.splice(i, 1);
+  renderActividades(actividades);
+};
+
+// ── PUNTOS ────────────────────────────────────────────────────
+let puntos = [];
+function renderPuntos(list) {
+  puntos = list;
+  const tbody = document.getElementById('puntos-body');
+  tbody.innerHTML = list.map((p,i) => `
+    <tr>
+      <td class="mono">${p.estCodigo}</td>
+      <td class="mono">${p.puntoCodigo}</td>
+      <td>${p.descripcion}</td>
+      <td class="mono">${p.timbrado}</td>
+      <td class="fs-12 text-2">${p.vigDesde} – ${p.vigHasta}</td>
+      <td><span class="badge badge-green">Activo</span></td>
+      <td><button class="btn btn-d btn-xs" onclick="removePunto(${i})">Eliminar</button></td>
+    </tr>
+  `).join('') || `<tr><td colspan="7" style="color:var(--text3);font-size:12px;padding:16px 18px">Sin puntos registrados</td></tr>`;
+}
+window.addPunto = () => {
+  const est      = document.getElementById('pt-est').value.trim().padStart(3,'0');
+  const punto    = document.getElementById('pt-punto').value.trim().padStart(3,'0');
+  const desc     = document.getElementById('pt-desc').value.trim();
+  const timbrado = document.getElementById('pt-timbrado').value.trim();
+  const desde    = document.getElementById('pt-desde').value;
+  const hasta    = document.getElementById('pt-hasta').value;
+  if (!est || !timbrado || !desde || !hasta) { toast('Completá los campos obligatorios (*)', 'err'); return; }
+  puntos.push({ estCodigo: est, puntoCodigo: punto, descripcion: desc || 'Punto ' + punto, timbrado, vigDesde: desde, vigHasta: hasta });
+  renderPuntos(puntos);
+  closeModal('modal-punto');
+  toast('Punto de expedición agregado', 'ok');
+};
+window.removePunto = (i) => { puntos.splice(i,1); renderPuntos(puntos); };
+
+// ── DOCS TABLE ────────────────────────────────────────────────
+function estadoBadge(e) {
+  if (e==='approved') return `<span class="badge badge-green"><span class="bd"></span>Aprobado</span>`;
+  if (e==='rejected') return `<span class="badge badge-red"><span class="bd"></span>Rechazado</span>`;
+  return `<span class="badge badge-yellow"><span class="bd"></span>Pendiente</span>`;
+}
+const docsBody = document.getElementById('docs-body');
+if (docsBody) {
+  docsBody.innerHTML = MOCK_DOCS.map(d => `
+    <tr>
+      <td class="mono fs-12">${d.numero}</td>
+      <td>${d.cliente}<br><span class="fs-11 text-3">${d.doc}</span></td>
+      <td class="fs-12 text-2">${d.fecha}</td>
+      <td class="fw-600">₲ ${d.monto}</td>
+      <td class="fs-12 text-2">₲ ${d.iva}</td>
+      <td>${estadoBadge(d.estado)}</td>
+      <td><div class="td-act">
+        <button class="btn btn-g btn-xs" title="Ver detalle">🔍</button>
+        <button class="btn btn-g btn-xs" title="Descargar XML">📄</button>
+        <button class="btn btn-g btn-xs" title="KUDE PDF" ${d.estado!=='approved'?'disabled style="opacity:.3"':''}>🖨</button>
+      </div></td>
+    </tr>
+  `).join('');
+}
+
+// ── LOTES TABLE ───────────────────────────────────────────────
+function loteBadge(e) {
+  if (e==='approved')   return `<span class="badge badge-green"><span class="bd"></span>Aprobado</span>`;
+  if (e==='error')      return `<span class="badge badge-red"><span class="bd"></span>Error</span>`;
+  if (e==='processing') return `<span class="badge badge-yellow"><span class="bd"></span>Procesando</span>`;
+  return `<span class="badge badge-gray">${e}</span>`;
+}
+const lotesBody = document.getElementById('lotes-body');
+if (lotesBody) {
+  lotesBody.innerHTML = MOCK_LOTES.map(l => `
+    <tr>
+      <td class="mono">${l.id}</td>
+      <td>${l.docs} docs</td>
+      <td class="fs-12 text-2">${l.fecha}</td>
+      <td>${loteBadge(l.estado)}</td>
+      <td class="mono fs-12" style="color:${l.estado==='approved'?'var(--green)':l.estado==='error'?'var(--red)':'var(--text3)'}">${l.resp}</td>
+      <td><button class="btn ${l.estado==='error'?'btn-d':'btn-g'} btn-sm" onclick="${l.estado==='error'?"openModal('modal-lote-error')":"''"}">🔍 Ver</button></td>
+    </tr>
+  `).join('');
+}
+
+// ── TAB SWITCH ────────────────────────────────────────────────
+window.swTab = (el, tabId, allIds) => {
+  el.closest('[data-tabs]').querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+  allIds.forEach(id => {
+    const pane = document.getElementById(id);
+    if (pane) pane.style.display = id === tabId ? 'block' : 'none';
+  });
+};
+
+// ── LOGO UPLOAD ───────────────────────────────────────────────
+window.previewLogo = (input, previewId) => {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 2*1024*1024) { toast('El archivo supera los 2MB', 'err'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById(previewId);
+    if (preview) preview.innerHTML = `<img src="${e.target.result}" alt="Logo">`;
+    toast('Logo cargado. Guardá los cambios para aplicarlo.', 'ok');
+  };
+  reader.readAsDataURL(file);
+};
+window.removeLogo = () => {
+  document.getElementById('cfg-logo-preview').innerHTML = `<span class="logo-preview-placeholder">🏢</span>`;
+  toast('Logo eliminado. Guardá para confirmar.', 'warn');
+};
+
+// ── CERT FILE ─────────────────────────────────────────────────
+window.certFileSelected = (input) => {
+  const file = input.files[0];
+  if (!file) return;
+  document.getElementById('cert-filename').textContent = `📎 ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+  toast('Certificado seleccionado. Completá alias y contraseña.', 'ok');
+};
+
+// ── SAVE ACTIONS ──────────────────────────────────────────────
+window.saveConfig = () => toast('Configuración guardada correctamente', 'ok');
+window.saveSmtp   = () => toast('Configuración de correo guardada', 'ok');
+window.testSmtp   = () => {
+  toast('Enviando email de prueba...', 'warn');
+  setTimeout(() => toast('✅ Email de prueba enviado correctamente', 'ok'), 1500);
+};
+
+// ── API KEYS ──────────────────────────────────────────────────
+window.createApiKey = () => {
+  const nombre = document.getElementById('key-nombre').value.trim();
+  const env    = document.getElementById('key-env').value;
+  if (!nombre) { toast('Ingresá un nombre para la key', 'err'); return; }
+  const prefix = env === 'live' ? 'sk_live_' : 'sk_test_';
+  const key    = prefix + Math.random().toString(36).slice(2, 10).toUpperCase();
+  closeModal('modal-nueva-key');
+  document.getElementById('key-valor').value = key;
+  openModal('modal-key-generada');
+};
+window.copyKey = () => {
+  const v = document.getElementById('key-valor').value;
+  navigator.clipboard.writeText(v).then(() => toast('API Key copiada al portapapeles', 'ok'));
+};
+
+// ── WEBHOOK ───────────────────────────────────────────────────
+window.addWebhook = () => {
+  const url = document.getElementById('wh-url').value.trim();
+  if (!url) { toast('Ingresá la URL de destino', 'err'); return; }
+  closeModal('modal-webhook');
+  toast('Webhook guardado correctamente', 'ok');
+};
+</script>
+</body>
+</html>

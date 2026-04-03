@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NODO Engine — Inicio</title>
+<link rel="stylesheet" href="css/theme.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/layout.css">
+</head>
+<body>
+
+<!-- ═══════════ LOGIN ═══════════ -->
+<div id="scr-login" class="screen active">
+  <div class="l-grid"></div>
+  <div class="l-glow"></div>
+
+  <!-- Theme toggle top-right -->
+  <div class="login-topbar">
+    <button class="theme-btn" data-theme-icon onclick="toggleTheme()" title="Cambiar tema">☀️</button>
+  </div>
+
+  <div class="l-card">
+    <div class="l-logo">
+      <div class="l-logo-icon" id="login-logo-icon"></div>
+      <div>
+        <div class="l-logo-name"><span>NODO</span> Engine</div>
+        <div class="l-logo-sub">Facturación Electrónica · SET Paraguay</div>
+      </div>
+    </div>
+    <div class="l-title">Bienvenido de vuelta</div>
+    <div class="l-desc">Ingresá con tu cuenta para continuar</div>
+
+    <div class="field" style="margin-bottom:16px">
+      <label>Email</label>
+      <input type="email" id="login-email" value="admin@nodoengine.py" placeholder="admin@empresa.py">
+    </div>
+    <div class="field" style="margin-bottom:0">
+      <label>Contraseña</label>
+      <input type="password" id="login-pass" value="••••••••" placeholder="••••••••">
+    </div>
+    <div class="l-row">
+      <label class="chk"><input type="checkbox" checked> Recordarme</label>
+      <a href="#" class="link-o">¿Olvidaste tu contraseña?</a>
+    </div>
+
+    <button class="btn-login" id="login-btn">Iniciar sesión →</button>
+    <div class="l-foot">Motor SIFEN v0.1.0 · Ambiente configurado por empresa · Paraguay</div>
+  </div>
+</div>
+
+<!-- ═══════════ EMPRESAS ═══════════ -->
+<div id="scr-empresas" class="screen">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="tb-logo">
+      <div class="tb-logo-icon" id="top-logo-e"></div>
+      <span class="tb-logo-text"><span>NODO</span> Engine</span>
+    </div>
+    <div class="divider"></div>
+    <span class="fs-12 text-3">Panel de administración</span>
+    <div class="tb-spacer"></div>
+    <div class="tb-actions">
+      <button class="theme-btn" data-theme-icon onclick="toggleTheme()" title="Cambiar tema">☀️</button>
+      <div class="icon-btn" onclick="toggleNotif()" title="Notificaciones">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 01-3.46 0"/>
+        </svg>
+        <div class="notif-dot"></div>
+      </div>
+      <div class="divider"></div>
+      <div class="avatar" title="Admin">A</div>
+    </div>
+  </div>
+
+  <!-- NOTIF PANEL -->
+  <div class="notif-overlay" id="notif-overlay" onclick="toggleNotif()">
+    <div class="notif-panel" onclick="event.stopPropagation()">
+      <div class="np-head">Notificaciones <span style="font-size:11px;color:var(--orange);font-weight:400;cursor:pointer">Marcar leído</span></div>
+      <div class="ni"><div class="ni-dot"></div><div><div class="ni-title">⚠️ Certificado próximo a vencer</div><div class="ni-sub">Distribuidora Centro — 12 días</div></div></div>
+      <div class="ni"><div class="ni-dot" style="background:var(--red)"></div><div><div class="ni-title">❌ Error SET — lote #1028</div><div class="ni-sub">Farmacia Del Pueblo · Hace 15 min</div></div></div>
+      <div class="ni"><div class="ni-dot" style="background:var(--green)"></div><div><div class="ni-title">✅ Lote #1027 aprobado — 48 docs</div><div class="ni-sub">SuperMercado Luque · Hace 1 hora</div></div></div>
+    </div>
+  </div>
+
+  <!-- EMPRESAS BODY -->
+  <div class="emp-body">
+    <div class="emp-header">
+      <div>
+        <div class="emp-title">Empresas</div>
+        <div class="emp-sub" id="emp-sub">Cargando tenants...</div>
+      </div>
+      <div class="flex gap-10">
+        <button class="btn btn-g btn-sm">⬇ Exportar</button>
+        <button class="btn btn-o btn-sm" onclick="openModal('modal-nueva-empresa')">+ Nueva empresa</button>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <div class="search-box">
+        <svg width="13" height="13" fill="none" stroke="var(--text3)" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="search-input" placeholder="Buscar por nombre o RUC..." oninput="filterTenants()">
+      </div>
+      <div class="filter-pill on"    onclick="setFilter('all',this)">Todos</div>
+      <div class="filter-pill"       onclick="setFilter('active',this)">Activos</div>
+      <div class="filter-pill"       onclick="setFilter('error',this)">Con errores</div>
+      <div class="filter-pill"       onclick="setFilter('prod',this)">Prod</div>
+      <div class="filter-pill"       onclick="setFilter('test',this)">Test</div>
+    </div>
+
+    <div class="emp-grid" id="tenant-grid">
+      <!-- Rendered by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL NUEVA EMPRESA ═══════════ -->
+<div class="modal-overlay" id="modal-nueva-empresa">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Nueva empresa</div>
+      <button class="modal-close" onclick="closeModal('modal-nueva-empresa')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fsec" style="margin-bottom:16px">
+        <div class="fsec-head"><div class="fsec-ico">🏢</div><div><div class="fsec-title">Datos básicos</div><div class="fsec-desc">Identificación fiscal del contribuyente</div></div></div>
+        <div class="fsec-body" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="field"><label>RUC *</label><input placeholder="80012345-6" id="new-ruc"></div>
+          <div class="field"><label>Razón social *</label><input placeholder="Empresa S.A." id="new-razon"></div>
+          <div class="field"><label>Nombre comercial</label><input placeholder="Mi Empresa" id="new-nombre"></div>
+          <div class="field"><label>Email</label><input type="email" placeholder="fe@empresa.py" id="new-email"></div>
+          <div class="field"><label>Teléfono</label><input placeholder="021-555-0000" id="new-tel"></div>
+          <div class="field"><label>Plan</label>
+            <select id="new-plan">
+              <option value="starter">Starter</option>
+              <option value="pro" selected>Pro</option>
+              <option value="enterprise">Enterprise</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-head"><div class="fsec-ico">🌐</div><div><div class="fsec-title">Ambiente inicial</div></div></div>
+        <div class="fsec-body">
+          <div class="env-sw">
+            <div class="env-opt on" onclick="setEnvModal(this)"><div class="env-opt-ico">⚙️</div><div class="env-opt-lbl">Test</div><div class="env-opt-desc">Pruebas SIFEN</div></div>
+            <div class="env-opt" onclick="setEnvModal(this)"><div class="env-opt-ico">🚀</div><div class="env-opt-lbl">Producción</div><div class="env-opt-desc">Envío real a SET</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOGO UPLOAD en el modal de nueva empresa -->
+      <div class="fsec" style="margin-top:16px">
+        <div class="fsec-head"><div class="fsec-ico">🖼</div><div><div class="fsec-title">Logo de la empresa</div><div class="fsec-desc">Se mostrará en el encabezado del KUDE (factura PDF)</div></div></div>
+        <div class="fsec-body">
+          <div class="logo-upload-wrap">
+            <div class="logo-preview" id="new-logo-preview">
+              <span class="logo-preview-placeholder">🏢</span>
+            </div>
+            <div style="flex:1">
+              <label class="upload-zone" for="new-logo-input">
+                <div style="font-size:24px;margin-bottom:8px">📂</div>
+                <div style="font-size:13px;font-weight:600;margin-bottom:4px">Subir logo</div>
+                <div class="fs-11 text-3">PNG, JPG o SVG — máx. 2MB · recomendado 300×100px</div>
+              </label>
+              <input type="file" id="new-logo-input" accept="image/*" style="display:none" onchange="previewLogo(this,'new-logo-preview')">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-g btn-sm" onclick="closeModal('modal-nueva-empresa')">Cancelar</button>
+      <button class="btn btn-o btn-sm" onclick="createTenant()">Crear empresa →</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { getTheme, applyTheme, toggleTheme, toggleNotif, openModal, closeModal, toast, nodoSvg, showScreen, enterTenant } from './js/app.js';
+import { TENANTS } from './js/data.js';
+
+// Expose to HTML onclick
+window.toggleTheme  = toggleTheme;
+window.toggleNotif  = toggleNotif;
+window.openModal    = openModal;
+window.closeModal   = closeModal;
+
+// Init
+applyTheme(getTheme());
+document.getElementById('login-logo-icon').innerHTML = nodoSvg(22);
+document.getElementById('top-logo-e').innerHTML      = nodoSvg(17);
+
+// Login
+document.getElementById('login-btn').addEventListener('click', () => {
+  showScreen('scr-empresas');
+  renderGrid(TENANTS);
+});
+
+// ── TENANT GRID ──────────────────────────────────────────────
+let activeFilter = 'all';
+let searchQuery  = '';
+
+function statusBadge(t) {
+  if (t.status === 'active')    return `<span class="badge badge-green"><span class="bd"></span>Activo</span>`;
+  if (t.status === 'error')     return `<span class="badge badge-red"><span class="bd"></span>Error SET</span>`;
+  if (t.status === 'cert-warn') return `<span class="badge badge-yellow"><span class="bd"></span>Cert. vence</span>`;
+  if (t.status === 'pending')   return `<span class="badge badge-gray">Pendiente</span>`;
+  return '';
+}
+
+function envBadge(env) {
+  return env === 'prod'
+    ? `<span class="badge badge-green">🚀 Prod</span>`
+    : `<span class="badge badge-yellow">⚙ Test</span>`;
+}
+
+function renderCard(t) {
+  const statVal = (v, unit='') => v > 0 ? `<div class="emp-stat-val" style="color:var(--orange)">${v.toLocaleString()}${unit}</div>` : `<div class="emp-stat-val text-3">—</div>`;
+  const aprVal  = t.aprobados > 0 ? `<div class="emp-stat-val ${t.aprobados < 97 ? 'down' : 'up'}">${t.aprobados}%</div>` : `<div class="emp-stat-val text-3">—</div>`;
+  const logo    = t.logo
+    ? `<div class="emp-avatar" style="background:var(--bg4)"><img src="${t.logo}" alt="logo"></div>`
+    : `<div class="emp-avatar" style="${t.avatarGradient ? `background:${t.avatarGradient}` : ''}">${t.avatar}</div>`;
+  const certWarn = t.certWarn ? `<span title="Certificado vence pronto" style="margin-left:4px">⚠️</span>` : '';
+  return `
+    <div class="emp-card" onclick="goPanel('${t.id}')">
+      <div class="emp-card-glow"></div>
+      <div class="emp-card-top">
+        <div style="display:flex;align-items:flex-start;gap:13px;flex:1">
+          ${logo}
+          <div class="emp-info">
+            <div class="emp-name">${t.name}</div>
+            <div class="emp-ruc mono">RUC: ${t.ruc}</div>
+          </div>
+        </div>
+        ${statusBadge(t)}
+      </div>
+      <div class="emp-stats">
+        <div class="emp-stat">${statVal(t.docsHoy)}<div class="emp-stat-lbl">Docs hoy</div></div>
+        <div class="emp-stat">${statVal(Math.round(t.docsmes/1000), 'k')}<div class="emp-stat-lbl">Este mes</div></div>
+        <div class="emp-stat">${aprVal}<div class="emp-stat-lbl">Aprobados</div></div>
+      </div>
+      <div class="emp-card-foot">
+        ${envBadge(t.env)}
+        <span class="emp-last">${t.lastActivity}${certWarn}</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderGrid(tenants) {
+  const grid = document.getElementById('tenant-grid');
+  const sub  = document.getElementById('emp-sub');
+  sub.textContent = `${tenants.length} tenant${tenants.length !== 1 ? 's' : ''} registrado${tenants.length !== 1 ? 's' : ''} — seleccioná una empresa para gestionar`;
+  grid.innerHTML  = tenants.map(renderCard).join('');
+}
+
+function getFiltered() {
+  return TENANTS.filter(t => {
+    const q = searchQuery.toLowerCase();
+    const matchQ = !q || t.name.toLowerCase().includes(q) || t.ruc.includes(q);
+    let matchF = true;
+    if (activeFilter === 'active')  matchF = t.status === 'active';
+    if (activeFilter === 'error')   matchF = t.status === 'error' || t.status === 'cert-warn';
+    if (activeFilter === 'prod')    matchF = t.env === 'prod';
+    if (activeFilter === 'test')    matchF = t.env === 'test';
+    return matchQ && matchF;
+  });
+}
+
+window.filterTenants = () => {
+  searchQuery = document.getElementById('search-input').value;
+  renderGrid(getFiltered());
+};
+
+window.setFilter = (f, el) => {
+  activeFilter = f;
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('on'));
+  el.classList.add('on');
+  renderGrid(getFiltered());
+};
+
+window.goPanel = (id) => {
+  const tenant = TENANTS.find(t => t.id === id);
+  if (!tenant) return;
+  // Store and navigate
+  sessionStorage.setItem('nodo-tenant', JSON.stringify(tenant));
+  window.location.href = 'panel.html';
+};
+
+// ── NEW TENANT MODAL ──────────────────────────────────────────
+window.setEnvModal = (el) => {
+  el.closest('.env-sw').querySelectorAll('.env-opt').forEach(o => o.classList.remove('on'));
+  el.classList.add('on');
+};
+
+window.previewLogo = (input, previewId) => {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const preview = document.getElementById(previewId);
+    if (preview) preview.innerHTML = `<img src="${e.target.result}" alt="Logo">`;
+  };
+  reader.readAsDataURL(file);
+};
+
+window.createTenant = () => {
+  const ruc   = document.getElementById('new-ruc').value.trim();
+  const razon = document.getElementById('new-razon').value.trim();
+  if (!ruc || !razon) { toast('Completá RUC y Razón social', 'err'); return; }
+  toast(`Empresa "${razon}" creada correctamente`, 'ok');
+  closeModal('modal-nueva-empresa');
+};
+
+// Initial render
+renderGrid(TENANTS);
+</script>
+</body>
+</html>

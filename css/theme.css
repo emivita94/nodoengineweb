@@ -1,0 +1,75 @@
+/* ============================================================
+   NODO Engine — Theme System
+   Light / Dark mode via [data-theme] on <html>
+   ============================================================ */
+
+/* ── DARK (default) ── */
+:root,
+[data-theme="dark"] {
+  --orange:       #FF8C00;
+  --orange-mid:   #FFA500;
+  --orange-light: #FFC857;
+
+  --bg:           #0D0D0D;
+  --bg2:          #111111;
+  --bg3:          #181818;
+  --bg4:          #222222;
+  --bg5:          #2A2A2A;
+
+  --border:       #2A2A2A;
+  --border2:      #383838;
+
+  --text:         #EAEAEA;
+  --text2:        #AAAAAA;
+  --text3:        #555555;
+
+  --green:        #00C48C;
+  --green-bg:     rgba(0,196,140,.10);
+  --red:          #FF4D4D;
+  --red-bg:       rgba(255,77,77,.10);
+  --yellow:       #FFC857;
+  --yellow-bg:    rgba(255,200,87,.10);
+  --blue:         #4D9EFF;
+  --blue-bg:      rgba(77,158,255,.10);
+
+  --glow:         0 0 24px rgba(255,140,0,.30);
+  --glow-sm:      0 0 12px rgba(255,140,0,.18);
+  --shadow:       0 4px 24px rgba(0,0,0,.5);
+  --shadow-lg:    0 20px 60px rgba(0,0,0,.7);
+
+  --login-bg-grid: rgba(255,140,0,.035);
+  --card-inset:    0 0 0 1px rgba(255,255,255,.03);
+}
+
+/* ── LIGHT ── */
+[data-theme="light"] {
+  --bg:           #F5F5F5;
+  --bg2:          #FFFFFF;
+  --bg3:          #FAFAFA;
+  --bg4:          #F0F0F0;
+  --bg5:          #E8E8E8;
+
+  --border:       #E2E2E2;
+  --border2:      #CFCFCF;
+
+  --text:         #1A1A1A;
+  --text2:        #555555;
+  --text3:        #AAAAAA;
+
+  --green:        #008F68;
+  --green-bg:     rgba(0,143,104,.09);
+  --red:          #D93025;
+  --red-bg:       rgba(217,48,37,.09);
+  --yellow:       #B8860B;
+  --yellow-bg:    rgba(184,134,11,.09);
+  --blue:         #1A6FD4;
+  --blue-bg:      rgba(26,111,212,.09);
+
+  --glow:         0 0 20px rgba(255,140,0,.22);
+  --glow-sm:      0 0 10px rgba(255,140,0,.14);
+  --shadow:       0 2px 12px rgba(0,0,0,.08);
+  --shadow-lg:    0 12px 40px rgba(0,0,0,.14);
+
+  --login-bg-grid: rgba(255,140,0,.05);
+  --card-inset:    0 0 0 1px rgba(0,0,0,.03);
+}
