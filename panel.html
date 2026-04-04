@@ -558,50 +558,51 @@
       <div class="pg" id="pg-documentos">
         <div class="ph">
           <div><div class="ph-title">Documentos electrónicos</div><div class="ph-sub" id="ph-doc-sub">—</div></div>
-          <div class="ph-right"><button class="btn btn-g btn-sm">⬇ Exportar CSV</button></div>
+          <div class="ph-right"><button class="btn btn-g btn-sm" onclick="exportarDocsCsv()">⬇ Exportar CSV</button></div>
         </div>
 
         <div data-tabs>
           <div class="tabs">
-            <div class="tab on" onclick="swTab(this,'tb-fac',['tb-fac','tb-nc','tb-otros'])">
-              📄 Facturas <span class="tab-cnt tab-cnt-o">12,847</span>
+            <div class="tab on" onclick="swTab(this,'tb-fac',['tb-fac','tb-nc','tb-otros'],1)">
+              📄 Facturas <span class="tab-cnt tab-cnt-o" id="cnt-fac">—</span>
             </div>
-            <div class="tab" onclick="swTab(this,'tb-nc',['tb-fac','tb-nc','tb-otros'])">
-              🧾 Notas de crédito <span class="tab-cnt tab-cnt-g">48</span>
+            <div class="tab" onclick="swTab(this,'tb-nc',['tb-fac','tb-nc','tb-otros'],5)">
+              🧾 Notas de crédito <span class="tab-cnt tab-cnt-g" id="cnt-nc">—</span>
             </div>
-            <div class="tab" onclick="swTab(this,'tb-otros',['tb-fac','tb-nc','tb-otros'])">
+            <div class="tab" onclick="swTab(this,'tb-otros',['tb-fac','tb-nc','tb-otros'],0)">
               📑 Otros
             </div>
           </div>
         </div>
 
-        <div id="tb-fac">
-          <div class="tw">
-            <div class="tw-head">
-              <div class="search-box" style="max-width:280px">
-                <svg width="12" height="12" fill="none" stroke="var(--text3)" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                <input placeholder="Número, cliente, RUC...">
-              </div>
-              <div class="filter-pill">Estado ▾</div>
-              <div class="filter-pill">Fecha ▾</div>
+        <!-- Tabla compartida para todos los tabs -->
+        <div class="tw">
+          <div class="tw-head">
+            <div class="search-box" style="max-width:280px">
+              <svg width="12" height="12" fill="none" stroke="var(--text3)" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input id="docs-search" placeholder="Número, cliente, RUC..." oninput="filtrarDocs(this.value)">
             </div>
-            <div style="overflow-x:auto">
-              <table id="docs-table">
-                <thead><tr><th>Número</th><th>Cliente</th><th>Fecha</th><th>Monto</th><th>IVA</th><th>Estado</th><th>Acciones</th></tr></thead>
-                <tbody id="docs-body"></tbody>
-              </table>
-            </div>
-            <div class="pag">
-              <div class="pag-info">487 documentos hoy · Página 1 de 49</div>
-              <div class="pb">‹</div><div class="pb on">1</div><div class="pb">2</div><div class="pb">3</div><div class="pb">…</div><div class="pb">49</div><div class="pb">›</div>
+            <div class="filter-pill" id="filter-estado-lbl" onclick="toggleEstadoFilter()">Estado ▾</div>
+            <div id="filter-estado-opts" style="display:none;gap:6px" class="flex">
+              <div class="filter-pill on" onclick="setEstadoFilter('',this)">Todos</div>
+              <div class="filter-pill" onclick="setEstadoFilter('aprobado',this)">Aprobado</div>
+              <div class="filter-pill" onclick="setEstadoFilter('rechazado',this)">Rechazado</div>
+              <div class="filter-pill" onclick="setEstadoFilter('pendiente',this)">Pendiente</div>
+              <div class="filter-pill" onclick="setEstadoFilter('cancelado',this)">Cancelado</div>
             </div>
           </div>
-        </div>
-        <div id="tb-nc" style="display:none">
-          <div class="tw"><div style="padding:48px;text-align:center;color:var(--text3)"><div style="font-size:32px;margin-bottom:10px">🧾</div><div>48 notas de crédito este mes</div></div></div>
-        </div>
-        <div id="tb-otros" style="display:none">
-          <div class="tw"><div style="padding:48px;text-align:center;color:var(--text3)"><div style="font-size:32px;margin-bottom:10px">📑</div><div>Sin otros documentos para mostrar</div></div></div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Número</th><th>Cliente</th><th>Fecha</th><th>Monto</th><th>IVA</th><th>Estado</th><th>Acciones</th></tr></thead>
+              <tbody id="docs-body"></tbody>
+            </table>
+          </div>
+          <div class="pag">
+            <div class="pag-info" id="docs-pag-info">—</div>
+            <div class="pb" onclick="docsPage(-1)">‹</div>
+            <div class="pb on" id="docs-page-num">1</div>
+            <div class="pb" onclick="docsPage(1)">›</div>
+          </div>
         </div>
       </div>
 
@@ -692,6 +693,61 @@
 </div><!-- /scr-panel -->
 
 <!-- ══ MODAL: NUEVA API KEY ══ -->
+<!-- ══ MODAL: DETALLE DOCUMENTO ══ -->
+<div class="modal-overlay" id="modal-doc">
+  <div class="modal" style="width:620px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="mdoc-titulo">Documento electrónico</div>
+        <div class="fs-12 text-3" id="mdoc-cdc" style="margin-top:2px;font-family:'JetBrains Mono',monospace"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-doc')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid-2" style="gap:12px;margin-bottom:16px">
+        <div class="fsec" style="margin-bottom:0">
+          <div class="fsec-head" style="padding:10px 14px"><div class="fsec-title" style="font-size:12px">Emisor</div></div>
+          <div class="fsec-body" style="padding:12px 14px">
+            <div class="fw-600" id="mdoc-emisor-nombre">—</div>
+            <div class="fs-12 text-2" id="mdoc-emisor-ruc">—</div>
+          </div>
+        </div>
+        <div class="fsec" style="margin-bottom:0">
+          <div class="fsec-head" style="padding:10px 14px"><div class="fsec-title" style="font-size:12px">Receptor</div></div>
+          <div class="fsec-body" style="padding:12px 14px">
+            <div class="fw-600" id="mdoc-receptor-nombre">—</div>
+            <div class="fs-12 text-2" id="mdoc-receptor-doc">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="grid-2" style="gap:12px;margin-bottom:16px">
+        <div><div class="fs-11 text-3" style="text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Fecha emisión</div><div class="fw-600" id="mdoc-fecha">—</div></div>
+        <div><div class="fs-11 text-3" style="text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Estado</div><div id="mdoc-estado">—</div></div>
+        <div><div class="fs-11 text-3" style="text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Monto total</div><div class="fw-600" style="font-size:18px" id="mdoc-monto">—</div></div>
+        <div>
+          <div class="fs-11 text-3" style="text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">IVA</div>
+          <div class="fs-12" id="mdoc-iva">—</div>
+        </div>
+      </div>
+      <div style="margin-bottom:14px">
+        <div class="fs-11 text-3" style="text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Respuesta SET</div>
+        <div class="fs-12 mono" id="mdoc-sifen">—</div>
+      </div>
+      <div id="mdoc-ref-ext-wrap" style="display:none;margin-bottom:14px">
+        <div class="fs-11 text-3" style="text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Referencia ERP</div>
+        <div class="fs-12 mono" id="mdoc-ref-ext">—</div>
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:space-between">
+      <button class="btn btn-g btn-sm" onclick="closeModal('modal-doc')">Cerrar</button>
+      <div class="flex gap-10">
+        <button class="btn btn-g btn-sm" id="mdoc-btn-xml" onclick="descargarDocXml()">📄 Descargar XML</button>
+        <button class="btn btn-o btn-sm" id="mdoc-btn-kude" onclick="descargarDocKude()">🖨 Descargar KUDE (PDF)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-nueva-key">
   <div class="modal">
     <div class="modal-head"><div class="modal-title">Nueva API Key</div><button class="modal-close" onclick="closeModal('modal-nueva-key')">✕</button></div>
@@ -1401,28 +1457,42 @@ window.revokeKey = async (keyId) => {
   }
 };
 // ── DOCUMENTOS — datos reales de Supabase ────────────────────
-async function loadDocumentos(tenantId, { tipo = '', estado = '', limit = 20, offset = 0 } = {}) {
+async function loadDocumentos(tenantId, { tipo = 0, estado = '', limit = 20, offset = 0 } = {}) {
   const docsBody = document.getElementById('docs-body');
   if (!docsBody) return;
   docsBody.innerHTML = `<tr><td colspan="7" style="padding:20px;text-align:center;color:var(--text3)">Cargando...</td></tr>`;
 
+  window._docsCurrentTenantId = tenantId;
+  window._docsCurrentTipo     = tipo;
+  window._docsCurrentEstado   = estado;
+  window._docsCurrentOffset   = offset;
+  window._docsLimit           = limit;
+
   try {
     let q = `documentos?tenant_id=eq.${tenantId}&order=creado_en.desc&limit=${limit}&offset=${offset}`;
-    if (estado) q += `&estado=eq.${estado}`;
-    if (tipo)   q += `&tipo_documento=eq.${tipo}`;
+    if (tipo   > 0) q += `&tipo_documento=eq.${tipo}`;
+    if (estado)     q += `&estado=eq.${estado}`;
 
-    const res  = await fetch(`${SUPA_URL}/rest/v1/${q}`, { headers: SB_HEADERS });
-    const docs = await res.json();
+    const res   = await fetch(`${SUPA_URL}/rest/v1/${q}`, { headers: { ...SB_HEADERS, 'Prefer': 'count=exact' } });
+    const total = parseInt(res.headers.get('content-range')?.split('/')[1] || '0');
+    const docs  = await res.json();
+
+    const pagInfo = document.getElementById('docs-pag-info');
+    const pagNum  = document.getElementById('docs-page-num');
+    const pag     = Math.floor(offset/limit)+1;
+    const pages   = Math.ceil(total/limit)||1;
+    if (pagInfo) pagInfo.textContent = `${total} documentos · Página ${pag} de ${pages}`;
+    if (pagNum)  pagNum.textContent  = pag;
 
     if (!docs?.length) {
-      docsBody.innerHTML = `<tr><td colspan="7" style="padding:32px;text-align:center;color:var(--text3)">Sin documentos registrados</td></tr>`;
+      docsBody.innerHTML = `<tr><td colspan="7" style="padding:32px;text-align:center;color:var(--text3)">Sin documentos para mostrar</td></tr>`;
       return;
     }
 
     const tipoLabel = { 1:'Factura', 4:'Autofactura', 5:'Nota crédito', 6:'Nota débito', 7:'Remisión' };
 
     docsBody.innerHTML = docs.map(d => {
-      const est  = d.estado || 'pendiente';
+      const est   = d.estado || 'pendiente';
       const badge = est === 'aprobado'
         ? `<span class="badge badge-green"><span class="bd"></span>Aprobado</span>`
         : est === 'rechazado'
@@ -1431,26 +1501,26 @@ async function loadDocumentos(tenantId, { tipo = '', estado = '', limit = 20, of
         ? `<span class="badge badge-gray">Cancelado</span>`
         : `<span class="badge badge-yellow"><span class="bd"></span>Pendiente</span>`;
 
-      const fecha   = d.creado_en ? new Date(d.creado_en).toLocaleString('es-PY',{dateStyle:'short',timeStyle:'short'}) : '—';
-      const monto   = d.monto_total ? '₲ ' + Number(d.monto_total).toLocaleString() : '—';
-      const iva     = (Number(d.monto_iva_10)||0) + (Number(d.monto_iva_5)||0);
-      const puedeKude = est === 'aprobado';
-      const apiUrl  = window._CONFIG?.API_URL || '';
+      const fecha = d.creado_en ? new Date(d.creado_en).toLocaleString('es-PY',{dateStyle:'short',timeStyle:'short'}) : '—';
+      const monto = d.monto_total ? '₲ ' + Number(d.monto_total).toLocaleString() : '—';
+      const iva   = (Number(d.monto_iva_10)||0) + (Number(d.monto_iva_5)||0);
+      const puede = est === 'aprobado';
+      const data  = encodeURIComponent(JSON.stringify(d));
 
-      return `<tr>
-        <td>
+      return `<tr style="cursor:pointer" onclick="verDoc('${data}')">
+        <td onclick="event.stopPropagation()">
           <div class="mono fs-12">${d.numero || '—'}</div>
-          <div style="font-size:10px;color:var(--text3)">${tipoLabel[d.tipo_documento] || 'Doc.'}</div>
+          <div style="font-size:10px;color:var(--text3)">${tipoLabel[d.tipo_documento] || 'Documento'}</div>
         </td>
         <td>${d.receptor_razon || 'Innominado'}<br><span class="fs-11 text-3">${d.receptor_doc || ''}</span></td>
         <td class="fs-12 text-2">${fecha}</td>
         <td class="fw-600">${monto}</td>
         <td class="fs-12 text-2">${iva > 0 ? '₲ '+iva.toLocaleString() : '—'}</td>
         <td>${badge}</td>
-        <td><div class="td-act">
-          <button class="btn btn-g btn-xs" title="Ver CDC" onclick="alert('CDC:\\n${d.cdc||'—'}')">🔍</button>
-          <button class="btn btn-g btn-xs" title="Descargar XML" ${!puedeKude?'disabled style="opacity:.3"':''} onclick="window.open('${apiUrl}/documentos/${d.cdc}/xml','_blank')">📄</button>
-          <button class="btn btn-g btn-xs" title="KUDE PDF" ${!puedeKude?'disabled style="opacity:.3"':''} onclick="window.open('${apiUrl}/documentos/${d.cdc}/kude?formato=a4','_blank')">🖨</button>
+        <td onclick="event.stopPropagation()"><div class="td-act">
+          <button class="btn btn-g btn-xs" title="Ver detalle" onclick="verDoc('${data}')">🔍</button>
+          <button class="btn btn-g btn-xs" title="XML"  ${!puede?'disabled style="opacity:.3"':''} onclick="abrirXml('${d.cdc}')">📄</button>
+          <button class="btn btn-o btn-xs" title="KUDE" ${!puede?'disabled style="opacity:.3"':''} onclick="abrirKude('${d.cdc}')">🖨</button>
         </div></td>
       </tr>`;
     }).join('');
@@ -1459,6 +1529,71 @@ async function loadDocumentos(tenantId, { tipo = '', estado = '', limit = 20, of
     docsBody.innerHTML = `<tr><td colspan="7" style="padding:20px;text-align:center;color:var(--red)">Error: ${e.message}</td></tr>`;
   }
 }
+
+window.docsPage = (dir) => {
+  const off = Math.max(0, (window._docsCurrentOffset||0) + dir*(window._docsLimit||20));
+  loadDocumentos(window._docsCurrentTenantId, { tipo: window._docsCurrentTipo||0, estado: window._docsCurrentEstado||'', offset: off });
+};
+window.toggleEstadoFilter = () => {
+  const opts = document.getElementById('filter-estado-opts');
+  if (opts) opts.style.display = opts.style.display==='none' ? 'flex' : 'none';
+};
+window.setEstadoFilter = (estado, el) => {
+  el.closest('#filter-estado-opts').querySelectorAll('.filter-pill').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  loadDocumentos(window._docsCurrentTenantId, { tipo: window._docsCurrentTipo||0, estado, offset:0 });
+};
+window.filtrarDocs = (q) => {
+  document.querySelectorAll('#docs-body tr').forEach(r => {
+    r.style.display = r.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+  });
+};
+
+let _docActual = null;
+window.verDoc = (data) => {
+  try { _docActual = JSON.parse(decodeURIComponent(data)); } catch { return; }
+  const d = _docActual;
+  const tipoLabel = { 1:'Factura electrónica', 4:'Autofactura', 5:'Nota de crédito', 6:'Nota de débito', 7:'Nota de remisión' };
+  const est = d.estado || 'pendiente';
+  const badge = est==='aprobado' ? `<span class="badge badge-green"><span class="bd"></span>Aprobado</span>`
+    : est==='rechazado' ? `<span class="badge badge-red"><span class="bd"></span>Rechazado</span>`
+    : est==='cancelado' ? `<span class="badge badge-gray">Cancelado</span>`
+    : `<span class="badge badge-yellow"><span class="bd"></span>Pendiente</span>`;
+  const set  = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v||'—'; };
+  const setH = (id,v) => { const el=document.getElementById(id); if(el) el.innerHTML=v||'—'; };
+  set('mdoc-titulo',          (tipoLabel[d.tipo_documento]||'Documento')+' — '+(d.numero||''));
+  set('mdoc-cdc',             d.cdc||'');
+  set('mdoc-emisor-nombre',   window._currentTenant?.name||'—');
+  set('mdoc-emisor-ruc',      'RUC: '+(window._currentTenant?.ruc||'—'));
+  set('mdoc-receptor-nombre', d.receptor_razon||'Innominado');
+  set('mdoc-receptor-doc',    d.receptor_doc ? 'Doc: '+d.receptor_doc : '');
+  set('mdoc-fecha',           d.creado_en ? new Date(d.creado_en).toLocaleString('es-PY',{dateStyle:'long',timeStyle:'short'}) : '—');
+  setH('mdoc-estado',         badge);
+  set('mdoc-monto',           d.monto_total ? '₲ '+Number(d.monto_total).toLocaleString() : '—');
+  const iva10=Number(d.monto_iva_10||0), iva5=Number(d.monto_iva_5||0);
+  set('mdoc-iva',   iva10+iva5>0 ? `IVA 10%: ₲ ${iva10.toLocaleString()} · IVA 5%: ₲ ${iva5.toLocaleString()}` : 'Exento');
+  set('mdoc-sifen', d.sifen_codigo ? d.sifen_codigo+' — '+(d.sifen_mensaje||'') : '—');
+  const refWrap = document.getElementById('mdoc-ref-ext-wrap');
+  if (refWrap) refWrap.style.display = d.referencia_ext ? 'block' : 'none';
+  set('mdoc-ref-ext', d.referencia_ext||'');
+  const puede = est==='aprobado';
+  ['mdoc-btn-xml','mdoc-btn-kude'].forEach(id => {
+    const btn=document.getElementById(id);
+    if(btn){btn.disabled=!puede;btn.style.opacity=puede?'1':'.4';}
+  });
+  openModal('modal-doc');
+};
+window.abrirXml  = (cdc) => { if(cdc&&window._CONFIG?.API_URL) window.open(`${window._CONFIG.API_URL}/documentos/${cdc}/xml`,'_blank'); };
+window.abrirKude = (cdc) => { if(cdc&&window._CONFIG?.API_URL) window.open(`${window._CONFIG.API_URL}/documentos/${cdc}/kude?formato=a4`,'_blank'); };
+window.descargarDocXml  = () => { if(_docActual?.cdc) abrirXml(_docActual.cdc); };
+window.descargarDocKude = () => { if(_docActual?.cdc) abrirKude(_docActual.cdc); };
+window.exportarDocsCsv = () => {
+  const rows = [...document.querySelectorAll('#docs-body tr')].map(r =>
+    [...r.querySelectorAll('td')].map(c=>`"${c.textContent.trim().replace(/"/g,'""')}"`).join(','));
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent('Número,Cliente,Fecha,Monto,IVA,Estado\n'+rows.join('\n'));
+  a.download=`documentos-${new Date().toISOString().split('T')[0]}.csv`;a.click();
+};
 
 // ── LOTES TABLE ───────────────────────────────────────────────
 function loteBadge(e) {
@@ -1469,19 +1604,22 @@ function loteBadge(e) {
 }
 
 // ── TAB SWITCH ────────────────────────────────────────────────
-window.swTab = (el, tabId, allIds) => {
+window.swTab = (el, tabId, allIds, tipo) => {
   el.closest('[data-tabs]').querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
   el.classList.add('on');
-  allIds.forEach(id => {
-    const pane = document.getElementById(id);
-    if (pane) pane.style.display = id === tabId ? 'block' : 'none';
-  });
-  // Recargar documentos según tab
   const tenantId = window._currentTenant?.id;
   if (!tenantId) return;
-  if (tabId === 'tb-fac')   loadDocumentos(tenantId, { estado: '' });
-  if (tabId === 'tb-nc')    loadDocumentos(tenantId, { estado: 'aprobado' }); // tipo_documento=5 filtrado en UI
-  if (tabId === 'tb-otros') loadDocumentos(tenantId, { estado: '' });
+  window._docsCurrentTipo   = tipo || 0;
+  window._docsCurrentOffset = 0;
+  loadDocumentos(tenantId, { tipo: tipo || 0, estado: window._docsCurrentEstado || '', offset: 0 });
+};
+  el.closest('[data-tabs]').querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+  const tenantId = window._currentTenant?.id;
+  if (!tenantId) return;
+  window._docsCurrentTipo   = tipo || 0;
+  window._docsCurrentOffset = 0;
+  loadDocumentos(tenantId, { tipo: tipo || 0, estado: window._docsCurrentEstado || '', offset: 0 });
 };
 
 // ── LOGO UPLOAD ───────────────────────────────────────────────
