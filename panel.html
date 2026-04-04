@@ -1613,14 +1613,6 @@ window.swTab = (el, tabId, allIds, tipo) => {
   window._docsCurrentOffset = 0;
   loadDocumentos(tenantId, { tipo: tipo || 0, estado: window._docsCurrentEstado || '', offset: 0 });
 };
-  el.closest('[data-tabs]').querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
-  el.classList.add('on');
-  const tenantId = window._currentTenant?.id;
-  if (!tenantId) return;
-  window._docsCurrentTipo   = tipo || 0;
-  window._docsCurrentOffset = 0;
-  loadDocumentos(tenantId, { tipo: tipo || 0, estado: window._docsCurrentEstado || '', offset: 0 });
-};
 
 // ── LOGO UPLOAD ───────────────────────────────────────────────
 window.previewLogo = (input, previewId) => {
