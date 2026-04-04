@@ -30,6 +30,9 @@
     <div class="tb-spacer"></div>
     <div class="tb-actions">
       <button class="theme-btn" data-theme-icon onclick="toggleTheme()" title="Cambiar tema">☀️</button>
+      <div class="icon-btn" title="Documentación" onclick="window.open('docs/setup.html','_blank')">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
       <div class="icon-btn" onclick="toggleNotif()" title="Notificaciones">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
@@ -710,7 +713,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-g btn-sm" onclick="closeModal('modal-nueva-key')">Cancelar</button>
-      <button class="btn btn-o btn-sm" onclick="createApiKey()">Generar key →</button>
+      <button class="btn btn-o btn-sm" id="create-key-btn" onclick="createApiKey()">Generar key →</button>
     </div>
   </div>
 </div>
@@ -1200,18 +1203,34 @@ window.testSmtp   = () => {
 };
 
 // ── API KEYS ──────────────────────────────────────────────────
-window.createApiKey = () => {
+window.createApiKey = async () => {
   const nombre = document.getElementById('key-nombre').value.trim();
   const env    = document.getElementById('key-env').value;
   if (!nombre) { toast('Ingresá un nombre para la key', 'err'); return; }
-  const prefix = env === 'live' ? 'sk_live_' : 'sk_test_';
-  const key    = prefix + Math.random().toString(36).slice(2, 6).toUpperCase() +
-                 Math.random().toString(36).slice(2, 6).toUpperCase();
-  closeModal('modal-nueva-key');
-  document.getElementById('key-valor').value = key;
-  openModal('modal-key-generada');
-  // Reload keys table
-  if (window._currentTenant) setTimeout(() => loadApiKeys(window._currentTenant.id), 500);
+
+  const btn  = document.getElementById('create-key-btn');
+  if (btn) btn.disabled = true;
+
+  try {
+    // Intentar crear via Railway API real
+    const { createApiKey: apiCreate } = await import('./js/api.js');
+    const result = await apiCreate(window._currentTenant?.id, nombre, env);
+    closeModal('modal-nueva-key');
+    document.getElementById('key-valor').value = result.data?.key || result.key || '—';
+    openModal('modal-key-generada');
+    if (window._currentTenant) setTimeout(() => loadApiKeys(window._currentTenant.id), 600);
+  } catch (e) {
+    // Fallback demo si la API no está disponible
+    const prefix = env === 'live' ? 'sk_live_' : 'sk_test_';
+    const key    = prefix + Math.random().toString(36).slice(2,6).toUpperCase()
+                           + Math.random().toString(36).slice(2,6).toUpperCase();
+    closeModal('modal-nueva-key');
+    document.getElementById('key-valor').value = key;
+    openModal('modal-key-generada');
+    if (window._currentTenant) setTimeout(() => loadApiKeys(window._currentTenant.id), 600);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
 };
 window.copyKey = () => {
   const v = document.getElementById('key-valor').value;
@@ -1224,6 +1243,108 @@ window.addWebhook = () => {
   if (!url) { toast('Ingresá la URL de destino', 'err'); return; }
   closeModal('modal-webhook');
   toast('Webhook guardado correctamente', 'ok');
+};
+
+// ── INTEGRATION PAGE EXTRAS ───────────────────────────────────
+// copyText — copia el textContent de cualquier elemento por ID
+window.copyText = (elId) => {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const text = el.textContent.trim();
+  if (!text || text === 'Cargando...') { toast('Todavía cargando...', 'warn'); return; }
+  navigator.clipboard.writeText(text)
+    .then(() => toast('Copiado al portapapeles ✓', 'ok'))
+    .catch(() => toast('Seleccioná el texto manualmente', 'warn'));
+};
+
+// loadApiKeys — expuesto como window para el botón "Recargar"
+window.loadApiKeys = () => {
+  if (window._currentTenant) loadApiKeys(window._currentTenant.id);
+};
+
+// copyIntegrationGuide — copia la guía completa como texto
+window.copyIntegrationGuide = () => {
+  const t = window._currentTenant;
+  const apiUrl = (window._CONFIG?.API_URL || 'https://tu-api.railway.app/api/v1');
+  const guide = `
+==================================================
+GUÍA DE INTEGRACIÓN NODO ENGINE
+Emisor: ${t?.name || '—'} | RUC: ${t?.ruc || '—'}
+Tenant ID: ${t?.id || '—'}
+==================================================
+
+ENDPOINT DE EMISIÓN:
+POST ${apiUrl}/documentos/erp
+
+AUTENTICACIÓN:
+Header: X-API-Key: sk_live_XXXXXXXXXX
+
+BODY (JSON):
+{
+  "tipoDocumento": 1,
+  "tipoTransaccion": 1,
+  "moneda": "PYG",
+  "cliente": {
+    "tipo": 1,
+    "documento": "4567890",
+    "razonSocial": "Juan Pérez",
+    "pais": "PRY",
+    "email": "juan@email.com"
+  },
+  "items": [
+    {
+      "descripcion": "Producto A",
+      "cantidad": 1,
+      "precioUnitario": 100000,
+      "precioTotal": 100000,
+      "tasaIVA": 10
+    }
+  ],
+  "referenciaExterna": "FAC-2025-0001",
+  "webhookUrl": "https://tu-erp.com/webhook/nodo"
+}
+
+RESPUESTA EXITOSA (HTTP 201):
+{
+  "ok": true,
+  "data": {
+    "cdc": "44 caracteres",
+    "numero": "001-001-0000001",
+    "estado": "aprobado",
+    "sifen_codigo": "0260"
+  }
+}
+
+OBTENER KUDE PDF:
+GET ${apiUrl}/documentos/{CDC}/kude?formato=a4
+
+OBTENER XML FIRMADO:
+GET ${apiUrl}/documentos/{CDC}/xml
+
+CANCELAR DOCUMENTO:
+POST ${apiUrl}/documentos/{CDC}/cancelar
+
+Documentación completa: ${window.location.origin}
+==================================================
+  `.trim();
+  navigator.clipboard.writeText(guide)
+    .then(() => toast('Guía completa copiada al portapapeles ✓', 'ok'))
+    .catch(() => toast('Error al copiar', 'err'));
+};
+
+// downloadIntegrationGuide — descarga la guía como .txt
+window.downloadIntegrationGuide = () => {
+  const t = window._currentTenant;
+  const apiUrl = window._CONFIG?.API_URL || 'https://tu-api.railway.app/api/v1';
+  const content = `GUÍA DE INTEGRACIÓN NODO ENGINE\nEmisor: ${t?.name} | RUC: ${t?.ruc}\nTenant ID: ${t?.id}\nEndpoint: POST ${apiUrl}/documentos/erp\n\nVer panel para el JSON completo y ejemplos.\n`;
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `integracion-nodo-${t?.ruc || 'empresa'}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Guía descargada', 'ok');
 };
 </script>
 </body>

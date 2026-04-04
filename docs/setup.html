@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NODO Engine — Documentación</title>
+<link rel="stylesheet" href="../css/theme.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/responsive.css">
+<style>
+body { overflow: auto; }
+.docs-wrap { max-width: 900px; margin: 0 auto; padding: 40px 24px 80px; }
+.docs-topbar {
+  position: sticky; top: 0; z-index: 50;
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 14px;
+  padding: 0 24px; height: 56px;
+}
+.docs-nav {
+  display: flex; gap: 4px; margin-bottom: 40px; flex-wrap: wrap;
+  border-bottom: 1px solid var(--border); padding-bottom: 0;
+}
+.docs-tab {
+  padding: 10px 18px; font-size: 13px; font-weight: 500;
+  color: var(--text3); cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: .14s; margin-bottom: -1px; white-space: nowrap;
+}
+.docs-tab:hover { color: var(--text2); }
+.docs-tab.on { color: var(--orange); border-bottom-color: var(--orange); }
+.docs-section { display: none; }
+.docs-section.on { display: block; }
+h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+h2 {
+  font-size: 18px; font-weight: 700; margin: 36px 0 14px;
+  padding-bottom: 10px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+h3 { font-size: 15px; font-weight: 600; margin: 24px 0 10px; color: var(--text); }
+p  { font-size: 14px; color: var(--text2); line-height: 1.8; margin-bottom: 12px; }
+ul, ol { padding-left: 20px; margin-bottom: 14px; }
+li { font-size: 14px; color: var(--text2); line-height: 1.8; margin-bottom: 4px; }
+li strong { color: var(--text); }
+a  { color: var(--orange); }
+code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  background: var(--bg4); border: 1px solid var(--border);
+  border-radius: 4px; padding: 2px 7px; color: var(--orange);
+}
+pre {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 10px; padding: 18px 20px;
+  overflow-x: auto; margin: 14px 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; line-height: 1.6; color: var(--text);
+}
+pre .c  { color: var(--text3); }
+pre .k  { color: var(--orange); }
+pre .s  { color: var(--green); }
+pre .n  { color: var(--blue); }
+.step {
+  display: flex; gap: 16px; margin-bottom: 24px;
+  align-items: flex-start;
+}
+.step-num {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--orange), var(--orange-light));
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 13px; color: #000;
+}
+.step-body { flex: 1; }
+.step-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.step-desc  { font-size: 13px; color: var(--text2); line-height: 1.7; }
+.error-card {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 10px; margin-bottom: 16px; overflow: hidden;
+}
+.error-head {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 18px; cursor: pointer;
+  border-bottom: 1px solid transparent; transition: .14s;
+}
+.error-head:hover { background: var(--bg4); }
+.error-head.open  { border-bottom-color: var(--border); }
+.error-badge { font-size: 16px; }
+.error-title { font-weight: 600; font-size: 14px; flex: 1; }
+.error-type  { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+.et-cfg  { background: var(--yellow-bg); color: var(--yellow); border: 1px solid rgba(255,200,87,.2); }
+.et-api  { background: var(--blue-bg);   color: var(--blue);   border: 1px solid rgba(77,158,255,.2); }
+.et-set  { background: var(--red-bg);    color: var(--red);    border: 1px solid rgba(255,77,77,.2); }
+.et-cert { background: rgba(150,100,255,.1); color: #9B59B6; border: 1px solid rgba(150,100,255,.2); }
+.error-chevron { color: var(--text3); transition: transform .2s; font-size: 12px; }
+.error-head.open .error-chevron { transform: rotate(180deg); }
+.error-body { display: none; padding: 16px 18px; }
+.error-body.on { display: block; }
+.sol { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; }
+.sol-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex-shrink: 0; margin-top: 6px; }
+.sol-text { font-size: 13px; color: var(--text2); line-height: 1.6; }
+.info-box {
+  background: var(--blue-bg); border: 1px solid rgba(77,158,255,.2);
+  border-radius: 8px; padding: 14px 16px; margin: 14px 0;
+  font-size: 13px; color: var(--text2); display: flex; gap: 10px;
+}
+.warn-box {
+  background: var(--yellow-bg); border: 1px solid rgba(255,200,87,.2);
+  border-radius: 8px; padding: 14px 16px; margin: 14px 0;
+  font-size: 13px; color: var(--text2); display: flex; gap: 10px;
+}
+.ok-box {
+  background: var(--green-bg); border: 1px solid rgba(0,196,140,.2);
+  border-radius: 8px; padding: 14px 16px; margin: 14px 0;
+  font-size: 13px; color: var(--text2); display: flex; gap: 10px;
+}
+.tag-grid { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+.tag { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; border: 1px solid var(--border); color: var(--text2); background: var(--bg4); }
+table { width: 100%; border-collapse: collapse; margin: 14px 0; }
+thead th { text-align:left; padding: 10px 14px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text3); background: var(--bg4); border-bottom: 1px solid var(--border); }
+tbody td { padding: 11px 14px; font-size: 13px; border-bottom: 1px solid var(--border); }
+tbody tr:last-child td { border-bottom: none; }
+@media(max-width:767px) {
+  .docs-wrap { padding: 24px 16px 60px; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 16px; }
+  pre { font-size: 11px; padding: 14px; }
+}
+</style>
+</head>
+<body>
+
+<div class="docs-topbar">
+  <div class="tb-logo" style="display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px">
+    <div class="tb-logo-icon" id="docs-logo" style="width:30px;height:30px;background:linear-gradient(135deg,#FF8C00,#FFC857);border-radius:7px;display:flex;align-items:center;justify-content:center"></div>
+    <span><span style="color:var(--orange)">NODO</span> Engine — Docs</span>
+  </div>
+  <div style="flex:1"></div>
+  <a href="../index.html" class="btn btn-g btn-sm" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;font-size:12px;border-radius:6px;background:transparent;border:1px solid var(--border);color:var(--text2)">← Volver al panel</a>
+  <button class="theme-btn" data-theme-icon onclick="toggleTheme()" style="width:32px;height:32px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--text2);font-size:15px;display:flex;align-items:center;justify-content:center">☀️</button>
+</div>
+
+<div class="docs-wrap">
+  <h1>Documentación NODO Engine</h1>
+  <p style="color:var(--text2);margin-bottom:28px">Guía completa: conexión con Supabase, solución de errores e integración con sistemas externos.</p>
+
+  <div class="docs-nav" data-tabs>
+    <div class="docs-tab on"  onclick="switchTab(this,'tab-supabase')">🗄 Conectar Supabase</div>
+    <div class="docs-tab"    onclick="switchTab(this,'tab-errores')">🔧 Manual de errores</div>
+    <div class="docs-tab"    onclick="switchTab(this,'tab-integracion')">🔌 Integración ERP</div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       TAB 1 — CONECTAR SUPABASE
+  ══════════════════════════════════════════ -->
+  <div class="docs-section on" id="tab-supabase">
+
+    <h2>🗄 Conexión con Supabase — paso a paso</h2>
+
+    <div class="warn-box">
+      <span style="font-size:18px;flex-shrink:0">⚠️</span>
+      <div>Si el botón de login no hace nada o ves datos de ejemplo, es porque <code>js/config.js</code> todavía tiene las credenciales de plantilla. Seguí estos pasos.</div>
+    </div>
+
+    <h3>Paso 1 — Obtener las credenciales de Supabase</h3>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">Entrá a tu proyecto en Supabase</div>
+        <div class="step-desc">
+          Ir a <a href="https://supabase.com/dashboard" target="_blank">supabase.com/dashboard</a> → elegí tu proyecto → en el menú izquierdo click en <strong>Settings</strong> → <strong>API</strong>.
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">Copiar Project URL y Anon Key</div>
+        <div class="step-desc">
+          Vas a ver dos valores importantes:<br>
+          • <strong>Project URL</strong> — ejemplo: <code>https://abcdefgh.supabase.co</code><br>
+          • <strong>anon / public key</strong> — empieza con <code>eyJhbGci...</code> (es larga, copiá todo)
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">Editar <code>js/config.js</code></div>
+        <div class="step-desc">Abrí el archivo con cualquier editor de texto (Notepad, VS Code, etc.) y reemplazá los valores:</div>
+      </div>
+    </div>
+
+<pre><span class="k">export const</span> <span class="n">CONFIG</span> = {
+  <span class="c">// Pegá tu Project URL aquí ↓</span>
+  <span class="n">SUPABASE_URL</span>:  <span class="s">'https://abcdefghijklmnop.supabase.co'</span>,
+
+  <span class="c">// Pegá tu anon key aquí ↓ (la clave larga)</span>
+  <span class="n">SUPABASE_ANON</span>: <span class="s">'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc...'</span>,
+
+  <span class="c">// URL de tu API en Railway (para firmar y enviar a SET)</span>
+  <span class="n">API_URL</span>: <span class="s">'https://tu-nodo-engine.railway.app/api/v1'</span>,
+};</pre>
+
+    <h3>Paso 2 — Ejecutar el SQL en Supabase</h3>
+    <p>En el dashboard de Supabase ir a <strong>SQL Editor</strong> y ejecutar este script para agregar las columnas que usa el panel:</p>
+
+<pre><span class="c">-- Columnas extra necesarias para el panel web</span>
+<span class="k">ALTER TABLE</span> tenants <span class="k">ADD COLUMN IF NOT EXISTS</span> logo_url          <span class="n">TEXT</span>;
+<span class="k">ALTER TABLE</span> tenants <span class="k">ADD COLUMN IF NOT EXISTS</span> nombre_fantasia    <span class="n">VARCHAR</span>(200);
+<span class="k">ALTER TABLE</span> tenants <span class="k">ADD COLUMN IF NOT EXISTS</span> email             <span class="n">VARCHAR</span>(200);
+<span class="k">ALTER TABLE</span> tenants <span class="k">ADD COLUMN IF NOT EXISTS</span> telefono          <span class="n">VARCHAR</span>(50);
+<span class="k">ALTER TABLE</span> tenants <span class="k">ADD COLUMN IF NOT EXISTS</span> smtp_host         <span class="n">VARCHAR</span>(200);
+<span class="k">ALTER TABLE</span> tenants <span class="k">ADD COLUMN IF NOT EXISTS</span> smtp_port         <span class="n">INT DEFAULT</span> 587;
+<span class="k">ALTER TABLE</span> tenants <span class="k">ADD COLUMN IF NOT EXISTS</span> smtp_user         <span class="n">VARCHAR</span>(200);
+<span class="k">ALTER TABLE</span> tenants <span class="k">ADD COLUMN IF NOT EXISTS</span> smtp_pass         <span class="n">TEXT</span>;
+<span class="k">ALTER TABLE</span> tenants <span class="k">ADD COLUMN IF NOT EXISTS</span> smtp_ssl          <span class="n">BOOLEAN DEFAULT</span> true;
+<span class="k">ALTER TABLE</span> tenants <span class="k">ADD COLUMN IF NOT EXISTS</span> smtp_from         <span class="n">VARCHAR</span>(200);
+<span class="k">ALTER TABLE</span> tenants <span class="k">ADD COLUMN IF NOT EXISTS</span> smtp_from_name    <span class="n">VARCHAR</span>(200);
+<span class="k">ALTER TABLE</span> tenants <span class="k">ADD COLUMN IF NOT EXISTS</span> id_csc            <span class="n">VARCHAR</span>(10) <span class="k">DEFAULT</span> <span class="s">'0001'</span>;
+
+<span class="c">-- Índice de búsqueda por nombre y RUC (para el buscador del panel)</span>
+<span class="k">CREATE INDEX IF NOT EXISTS</span> idx_tenants_search
+  <span class="k">ON</span> tenants <span class="k">USING</span> gin(
+    to_tsvector(<span class="s">'simple'</span>, razon_social || <span class="s">' '</span> || ruc)
+  );</pre>
+
+    <h3>Paso 3 — Crear bucket de logos en Supabase Storage</h3>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">Storage → New bucket</div>
+        <div class="step-desc">En el menú izquierdo de Supabase → <strong>Storage</strong> → botón <strong>New bucket</strong></div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">Configurar el bucket</div>
+        <div class="step-desc">
+          • <strong>Name:</strong> <code>logos</code><br>
+          • <strong>Public bucket:</strong> ✅ activar<br>
+          • Click <strong>Save</strong>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">Política de acceso (RLS)</div>
+        <div class="step-desc">En <strong>Storage → Policies</strong> → crear una política que permita INSERT y SELECT para usuarios autenticados. O en SQL Editor:</div>
+      </div>
+    </div>
+
+<pre><span class="c">-- Permitir subir logos (usuarios autenticados)</span>
+<span class="k">CREATE POLICY</span> <span class="s">"logos_upload"</span> <span class="k">ON</span> storage.objects
+  <span class="k">FOR INSERT WITH CHECK</span> (
+    bucket_id = <span class="s">'logos'</span> <span class="k">AND</span> auth.role() = <span class="s">'authenticated'</span>
+  );
+
+<span class="c">-- Permitir ver logos (público)</span>
+<span class="k">CREATE POLICY</span> <span class="s">"logos_public"</span> <span class="k">ON</span> storage.objects
+  <span class="k">FOR SELECT USING</span> (bucket_id = <span class="s">'logos'</span>);
+
+<span class="c">-- Permitir reemplazar logos</span>
+<span class="k">CREATE POLICY</span> <span class="s">"logos_update"</span> <span class="k">ON</span> storage.objects
+  <span class="k">FOR UPDATE USING</span> (
+    bucket_id = <span class="s">'logos'</span> <span class="k">AND</span> auth.role() = <span class="s">'authenticated'</span>
+  );</pre>
+
+    <h3>Paso 4 — Configurar RLS en la tabla tenants</h3>
+    <p>Para que el panel pueda leer y escribir tenants, ejecutá en SQL Editor:</p>
+
+<pre><span class="c">-- Habilitar RLS</span>
+<span class="k">ALTER TABLE</span> tenants <span class="k">ENABLE ROW LEVEL SECURITY</span>;
+
+<span class="c">-- Solo usuarios autenticados pueden ver tenants</span>
+<span class="k">CREATE POLICY</span> <span class="s">"tenants_select"</span> <span class="k">ON</span> tenants
+  <span class="k">FOR SELECT USING</span> (auth.role() = <span class="s">'authenticated'</span>);
+
+<span class="c">-- Solo usuarios autenticados pueden crear tenants</span>
+<span class="k">CREATE POLICY</span> <span class="s">"tenants_insert"</span> <span class="k">ON</span> tenants
+  <span class="k">FOR INSERT WITH CHECK</span> (auth.role() = <span class="s">'authenticated'</span>);
+
+<span class="c">-- Solo usuarios autenticados pueden actualizar tenants</span>
+<span class="k">CREATE POLICY</span> <span class="s">"tenants_update"</span> <span class="k">ON</span> tenants
+  <span class="k">FOR UPDATE USING</span> (auth.role() = <span class="s">'authenticated'</span>);</pre>
+
+    <h3>Paso 5 — Crear usuario admin en Supabase Auth</h3>
+    <p>En Supabase Dashboard → <strong>Authentication → Users → Add user → Create new user</strong>:</p>
+    <ul>
+      <li><strong>Email:</strong> <code>info@nodoinformatica.com</code></li>
+      <li><strong>Password:</strong> <code>Abc1234*</code></li>
+      <li>Activar <strong>Auto Confirm User</strong> ✅</li>
+    </ul>
+
+    <div class="ok-box">
+      <span style="font-size:18px;flex-shrink:0">✅</span>
+      <div>Con esto hecho, el login con <code>info@nodoinformatica.com</code> / <code>Abc1234*</code> va a autenticar contra Supabase real. Los tenants que crees van a guardarse en la base de datos.</div>
+    </div>
+
+    <h3>Paso 6 — Subir config.js a Cloudflare (producción)</h3>
+    <p>El archivo <code>config.js</code> no va al repo por seguridad. Para producción en Cloudflare Pages tenés dos opciones:</p>
+
+    <p><strong>Opción A — Build step con Vite (recomendado para producción):</strong></p>
+<pre><span class="c"># En Cloudflare Pages → Settings → Environment Variables:</span>
+VITE_SUPABASE_URL  = https://tuproyecto.supabase.co
+VITE_SUPABASE_ANON = eyJhbGci...
+VITE_API_URL       = https://tu-api.railway.app/api/v1</pre>
+
+    <p><strong>Opción B — Config hardcodeada para staging:</strong><br>
+    Incluir <code>config.js</code> con los valores reales solo en el entorno de staging. En producción usar variables de entorno.</p>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       TAB 2 — ERRORES
+  ══════════════════════════════════════════ -->
+  <div class="docs-section" id="tab-errores">
+
+    <h2>🔧 Manual de errores y soluciones</h2>
+    <p>Los errores más frecuentes del sistema, organizados por categoría.</p>
+
+    <h3>🔑 Autenticación y configuración</h3>
+
+    <div class="error-card">
+      <div class="error-head" onclick="toggleError(this)">
+        <span class="error-badge">🔴</span>
+        <div class="error-title">El botón de login no hace nada</div>
+        <span class="error-type et-cfg">Configuración</span>
+        <span class="error-chevron">▼</span>
+      </div>
+      <div class="error-body">
+        <p><strong>Causa:</strong> <code>js/config.js</code> tiene los valores de plantilla (<code>TUPROYECTO.supabase.co</code>), el módulo falla al importar y el script se cae silenciosamente.</p>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Abrí <code>js/config.js</code> y reemplazá <code>TUPROYECTO</code> con tu Project URL real de Supabase.</div></div>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Verificá que el Anon Key no tenga <code>TUANON_KEY_AQUI</code> — copiá la clave completa desde Supabase → Settings → API.</div></div>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Mientras tanto podés entrar con <code>info@nodoinformatica.com</code> / <code>Abc1234*</code> — esas credenciales funcionan sin Supabase.</div></div>
+      </div>
+    </div>
+
+    <div class="error-card">
+      <div class="error-head" onclick="toggleError(this)">
+        <span class="error-badge">🔴</span>
+        <div class="error-title">Error: "Invalid login credentials"</div>
+        <span class="error-type et-cfg">Auth</span>
+        <span class="error-chevron">▼</span>
+      </div>
+      <div class="error-body">
+        <p><strong>Causa:</strong> Email o contraseña incorrectos en Supabase Auth, o el usuario no existe.</p>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Verificar que el usuario exista en Supabase → Authentication → Users.</div></div>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Si el usuario existe, usar "Reset password" desde el dashboard de Supabase.</div></div>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Verificar que el email esté confirmado (columna "Confirmed At" no vacía).</div></div>
+      </div>
+    </div>
+
+    <div class="error-card">
+      <div class="error-head" onclick="toggleError(this)">
+        <span class="error-badge">🟡</span>
+        <div class="error-title">El panel muestra datos de ejemplo en vez de los reales</div>
+        <span class="error-type et-cfg">Configuración</span>
+        <span class="error-chevron">▼</span>
+      </div>
+      <div class="error-body">
+        <p><strong>Causa:</strong> El sistema detecta que <code>config.js</code> no tiene credenciales válidas y activa el modo demo automáticamente.</p>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Completar <code>js/config.js</code> con la URL y Anon Key reales de Supabase.</div></div>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Abrir la consola del navegador (F12) y buscar mensajes que digan <code>[NODO] Modo demo</code>.</div></div>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Verificar que la tabla <code>tenants</code> exista en Supabase y tenga al menos una fila.</div></div>
+      </div>
+    </div>
+
+    <h3>📡 Conexión API y Supabase</h3>
+
+    <div class="error-card">
+      <div class="error-head" onclick="toggleError(this)">
+        <span class="error-badge">🔴</span>
+        <div class="error-title">Error: "Failed to fetch" al cargar empresas</div>
+        <span class="error-type et-api">API</span>
+        <span class="error-chevron">▼</span>
+      </div>
+      <div class="error-body">
+        <p><strong>Causa:</strong> No hay conexión con Supabase. Puede ser URL incorrecta, CORS, o problema de red.</p>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Verificar que <code>SUPABASE_URL</code> en <code>config.js</code> no tenga barra al final: correcto <code>https://abc.supabase.co</code>, incorrecto <code>https://abc.supabase.co/</code>.</div></div>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">En Supabase → Settings → API → verificar que el proyecto esté activo (no pausado por inactividad).</div></div>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Abrir F12 → Network → buscar la llamada a <code>supabase.co</code> → ver el error exacto.</div></div>
+      </div>
+    </div>
+
+    <div class="error-card">
+      <div class="error-head" onclick="toggleError(this)">
+        <span class="error-badge">🔴</span>
+        <div class="error-title">Error 403: "Row Level Security policy violated"</div>
+        <span class="error-type et-api">RLS</span>
+        <span class="error-chevron">▼</span>
+      </div>
+      <div class="error-body">
+        <p><strong>Causa:</strong> Las políticas de seguridad de Supabase (RLS) están bloqueando el acceso a la tabla.</p>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Ejecutar el SQL de políticas RLS del Paso 4 de la guía de conexión.</div></div>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Verificar que el token de autenticación sea válido — cerrar sesión y volver a entrar.</div></div>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Temporalmente para testing, desactivar RLS: <code>ALTER TABLE tenants DISABLE ROW LEVEL SECURITY;</code> — volver a activar antes de producción.</div></div>
+      </div>
+    </div>
+
+    <div class="error-card">
+      <div class="error-head" onclick="toggleError(this)">
+        <span class="error-badge">🟡</span>
+        <div class="error-title">Error al subir logo: "Bucket not found"</div>
+        <span class="error-type et-api">Storage</span>
+        <span class="error-chevron">▼</span>
+      </div>
+      <div class="error-body">
+        <p><strong>Causa:</strong> El bucket <code>logos</code> no fue creado en Supabase Storage.</p>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Ir a Supabase → Storage → New bucket → nombre <code>logos</code> → activar Public → Save.</div></div>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Verificar que el nombre sea exactamente <code>logos</code> (minúsculas).</div></div>
+      </div>
+    </div>
+
+    <h3>🏛 Errores SET / SIFEN</h3>
+
+    <div class="error-card">
+      <div class="error-head" onclick="toggleError(this)">
+        <span class="error-badge">🔴</span>
+        <div class="error-title">Código SET 0300 — "Documento con datos incorrectos"</div>
+        <span class="error-type et-set">SIFEN</span>
+        <span class="error-chevron">▼</span>
+      </div>
+      <div class="error-body">
+        <p><strong>Causa:</strong> El XML enviado tiene datos que no coinciden con lo registrado en SET (RUC, monto IVA, timbrado, etc.).</p>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Verificar que el RUC del receptor sea válido y tenga el formato correcto <code>XXXXXXXX-D</code>.</div></div>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Verificar que el cálculo del IVA sea correcto: IVA 10% = monto / 11, IVA 5% = monto / 21.</div></div>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Verificar que el timbrado esté vigente (fecha actual entre vigencia_desde y vigencia_hasta).</div></div>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Revisar el XML rechazado en el log del lote — SET indica el campo exacto con el error.</div></div>
+      </div>
+    </div>
+
+    <div class="error-card">
+      <div class="error-head" onclick="toggleError(this)">
+        <span class="error-badge">🔴</span>
+        <div class="error-title">Código SET 0302 — "CSC inválido"</div>
+        <span class="error-type et-set">SIFEN</span>
+        <span class="error-chevron">▼</span>
+      </div>
+      <div class="error-body">
+        <p><strong>Causa:</strong> El Código de Seguridad del Contribuyente (CSC) configurado no coincide con el registrado en la SET.</p>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Verificar el CSC y ID CSC en la configuración de la empresa — ir al panel → Configuración → Seguridad SIFEN.</div></div>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">El CSC se obtiene en Marangatú → Servicios Electrónicos → Código de Seguridad.</div></div>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Verificar que el ambiente (Test/Producción) coincida con el CSC — cada ambiente tiene su propio CSC.</div></div>
+      </div>
+    </div>
+
+    <div class="error-card">
+      <div class="error-head" onclick="toggleError(this)">
+        <span class="error-badge">🔴</span>
+        <div class="error-title">Código SET 0303 — "Timbrado no encontrado o inactivo"</div>
+        <span class="error-type et-set">SIFEN</span>
+        <span class="error-chevron">▼</span>
+      </div>
+      <div class="error-body">
+        <p><strong>Causa:</strong> El número de timbrado no existe, venció, o fue dado de baja en SET.</p>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Verificar que el timbrado esté activo en Marangatú.</div></div>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Verificar las fechas de vigencia en panel → Configuración → Puntos de expedición.</div></div>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Si el timbrado venció, tramitar uno nuevo en Marangatú y cargarlo en el panel.</div></div>
+      </div>
+    </div>
+
+    <div class="error-card">
+      <div class="error-head" onclick="toggleError(this)">
+        <span class="error-badge">🟡</span>
+        <div class="error-title">Código SET 0422 — "CDC ya registrado"</div>
+        <span class="error-type et-set">SIFEN</span>
+        <span class="error-chevron">▼</span>
+      </div>
+      <div class="error-body">
+        <p><strong>Causa:</strong> Se intentó enviar un documento con un CDC que ya existe en la SET (documento duplicado).</p>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">No reintentar — el documento ya fue procesado. Consultar su estado con el CDC en el panel.</div></div>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Verificar que el número secuencial no esté repetido en la tabla <code>timbrados</code>.</div></div>
+      </div>
+    </div>
+
+    <h3>🔑 Certificado digital</h3>
+
+    <div class="error-card">
+      <div class="error-head" onclick="toggleError(this)">
+        <span class="error-badge">🔴</span>
+        <div class="error-title">Error al firmar: "Certificado vencido"</div>
+        <span class="error-type et-cert">Certificado</span>
+        <span class="error-chevron">▼</span>
+      </div>
+      <div class="error-body">
+        <p><strong>Causa:</strong> El certificado digital PKCS#12 (.p12) expiró.</p>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Tramitar un nuevo certificado ante la Cámara de la Industria y Comercio o la SET.</div></div>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Una vez obtenido, subirlo en panel → Configuración → Certificado digital.</div></div>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Activar las alertas de vencimiento en Configuración de correo para recibir aviso 30 días antes.</div></div>
+      </div>
+    </div>
+
+    <div class="error-card">
+      <div class="error-head" onclick="toggleError(this)">
+        <span class="error-badge">🔴</span>
+        <div class="error-title">Error al firmar: "Contraseña del certificado incorrecta"</div>
+        <span class="error-type et-cert">Certificado</span>
+        <span class="error-chevron">▼</span>
+      </div>
+      <div class="error-body">
+        <p><strong>Causa:</strong> La contraseña guardada en el sistema no coincide con la del archivo .p12.</p>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Ir a panel → Configuración → Certificado digital → actualizar la contraseña.</div></div>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Verificar la contraseña abriendo el .p12 localmente con el Administrador de certificados de Windows.</div></div>
+      </div>
+    </div>
+
+    <h3>🌐 Cloudflare / Deploy</h3>
+
+    <div class="error-card">
+      <div class="error-head" onclick="toggleError(this)">
+        <span class="error-badge">🔴</span>
+        <div class="error-title">"Could not find wrangler.json" al hacer deploy</div>
+        <span class="error-type et-cfg">Cloudflare</span>
+        <span class="error-chevron">▼</span>
+      </div>
+      <div class="error-body">
+        <p><strong>Causa:</strong> El proyecto fue creado como <em>Worker</em> en vez de <em>Pages</em>.</p>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Borrar el proyecto en Cloudflare → Workers &amp; Pages → Settings → Delete project.</div></div>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Crear uno nuevo: Workers &amp; Pages → Create application → tab <strong>Pages</strong> (no Workers) → Connect to Git.</div></div>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">En la configuración de build: Framework = None, Build command = <em>vacío</em>, Output = <code>/</code>.</div></div>
+      </div>
+    </div>
+
+    <div class="error-card">
+      <div class="error-head" onclick="toggleError(this)">
+        <span class="error-badge">🟡</span>
+        <div class="error-title">El deploy funciona pero los cambios no aparecen</div>
+        <span class="error-type et-cfg">Cloudflare</span>
+        <span class="error-chevron">▼</span>
+      </div>
+      <div class="error-body">
+        <p><strong>Causa:</strong> Cache del navegador o de Cloudflare.</p>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Hacer Ctrl+Shift+R (hard refresh) en el navegador.</div></div>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">En Cloudflare → tu proyecto → Deployments → verificar que el último deploy haya terminado con ✅.</div></div>
+        <div class="sol"><div class="sol-dot"></div><div class="sol-text">Si el problema persiste, en Cloudflare → Caching → Purge Everything.</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       TAB 3 — INTEGRACIÓN ERP
+  ══════════════════════════════════════════ -->
+  <div class="docs-section" id="tab-integracion">
+
+    <h2>🔌 Integración con sistemas de terceros</h2>
+    <p>Guía paso a paso para conectar cualquier ERP, sistema de punto de venta o aplicación con el motor NODO Engine.</p>
+
+    <div class="ok-box">
+      <span style="font-size:18px;flex-shrink:0">✅</span>
+      <div>La integración funciona con <strong>cualquier sistema</strong> que pueda hacer llamadas HTTP: SAP, sistemas propios, Excel con macros, Python, PHP, Node.js, etc.</div>
+    </div>
+
+    <h3>Flujo general de integración</h3>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:20px;margin:14px 0;font-size:13px;color:var(--text2);line-height:1.8">
+      <strong style="color:var(--text)">Tu sistema</strong> genera una venta
+      → POST a <code>/api/v1/documentos/erp</code>
+      → NODO firma y envía a SET
+      → SET aprueba/rechaza
+      → NODO notifica a tu sistema por webhook
+      → <strong style="color:var(--text)">Tu sistema</strong> muestra el resultado
+    </div>
+
+    <h3>Paso 1 — Registrar la empresa en el panel</h3>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">Crear el tenant en el panel NODO</div>
+        <div class="step-desc">Ir a <a href="../index.html">panel.nodoengine.py</a> → click <strong>+ Nueva empresa</strong> → completar RUC, razón social y ambiente.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">Cargar el certificado digital</div>
+        <div class="step-desc">Dentro de la empresa → <strong>Configuración</strong> → <strong>Certificado digital</strong> → subir el .p12 con alias y contraseña.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">Configurar el timbrado</div>
+        <div class="step-desc">Ir a <strong>Configuración → Puntos de expedición</strong> → agregar establecimiento (001), punto (001), número de timbrado y vigencia.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <div class="step-title">Obtener la API Key</div>
+        <div class="step-desc">Ir a <strong>API Keys</strong> → <strong>+ Nueva API Key</strong> → elegir ambiente → copiar la key generada (aparece solo una vez).</div>
+      </div>
+    </div>
+
+    <h3>Paso 2 — Configurar en tu sistema</h3>
+    <p>En tu ERP o sistema, guardar estos dos datos en la configuración de facturación electrónica:</p>
+
+    <table>
+      <thead><tr><th>Parámetro</th><th>Valor</th></tr></thead>
+      <tbody>
+        <tr><td><strong>URL del servicio</strong></td><td><code>https://tu-api.railway.app/api/v1</code></td></tr>
+        <tr><td><strong>API Key</strong></td><td><code>sk_live_XXXXXXXXXXXXXXXX</code></td></tr>
+        <tr><td><strong>Endpoint facturas</strong></td><td><code>POST /documentos/erp</code></td></tr>
+        <tr><td><strong>Header de auth</strong></td><td><code>X-API-Key: sk_live_XXXX</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Paso 3 — Emitir una factura desde tu sistema</h3>
+    <p>Cuando el cliente confirma una compra, tu sistema hace esta llamada:</p>
+
+<pre><span class="n">POST</span> https://tu-api.railway.app/api/v1/documentos/erp
+<span class="n">X-API-Key:</span> <span class="s">sk_live_XXXXXXXXXXXXXXXX</span>
+<span class="n">Content-Type:</span> <span class="s">application/json</span>
+
+{
+  <span class="s">"tipoDocumento"</span>: 1,
+  <span class="s">"cliente"</span>: {
+    <span class="s">"tipo"</span>: 1,
+    <span class="s">"documento"</span>: <span class="s">"4567890"</span>,
+    <span class="s">"razonSocial"</span>: <span class="s">"Juan Pérez"</span>
+  },
+  <span class="s">"items"</span>: [
+    {
+      <span class="s">"descripcion"</span>:    <span class="s">"Producto A"</span>,
+      <span class="s">"cantidad"</span>:        1,
+      <span class="s">"precioUnitario"</span>:  150000,
+      <span class="s">"precioTotal"</span>:     150000,
+      <span class="s">"tasaIVA"</span>:         10
+    }
+  ],
+  <span class="s">"referenciaExterna"</span>: <span class="s">"VENTA-2025-001"</span>,
+  <span class="s">"webhookUrl"</span>: <span class="s">"https://tu-sistema.com/webhook/fe"</span>
+}</pre>
+
+    <h3>Paso 4 — Interpretar la respuesta</h3>
+    <p>NODO responde inmediatamente con el estado del documento:</p>
+
+<pre><span class="c">// Respuesta exitosa (201 Created)</span>
+{
+  <span class="s">"ok"</span>: true,
+  <span class="s">"data"</span>: {
+    <span class="s">"cdc"</span>:     <span class="s">"01800123456001001000012300920251234567890"</span>,
+    <span class="s">"numero"</span>: <span class="s">"001-001-0000001"</span>,
+    <span class="s">"estado"</span>: <span class="s">"aprobado"</span>,
+    <span class="s">"sifen_codigo"</span>: <span class="s">"0260"</span>,
+    <span class="s">"sifen_mensaje"</span>: <span class="s">"Documento aprobado"</span>
+  }
+}
+
+<span class="c">// Respuesta con error de datos (422)</span>
+{
+  <span class="s">"ok"</span>: false,
+  <span class="s">"error"</span>: <span class="s">"RUC del receptor inválido"</span>
+}</pre>
+
+    <h3>Paso 5 — Recibir el webhook</h3>
+    <p>Si pasaste <code>webhookUrl</code>, NODO notifica a tu sistema cuando el estado cambia:</p>
+
+<pre><span class="c">// NODO envía POST a tu-sistema.com/webhook/fe</span>
+{
+  <span class="s">"evento"</span>:  <span class="s">"de.aprobado"</span>,
+  <span class="s">"cdc"</span>:     <span class="s">"01800123456001001000012300920251234567890"</span>,
+  <span class="s">"numero"</span>: <span class="s">"001-001-0000001"</span>,
+  <span class="s">"estado"</span>: <span class="s">"aprobado"</span>,
+  <span class="s">"referenciaExterna"</span>: <span class="s">"VENTA-2025-001"</span>,
+  <span class="s">"timestamp"</span>: <span class="s">"2025-04-04T10:05:23Z"</span>
+}
+
+<span class="c">// Tu sistema responde con HTTP 200 para confirmar recepción</span></pre>
+
+    <h3>Paso 6 — Descargar el KUDE (PDF de la factura)</h3>
+    <p>Para obtener el PDF de la factura aprobada:</p>
+
+<pre><span class="n">GET</span> /documentos/{cdc}/kude?formato=a4
+<span class="n">X-API-Key:</span> sk_live_XXXX
+
+<span class="c">// Devuelve el PDF en binario (Content-Type: application/pdf)</span>
+<span class="c">// Podés descargarlo o enviarlo por email al cliente</span></pre>
+
+    <h3>Referencia de campos del request</h3>
+
+    <table>
+      <thead><tr><th>Campo</th><th>Tipo</th><th>Obligatorio</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td><code>tipoDocumento</code></td><td>number</td><td>✅</td><td>1=Factura, 5=Nota crédito, 6=Nota débito, 7=Remisión</td></tr>
+        <tr><td><code>cliente.tipo</code></td><td>number</td><td>✅</td><td>1=RUC, 2=CI, 3=Pasaporte, 4=Innominado</td></tr>
+        <tr><td><code>cliente.documento</code></td><td>string</td><td>Si tipo ≠ 4</td><td>Número de RUC o CI (sin puntos ni guiones para CI)</td></tr>
+        <tr><td><code>cliente.razonSocial</code></td><td>string</td><td>Si tipo ≠ 4</td><td>Nombre o razón social del receptor</td></tr>
+        <tr><td><code>items</code></td><td>array</td><td>✅</td><td>Mínimo 1 item</td></tr>
+        <tr><td><code>items[].tasaIVA</code></td><td>number</td><td>✅</td><td>0, 5 o 10</td></tr>
+        <tr><td><code>referenciaExterna</code></td><td>string</td><td>❌</td><td>ID de tu sistema (para buscar después)</td></tr>
+        <tr><td><code>webhookUrl</code></td><td>string</td><td>❌</td><td>URL donde NODO notifica el resultado</td></tr>
+        <tr><td><code>fecha</code></td><td>string</td><td>❌</td><td>ISO 8601 — por defecto es la fecha actual</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Códigos de respuesta SET</h3>
+
+    <table>
+      <thead><tr><th>Código</th><th>Significado</th><th>Acción</th></tr></thead>
+      <tbody>
+        <tr><td><code>0260</code></td><td style="color:var(--green)">✅ Aprobado</td><td>Todo ok — entregar al cliente</td></tr>
+        <tr><td><code>0261</code></td><td style="color:var(--yellow)">⚠️ Aprobado con obs.</td><td>Aprobado pero revisar observaciones</td></tr>
+        <tr><td><code>0300</code></td><td style="color:var(--red)">❌ Datos incorrectos</td><td>Revisar campos del documento</td></tr>
+        <tr><td><code>0302</code></td><td style="color:var(--red)">❌ CSC inválido</td><td>Verificar CSC en configuración</td></tr>
+        <tr><td><code>0303</code></td><td style="color:var(--red)">❌ Timbrado inactivo</td><td>Renovar timbrado en Marangatú</td></tr>
+        <tr><td><code>0422</code></td><td style="color:var(--yellow)">⚠️ CDC duplicado</td><td>Ya fue procesado — no reintentar</td></tr>
+        <tr><td><code>0500</code></td><td style="color:var(--red)">❌ Error SET</td><td>Problema del lado de SET — reintentar en unos minutos</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Ejemplos de integración por lenguaje</h3>
+
+    <p><strong>Python:</strong></p>
+<pre>import requests
+
+response = requests.post(
+    <span class="s">'https://tu-api.railway.app/api/v1/documentos/erp'</span>,
+    headers={<span class="s">'X-API-Key'</span>: <span class="s">'sk_live_XXXX'</span>},
+    json={
+        <span class="s">'tipoDocumento'</span>: 1,
+        <span class="s">'cliente'</span>: {<span class="s">'tipo'</span>: 2, <span class="s">'documento'</span>: <span class="s">'4567890'</span>, <span class="s">'razonSocial'</span>: <span class="s">'Juan Pérez'</span>},
+        <span class="s">'items'</span>: [{<span class="s">'descripcion'</span>: <span class="s">'Producto'</span>, <span class="s">'cantidad'</span>: 1,
+                    <span class="s">'precioUnitario'</span>: 150000, <span class="s">'precioTotal'</span>: 150000, <span class="s">'tasaIVA'</span>: 10}],
+        <span class="s">'referenciaExterna'</span>: <span class="s">'VENTA-001'</span>
+    }
+)
+data = response.json()
+<span class="k">print</span>(data[<span class="s">'data'</span>][<span class="s">'cdc'</span>])  <span class="c"># CDC del documento aprobado</span></pre>
+
+    <p><strong>PHP:</strong></p>
+<pre>$response = file_get_contents(<span class="s">'https://tu-api.railway.app/api/v1/documentos/erp'</span>, false,
+    stream_context_create([<span class="s">'http'</span> => [
+        <span class="s">'method'</span>  => <span class="s">'POST'</span>,
+        <span class="s">'header'</span>  => <span class="s">"X-API-Key: sk_live_XXXX\r\nContent-Type: application/json\r\n"</span>,
+        <span class="s">'content'</span> => json_encode([
+            <span class="s">'tipoDocumento'</span> => 1,
+            <span class="s">'cliente'</span> => [<span class="s">'tipo'</span> => 2, <span class="s">'documento'</span> => <span class="s">'4567890'</span>, <span class="s">'razonSocial'</span> => <span class="s">'Juan Perez'</span>],
+            <span class="s">'items'</span> => [[<span class="s">'descripcion'</span> => <span class="s">'Producto'</span>, <span class="s">'cantidad'</span> => 1,
+                          <span class="s">'precioUnitario'</span> => 150000, <span class="s">'precioTotal'</span> => 150000, <span class="s">'tasaIVA'</span> => 10]]
+        ])
+    ]])
+);
+$data = json_decode($response, true);</pre>
+
+    <p><strong>cURL (para probar desde terminal):</strong></p>
+<pre>curl -X POST https://tu-api.railway.app/api/v1/documentos/erp \
+  -H <span class="s">"X-API-Key: sk_live_XXXX"</span> \
+  -H <span class="s">"Content-Type: application/json"</span> \
+  -d <span class="s">'{
+    "tipoDocumento": 1,
+    "cliente": {"tipo": 4},
+    "items": [{"descripcion": "Test", "cantidad": 1,
+               "precioUnitario": 100000, "precioTotal": 100000, "tasaIVA": 10}]
+  }'</span></pre>
+
+  </div>
+
+</div>
+
+<script type="module">
+import { getTheme, applyTheme, toggleTheme } from '../js/app.js';
+
+applyTheme(getTheme());
+window.toggleTheme = toggleTheme;
+
+// Logo SVG
+document.getElementById('docs-logo').innerHTML = `
+  <svg width="17" height="17" viewBox="0 0 22 22" fill="none">
+    <circle cx="11" cy="11" r="3" fill="#000"/>
+    <circle cx="4" cy="6" r="2" fill="#000" opacity=".85"/>
+    <circle cx="18" cy="6" r="2" fill="#000" opacity=".85"/>
+    <circle cx="4" cy="16" r="2" fill="#000" opacity=".85"/>
+    <circle cx="18" cy="16" r="2" fill="#000" opacity=".85"/>
+    <line x1="6" y1="7" x2="9" y2="10" stroke="#000" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="16" y1="7" x2="13" y2="10" stroke="#000" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="6" y1="15" x2="9" y2="12" stroke="#000" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="16" y1="15" x2="13" y2="12" stroke="#000" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>`;
+
+window.switchTab = (el, tabId) => {
+  document.querySelectorAll('.docs-tab').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('.docs-section').forEach(s => s.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById(tabId).classList.add('on');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+window.toggleError = (head) => {
+  head.classList.toggle('open');
+  const body = head.nextElementSibling;
+  body.classList.toggle('on');
+};
+</script>
+</body>
+</html>

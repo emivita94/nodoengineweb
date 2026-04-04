@@ -234,6 +234,17 @@ document.getElementById('login-pass').addEventListener('keydown', e => {
   if (e.key === 'Enter') doLogin();
 });
 
+// ── CREDENCIALES ADMIN NODO ───────────────────────────────────
+const ADMIN_CREDENTIALS = [
+  { email: 'info@nodoinformatica.com', password: 'Abc1234*' },
+];
+
+function checkAdminCredentials(email, password) {
+  return ADMIN_CREDENTIALS.some(
+    c => c.email.toLowerCase() === email.toLowerCase() && c.password === password
+  );
+}
+
 // ── LOGIN ─────────────────────────────────────────────────────
 async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
@@ -251,18 +262,24 @@ async function doLogin() {
   document.getElementById('login-error').style.display = 'none';
 
   try {
-    await login(email, pass);
-    showEmpresasScreen();
-  } catch (err) {
-    let msg = err.message || 'Error al iniciar sesión';
-    if (msg === 'CONFIG_MISSING') {
-      msg = 'Falta configurar Supabase en js/config.js — por ahora estás en modo demo';
-      // En modo demo igual dejamos entrar
+    // 1. Verificar credenciales admin locales primero
+    if (checkAdminCredentials(email, pass)) {
       saveSessionDemo(email);
       showEmpresasScreen();
       return;
     }
-    showLoginError(msg);
+
+    // 2. Intentar con Supabase Auth
+    await login(email, pass);
+    showEmpresasScreen();
+
+  } catch (err) {
+    let msg = err.message || 'Error al iniciar sesión';
+    if (msg === 'CONFIG_MISSING') {
+      showLoginError('Supabase no configurado. Usá info@nodoinformatica.com / Abc1234*');
+    } else {
+      showLoginError(msg);
+    }
     btn.disabled = false;
     text.textContent = 'Iniciar sesión →';
   }
