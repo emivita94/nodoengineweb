@@ -204,8 +204,14 @@
 
 <script type="module">
 import { getTheme, applyTheme, toggleTheme, toggleNotif, openModal, closeModal, toast, nodoSvg, showScreen } from './js/app.js';
-import { login, logout, isLoggedIn, getAuthUser, clearSession } from './js/api.js';
+import { login, isLoggedIn, getAuthUser, clearSession } from './js/api.js';
 import { getTenants, createTenant as apiCreateTenant, uploadLogo } from './js/api.js';
+
+// Demo session fallback
+function saveSessionDemo(email) {
+  localStorage.setItem('nodo-auth-token', 'demo-' + Date.now());
+  localStorage.setItem('nodo-auth-user', JSON.stringify({ email, id: 'demo' }));
+}
 
 // ── EXPOSE GLOBALS ───────────────────────────────────────────
 window.toggleTheme  = toggleTheme;
@@ -229,12 +235,14 @@ document.getElementById('login-pass').addEventListener('keydown', e => {
 });
 
 // ── LOGIN ─────────────────────────────────────────────────────
-window.doLogin = async () => {};  // declarado abajo
-
 async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
   const pass  = document.getElementById('login-pass').value;
-  if (!email || !pass) { showLoginError('Completá email y contraseña'); return; }
+
+  if (!email || !pass) {
+    showLoginError('Completá email y contraseña');
+    return;
+  }
 
   const btn  = document.getElementById('login-btn');
   const text = document.getElementById('login-btn-text');
@@ -243,14 +251,23 @@ async function doLogin() {
   document.getElementById('login-error').style.display = 'none';
 
   try {
-    const user = await login(email, pass);
+    await login(email, pass);
     showEmpresasScreen();
   } catch (err) {
-    showLoginError(err.message || 'Credenciales incorrectas');
+    let msg = err.message || 'Error al iniciar sesión';
+    if (msg === 'CONFIG_MISSING') {
+      msg = 'Falta configurar Supabase en js/config.js — por ahora estás en modo demo';
+      // En modo demo igual dejamos entrar
+      saveSessionDemo(email);
+      showEmpresasScreen();
+      return;
+    }
+    showLoginError(msg);
     btn.disabled = false;
     text.textContent = 'Iniciar sesión →';
   }
 }
+
 window.doLogin = doLogin;
 document.getElementById('login-btn').addEventListener('click', doLogin);
 
