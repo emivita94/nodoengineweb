@@ -355,11 +355,401 @@
       <!-- ══════ INTEGRACIÓN ERP ══════ -->
       <div class="pg" id="pg-integracion">
         <div class="ph">
-          <div><div class="ph-title">Integración con ERP</div><div class="ph-sub" id="ph-int-sub">Credenciales y guía para conectar el sistema del cliente</div></div>
-          <div class="ph-right">
-            <button class="btn btn-o btn-sm" onclick="openModal('modal-nueva-key')">+ Nueva API Key</button>
+          <div><div class="ph-title">Integración con ERP</div><div class="ph-sub" id="ph-int-sub">Guía técnica completa para conectar el sistema del cliente a NODO Engine</div></div>
+        </div>
+
+        <!-- DATOS DE CONEXIÓN -->
+        <div class="fsec" style="margin-bottom:18px">
+          <div class="fsec-head">
+            <div class="fsec-ico">🔌</div>
+            <div><div class="fsec-title">Datos de conexión</div><div class="fsec-desc">Estos son los únicos datos que el técnico del ERP necesita</div></div>
+          </div>
+          <div class="fsec-body">
+            <div style="display:grid;gap:14px">
+              <div>
+                <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">URL base de la API</div>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <div style="flex:1;background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--orange)" id="display-api-url">—</div>
+                  <button class="btn btn-g btn-sm" onclick="copyField('display-api-url','URL base')">📋 Copiar</button>
+                </div>
+              </div>
+              <div>
+                <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">API Key (header de autenticación)</div>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <div style="flex:1;background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2)" id="display-api-key-integ">Generá una API Key en Configuración → API Keys</div>
+                  <button class="btn btn-g btn-sm" onclick="copyField('display-api-key-integ','API Key')">📋 Copiar</button>
+                </div>
+                <div style="font-size:11px;color:var(--text3);margin-top:5px">Se envía en cada request como header: <code style="font-size:11px">X-API-Key: sk_live_XXXX</code></div>
+              </div>
+            </div>
           </div>
         </div>
+
+        <!-- TUTORIAL COMPLETO -->
+        <div class="fsec">
+          <div class="fsec-head">
+            <div class="fsec-ico">📖</div>
+            <div><div class="fsec-title">Guía de integración paso a paso</div><div class="fsec-desc">Todo lo que necesita el desarrollador del ERP para integrarse</div></div>
+          </div>
+          <div class="fsec-body" style="padding:0">
+
+            <!-- Nav del tutorial -->
+            <div style="display:flex;gap:0;border-bottom:1px solid var(--border);overflow-x:auto" data-tabs>
+              <div class="tab on" style="font-size:12px;padding:10px 16px;white-space:nowrap" onclick="swTabInt(this,'tint-flujo')">① Flujo general</div>
+              <div class="tab" style="font-size:12px;padding:10px 16px;white-space:nowrap" onclick="swTabInt(this,'tint-factura')">② Emitir factura</div>
+              <div class="tab" style="font-size:12px;padding:10px 16px;white-space:nowrap" onclick="swTabInt(this,'tint-nc')">③ Nota de crédito</div>
+              <div class="tab" style="font-size:12px;padding:10px 16px;white-space:nowrap" onclick="swTabInt(this,'tint-consulta')">④ Consultar estado</div>
+              <div class="tab" style="font-size:12px;padding:10px 16px;white-space:nowrap" onclick="swTabInt(this,'tint-kude')">⑤ KUDE y XML</div>
+              <div class="tab" style="font-size:12px;padding:10px 16px;white-space:nowrap" onclick="swTabInt(this,'tint-webhook')">⑥ Webhooks</div>
+              <div class="tab" style="font-size:12px;padding:10px 16px;white-space:nowrap" onclick="swTabInt(this,'tint-errores')">⑦ Errores</div>
+              <div class="tab" style="font-size:12px;padding:10px 16px;white-space:nowrap" onclick="swTabInt(this,'tint-campos')">⑧ Referencia campos</div>
+            </div>
+
+            <!-- ① FLUJO GENERAL -->
+            <div id="tint-flujo" style="padding:20px">
+              <div style="background:var(--bg4);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:20px">
+                <div style="font-size:13px;font-weight:600;margin-bottom:14px;color:var(--text)">¿Cómo funciona la integración?</div>
+                <div style="display:flex;flex-direction:column;gap:10px">
+                  <div style="display:flex;align-items:center;gap:12px;font-size:13px">
+                    <div style="width:28px;height:28px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:#000;flex-shrink:0">1</div>
+                    <div><strong>Tu ERP</strong> genera una venta → hace un <code>POST</code> a NODO Engine con los datos de la factura</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:12px;font-size:13px">
+                    <div style="width:28px;height:28px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:#000;flex-shrink:0">2</div>
+                    <div><strong>NODO Engine</strong> valida los datos, firma el XML con el certificado digital y lo envía a la SET</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:12px;font-size:13px">
+                    <div style="width:28px;height:28px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:#000;flex-shrink:0">3</div>
+                    <div><strong>SET</strong> aprueba o rechaza → NODO devuelve el resultado al ERP y opcionalmente notifica por webhook</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:12px;font-size:13px">
+                    <div style="width:28px;height:28px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:#000;flex-shrink:0">4</div>
+                    <div><strong>Tu ERP</strong> descarga el KUDE (PDF) o XML y lo entrega al cliente</div>
+                  </div>
+                </div>
+              </div>
+              <div style="background:var(--blue-bg);border:1px solid rgba(77,158,255,.2);border-radius:8px;padding:14px 16px;font-size:13px;color:var(--text2)">
+                <strong style="color:var(--blue)">Autenticación:</strong> todos los requests deben incluir el header <code>X-API-Key: sk_live_XXXX</code>. Sin él, la API devuelve <code>401 Unauthorized</code>.
+              </div>
+            </div>
+
+            <!-- ② EMITIR FACTURA -->
+            <div id="tint-factura" style="display:none;padding:20px">
+              <div style="font-size:13px;font-weight:600;margin-bottom:4px">Emitir una factura electrónica</div>
+              <div style="font-size:12px;color:var(--text3);margin-bottom:16px">Endpoint principal — crea, firma y envía el documento a la SET en una sola llamada</div>
+
+              <div style="background:var(--bg4);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px">
+                <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+                  <span style="background:var(--orange);color:#000;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px">POST</span>
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text)" id="url-factura">/api/v1/documentos/erp</span>
+                  <button class="btn btn-g btn-sm" style="margin-left:auto;font-size:10px;padding:3px 8px" onclick="copyField('url-factura','URL')">📋</button>
+                </div>
+                <pre style="padding:16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2);line-height:1.8;overflow-x:auto;margin:0" id="code-factura">{
+  "tipoDocumento": 1,
+  "fecha": "2025-04-03T10:30:00",
+  "moneda": "PYG",
+  "condicionVenta": 1,
+
+  "cliente": {
+    "tipo": 1,
+    "documento": "80012345-6",
+    "razonSocial": "Mi Empresa S.A.",
+    "email": "fe@miempresa.py",
+    "telefono": "021555123",
+    "direccion": "Av. Principal 123"
+  },
+
+  "items": [
+    {
+      "descripcion": "Producto A",
+      "cantidad": 2,
+      "precioUnitario": 75000,
+      "precioTotal": 150000,
+      "tasaIVA": 10
+    },
+    {
+      "descripcion": "Servicio B (exento)",
+      "cantidad": 1,
+      "precioUnitario": 50000,
+      "precioTotal": 50000,
+      "tasaIVA": 0
+    }
+  ],
+
+  "referenciaExterna": "FAC-2025-001",
+  "webhookUrl": "https://mi-erp.py/webhook/nodo"
+}</pre>
+              </div>
+
+              <div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Respuesta exitosa (HTTP 201)</div>
+              <div style="background:var(--bg4);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px">
+                <pre style="padding:16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2);line-height:1.8;overflow-x:auto;margin:0">{
+  "ok": true,
+  "data": {
+    "cdc": "01800123456001002000001200120251234567890",
+    "numero": "001-002-0000001",
+    "estado": "aprobado",
+    "sifen_codigo": "0260",
+    "sifen_mensaje": "Documento aprobado"
+  }
+}</pre>
+              </div>
+
+              <div style="background:var(--green-bg);border:1px solid rgba(0,196,140,.2);border-radius:8px;padding:14px 16px;font-size:12px;color:var(--text2)">
+                <strong style="color:var(--green)">Tip:</strong> Guardá el <code>cdc</code> en tu base de datos — lo vas a necesitar para descargar el KUDE y consultar el estado.
+              </div>
+            </div>
+
+            <!-- ③ NOTA DE CRÉDITO -->
+            <div id="tint-nc" style="display:none;padding:20px">
+              <div style="font-size:13px;font-weight:600;margin-bottom:4px">Emitir una nota de crédito</div>
+              <div style="font-size:12px;color:var(--text3);margin-bottom:16px">Misma estructura que la factura, con <code>tipoDocumento: 5</code> y el CDC de la factura original</div>
+
+              <div style="background:var(--bg4);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px">
+                <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+                  <span style="background:var(--orange);color:#000;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px">POST</span>
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text)">/api/v1/documentos/erp</span>
+                </div>
+                <pre style="padding:16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2);line-height:1.8;overflow-x:auto;margin:0">{
+  "tipoDocumento": 5,
+  "fecha": "2025-04-05T09:00:00",
+  "moneda": "PYG",
+
+  "documentoAsociado": {
+    "cdc": "01800123456001002000001200120251234567890",
+    "tipoDocumentoAsociado": 1
+  },
+
+  "motivoEmision": 1,
+
+  "cliente": {
+    "tipo": 1,
+    "documento": "80012345-6",
+    "razonSocial": "Mi Empresa S.A."
+  },
+
+  "items": [
+    {
+      "descripcion": "Devolución Producto A",
+      "cantidad": 1,
+      "precioUnitario": 75000,
+      "precioTotal": 75000,
+      "tasaIVA": 10
+    }
+  ],
+
+  "referenciaExterna": "NC-2025-001"
+}</pre>
+              </div>
+
+              <div style="background:var(--blue-bg);border:1px solid rgba(77,158,255,.2);border-radius:8px;padding:14px 16px;font-size:12px;color:var(--text2)">
+                <strong style="color:var(--blue)">motivoEmision:</strong> 1=Devolución, 2=Anulación, 3=Descuento, 4=Bonificación, 5=Crédito incobrable, 6=Recupero de costo, 7=Recupero gasto, 8=Ajuste precio
+              </div>
+            </div>
+
+            <!-- ④ CONSULTAR ESTADO -->
+            <div id="tint-consulta" style="display:none;padding:20px">
+              <div style="font-size:13px;font-weight:600;margin-bottom:4px">Consultar el estado de un documento</div>
+              <div style="font-size:12px;color:var(--text3);margin-bottom:16px">Usá el CDC del documento para consultar su estado actual en cualquier momento</div>
+
+              <div style="background:var(--bg4);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px">
+                <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+                  <span style="background:var(--blue);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px">GET</span>
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text)">/api/v1/documentos/{cdc}</span>
+                </div>
+                <pre style="padding:16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2);line-height:1.8;overflow-x:auto;margin:0">// Sin body — solo el CDC en la URL
+// Ejemplo:
+GET /api/v1/documentos/01800123456001002000001200120251234567890
+X-API-Key: sk_live_XXXX</pre>
+              </div>
+
+              <div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Respuesta</div>
+              <div style="background:var(--bg4);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px">
+                <pre style="padding:16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2);line-height:1.8;overflow-x:auto;margin:0">{
+  "ok": true,
+  "data": {
+    "cdc": "01800123456001002000001200120251234567890",
+    "numero": "001-002-0000001",
+    "tipo": 1,
+    "estado": "aprobado",
+    "sifen_codigo": "0260",
+    "sifen_mensaje": "Documento aprobado",
+    "monto_total": 200000,
+    "monto_iva_10": 18182,
+    "receptor_razon": "Mi Empresa S.A.",
+    "receptor_doc": "80012345-6",
+    "creado_en": "2025-04-03T10:30:45Z"
+  }
+}</pre>
+              </div>
+
+              <div style="font-size:13px;font-weight:600;margin-bottom:8px">Buscar por referencia externa</div>
+              <div style="background:var(--bg4);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+                <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+                  <span style="background:var(--blue);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px">GET</span>
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text)">/api/v1/documentos?referenciaExterna=FAC-2025-001</span>
+                </div>
+                <pre style="padding:16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2);line-height:1.8;overflow-x:auto;margin:0">// Busca por el ID interno del ERP que enviaste en referenciaExterna
+// Útil si no guardaste el CDC</pre>
+              </div>
+            </div>
+
+            <!-- ⑤ KUDE Y XML -->
+            <div id="tint-kude" style="display:none;padding:20px">
+              <div style="font-size:13px;font-weight:600;margin-bottom:4px">Descargar KUDE (PDF) y XML</div>
+              <div style="font-size:12px;color:var(--text3);margin-bottom:16px">Solo disponible para documentos con estado <code>aprobado</code></div>
+
+              <div style="display:grid;gap:14px">
+                <div>
+                  <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--text)">Descargar KUDE en PDF</div>
+                  <div style="background:var(--bg4);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+                    <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+                      <span style="background:var(--blue);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px">GET</span>
+                      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text)">/api/v1/documentos/{cdc}/kude?formato=a4</span>
+                    </div>
+                    <pre style="padding:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2);line-height:1.8;overflow-x:auto;margin:0">// Devuelve el PDF binario (Content-Type: application/pdf)
+// formato: a4 (predeterminado) | carta | ticket
+
+// Ejemplo en tu sistema:
+response = GET /api/v1/documentos/01800.../kude?formato=a4
+           X-API-Key: sk_live_XXXX
+// → guardar como archivo .pdf o mostrar en el navegador</pre>
+                  </div>
+                </div>
+
+                <div>
+                  <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--text)">Descargar XML firmado</div>
+                  <div style="background:var(--bg4);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+                    <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+                      <span style="background:var(--blue);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px">GET</span>
+                      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text)">/api/v1/documentos/{cdc}/xml</span>
+                    </div>
+                    <pre style="padding:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2);line-height:1.8;overflow-x:auto;margin:0">// Devuelve el XML firmado (Content-Type: application/xml)
+// Este es el archivo oficial para presentar ante la SET</pre>
+                  </div>
+                </div>
+
+                <div style="background:var(--blue-bg);border:1px solid rgba(77,158,255,.2);border-radius:8px;padding:14px 16px;font-size:12px;color:var(--text2)">
+                  <strong style="color:var(--blue)">Importante:</strong> estos endpoints requieren el header <code>X-API-Key</code> igual que el resto. No son URLs públicas directas.
+                </div>
+              </div>
+            </div>
+
+            <!-- ⑥ WEBHOOKS -->
+            <div id="tint-webhook" style="display:none;padding:20px">
+              <div style="font-size:13px;font-weight:600;margin-bottom:4px">Recibir notificaciones por Webhook</div>
+              <div style="font-size:12px;color:var(--text3);margin-bottom:16px">Si enviás <code>webhookUrl</code> en el request, NODO notifica a tu sistema cuando el documento es procesado</div>
+
+              <div style="background:var(--bg4);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px">
+                <div style="padding:10px 14px;border-bottom:1px solid var(--border)">
+                  <span style="font-size:11px;color:var(--text3);font-family:monospace">NODO hace POST → tu-erp.py/webhook/nodo</span>
+                </div>
+                <pre style="padding:16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2);line-height:1.8;overflow-x:auto;margin:0">{
+  "evento": "de.aprobado",
+  "cdc": "01800123456001002000001200120251234567890",
+  "numero": "001-002-0000001",
+  "tipo": 1,
+  "estado": "aprobado",
+  "sifen_codigo": "0260",
+  "referenciaExterna": "FAC-2025-001",
+  "timestamp": "2025-04-03T10:30:45Z"
+}</pre>
+              </div>
+
+              <div style="font-size:12px;font-weight:600;margin-bottom:8px">Eventos posibles</div>
+              <table>
+                <thead><tr><th>Evento</th><th>Descripción</th></tr></thead>
+                <tbody>
+                  <tr><td><code>de.aprobado</code></td><td>Documento aprobado por la SET — listo para entregar al cliente</td></tr>
+                  <tr><td><code>de.rechazado</code></td><td>Documento rechazado — revisar <code>sifen_codigo</code> para el motivo</td></tr>
+                  <tr><td><code>de.cancelado</code></td><td>Documento cancelado exitosamente</td></tr>
+                </tbody>
+              </table>
+
+              <div style="background:var(--yellow-bg);border:1px solid rgba(255,200,87,.2);border-radius:8px;padding:14px 16px;font-size:12px;color:var(--text2);margin-top:14px">
+                <strong style="color:var(--yellow)">Tu servidor debe responder HTTP 200</strong> para confirmar la recepción. Si no responde, NODO reintenta hasta 3 veces con intervalos de 1 minuto.
+              </div>
+            </div>
+
+            <!-- ⑦ ERRORES -->
+            <div id="tint-errores" style="display:none;padding:20px">
+              <div style="font-size:13px;font-weight:600;margin-bottom:14px">Códigos de error y cómo resolverlos</div>
+
+              <div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Errores HTTP de la API</div>
+              <table style="margin-bottom:20px">
+                <thead><tr><th>Código</th><th>Significado</th><th>Solución</th></tr></thead>
+                <tbody>
+                  <tr><td><code style="color:var(--red)">401</code></td><td>API Key inválida o faltante</td><td>Verificar header <code>X-API-Key</code></td></tr>
+                  <tr><td><code style="color:var(--red)">403</code></td><td>Key revocada o sin permisos</td><td>Generar una nueva API Key</td></tr>
+                  <tr><td><code style="color:var(--red)">422</code></td><td>Datos inválidos en el request</td><td>Revisar campos requeridos y formatos</td></tr>
+                  <tr><td><code style="color:var(--red)">429</code></td><td>Rate limit excedido</td><td>Máx. 100 requests/minuto — espaciar los envíos</td></tr>
+                  <tr><td><code style="color:var(--red)">500</code></td><td>Error interno del servidor</td><td>Reintentar en 30 segundos — contactar soporte si persiste</td></tr>
+                </tbody>
+              </table>
+
+              <div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Códigos de respuesta SET (dentro de data)</div>
+              <table>
+                <thead><tr><th>Código</th><th>Significado</th><th>Solución</th></tr></thead>
+                <tbody>
+                  <tr><td><code style="color:var(--green)">0260</code></td><td style="color:var(--green)">✅ Aprobado</td><td>Todo ok — entregar al cliente</td></tr>
+                  <tr><td><code style="color:var(--yellow)">0261</code></td><td style="color:var(--yellow)">⚠️ Aprobado con obs.</td><td>Revisar observaciones en el mensaje</td></tr>
+                  <tr><td><code style="color:var(--red)">0300</code></td><td>Datos incorrectos</td><td>Revisar el campo indicado en <code>sifen_mensaje</code></td></tr>
+                  <tr><td><code style="color:var(--red)">0302</code></td><td>CSC inválido</td><td>Verificar CSC en Configuración → Seguridad</td></tr>
+                  <tr><td><code style="color:var(--red)">0303</code></td><td>Timbrado inactivo o vencido</td><td>Renovar timbrado en Configuración</td></tr>
+                  <tr><td><code style="color:var(--yellow)">0422</code></td><td>CDC duplicado</td><td>Ya fue procesado — no reintentar</td></tr>
+                  <tr><td><code style="color:var(--red)">0500</code></td><td>Error SET</td><td>Reintentar en unos minutos</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- ⑧ REFERENCIA CAMPOS -->
+            <div id="tint-campos" style="display:none;padding:20px">
+              <div style="font-size:13px;font-weight:600;margin-bottom:14px">Referencia completa de campos</div>
+
+              <div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Campos raíz del request</div>
+              <table style="margin-bottom:20px">
+                <thead><tr><th>Campo</th><th>Tipo</th><th>Req.</th><th>Descripción</th></tr></thead>
+                <tbody>
+                  <tr><td><code>tipoDocumento</code></td><td>number</td><td>✅</td><td>1=Factura, 4=Autofactura, 5=Nota crédito, 6=Nota débito, 7=Remisión</td></tr>
+                  <tr><td><code>fecha</code></td><td>string</td><td>❌</td><td>ISO 8601 — por defecto es la hora actual</td></tr>
+                  <tr><td><code>moneda</code></td><td>string</td><td>❌</td><td>PYG (defecto) | USD | BRL | EUR | ARS</td></tr>
+                  <tr><td><code>condicionVenta</code></td><td>number</td><td>❌</td><td>1=Contado (defecto), 2=Crédito</td></tr>
+                  <tr><td><code>referenciaExterna</code></td><td>string</td><td>❌</td><td>ID interno del ERP — se devuelve en el webhook</td></tr>
+                  <tr><td><code>webhookUrl</code></td><td>string</td><td>❌</td><td>URL donde NODO notifica el resultado</td></tr>
+                </tbody>
+              </table>
+
+              <div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Objeto cliente</div>
+              <table style="margin-bottom:20px">
+                <thead><tr><th>Campo</th><th>Tipo</th><th>Req.</th><th>Descripción</th></tr></thead>
+                <tbody>
+                  <tr><td><code>tipo</code></td><td>number</td><td>✅</td><td>1=RUC, 2=CI, 3=Pasaporte, 4=Innominado (sin documento)</td></tr>
+                  <tr><td><code>documento</code></td><td>string</td><td>Si tipo≠4</td><td>RUC con dígito verificador (ej: 80012345-6) o CI sin puntos</td></tr>
+                  <tr><td><code>razonSocial</code></td><td>string</td><td>Si tipo≠4</td><td>Nombre o razón social del receptor</td></tr>
+                  <tr><td><code>email</code></td><td>string</td><td>❌</td><td>Email para envío automático del KUDE</td></tr>
+                  <tr><td><code>telefono</code></td><td>string</td><td>❌</td><td>Teléfono del receptor</td></tr>
+                  <tr><td><code>direccion</code></td><td>string</td><td>❌</td><td>Dirección del receptor</td></tr>
+                </tbody>
+              </table>
+
+              <div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Objeto items (array)</div>
+              <table>
+                <thead><tr><th>Campo</th><th>Tipo</th><th>Req.</th><th>Descripción</th></tr></thead>
+                <tbody>
+                  <tr><td><code>descripcion</code></td><td>string</td><td>✅</td><td>Descripción del producto o servicio</td></tr>
+                  <tr><td><code>cantidad</code></td><td>number</td><td>✅</td><td>Cantidad (puede ser decimal: 1.5)</td></tr>
+                  <tr><td><code>precioUnitario</code></td><td>number</td><td>✅</td><td>Precio unitario sin IVA</td></tr>
+                  <tr><td><code>precioTotal</code></td><td>number</td><td>✅</td><td>cantidad × precioUnitario (el sistema valida la coherencia)</td></tr>
+                  <tr><td><code>tasaIVA</code></td><td>number</td><td>✅</td><td>0 (exento), 5 o 10</td></tr>
+                  <tr><td><code>unidadMedida</code></td><td>string</td><td>❌</td><td>Código de unidad SET (77=unidad, 83=servicio, etc.)</td></tr>
+                  <tr><td><code>codigoProducto</code></td><td>string</td><td>❌</td><td>Código interno del producto en el ERP</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        </div>
+      </div>
 
         <!-- DATOS DE CONEXIÓN -->
         <div class="fsec" style="margin-bottom:18px">
@@ -1342,21 +1732,37 @@ window.removePunto = (i) => { puntos.splice(i,1); renderPuntos(puntos); };
 
 // ── INTEGRATION PAGE ──────────────────────────────────────────
 function populateIntegracion(t) {
-  // Tenant ID
-  const tidEl = document.getElementById('display-tenant-id');
-  if (tidEl) tidEl.textContent = t.id;
-
-  // API URL  
-  const apiUrl = (window._CONFIG?.API_URL || 'https://tu-api.railway.app/api/v1') + '/documentos/erp';
+  // API URL base
+  const baseUrl = window._CONFIG?.API_URL || 'https://sifen-engine-production-f96e.up.railway.app/api/v1';
   const urlEl = document.getElementById('display-api-url');
-  if (urlEl) urlEl.textContent = apiUrl;
+  if (urlEl) urlEl.textContent = baseUrl;
+
+  // URL en el ejemplo de factura
+  const urlFact = document.getElementById('url-factura');
+  if (urlFact) urlFact.textContent = baseUrl + '/documentos/erp';
 
   // Page subtitle
   const sub = document.getElementById('ph-int-sub');
   if (sub) sub.textContent = t.name + ' · RUC ' + t.ruc;
 
-  // Load API keys
-  loadApiKeys(t.id);
+  // Cargar API Key activa para mostrarla
+  loadApiKeyDisplay(t.id);
+}
+
+async function loadApiKeyDisplay(tenantId) {
+  try {
+    const res  = await fetch(`${SUPA_URL}/rest/v1/api_keys?tenant_id=eq.${tenantId}&activa=eq.true&key_plain=not.is.null&order=creada_en.desc&limit=1`, { headers: SB_HEADERS });
+    const rows = await res.json();
+    const keyEl = document.getElementById('display-api-key-integ');
+    if (!keyEl) return;
+    if (rows?.length && rows[0].key_plain) {
+      keyEl.textContent = rows[0].key_plain;
+      keyEl.style.color = 'var(--orange)';
+    } else {
+      keyEl.textContent = 'Sin API Key activa — generá una en Configuración → API Keys';
+      keyEl.style.color = 'var(--text3)';
+    }
+  } catch(e) { console.warn('Error cargando API key:', e.message); }
 }
 
 async function loadApiKeys(tenantId) {
@@ -1643,7 +2049,15 @@ window.exportarDocsCsv = () => {
   a.download=`documentos-${new Date().toISOString().split('T')[0]}.csv`;a.click();
 };
 
-// ── LOTES TABLE ───────────────────────────────────────────────
+// ── TAB SWITCH INTEGRACIÓN ────────────────────────────────────
+window.swTabInt = (el, tabId) => {
+  el.closest('[data-tabs]').querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+  ['tint-flujo','tint-factura','tint-nc','tint-consulta','tint-kude','tint-webhook','tint-errores','tint-campos'].forEach(id => {
+    const pane = document.getElementById(id);
+    if (pane) pane.style.display = id === tabId ? 'block' : 'none';
+  });
+};
 function loteBadge(e) {
   if (e==='approved')   return `<span class="badge badge-green"><span class="bd"></span>Aprobado</span>`;
   if (e==='error')      return `<span class="badge badge-red"><span class="bd"></span>Error</span>`;
