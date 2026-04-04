@@ -2,24 +2,24 @@
 <html lang="es" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NODO Engine — Inicio</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>NODO Engine</title>
 <link rel="stylesheet" href="css/theme.css">
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
 
-<!-- ═══════════ LOGIN ═══════════ -->
+<!-- ══════════ LOGIN ══════════ -->
 <div id="scr-login" class="screen active">
   <div class="l-grid"></div>
   <div class="l-glow"></div>
-
-  <!-- Theme toggle top-right -->
   <div class="login-topbar">
-    <button class="theme-btn" data-theme-icon onclick="toggleTheme()" title="Cambiar tema">☀️</button>
+    <button class="theme-btn" data-theme-icon onclick="toggleTheme()">☀️</button>
   </div>
-
   <div class="l-card">
     <div class="l-logo">
       <div class="l-logo-icon" id="login-logo-icon"></div>
@@ -31,69 +31,69 @@
     <div class="l-title">Bienvenido de vuelta</div>
     <div class="l-desc">Ingresá con tu cuenta para continuar</div>
 
+    <div id="login-error" class="alert alert-err" style="display:none;margin-bottom:16px">
+      <span>⚠️</span><div id="login-error-msg"></div>
+    </div>
+
     <div class="field" style="margin-bottom:16px">
       <label>Email</label>
-      <input type="email" id="login-email" value="admin@nodoengine.py" placeholder="admin@empresa.py">
+      <input type="email" id="login-email" placeholder="admin@empresa.py" autocomplete="email">
     </div>
     <div class="field" style="margin-bottom:0">
       <label>Contraseña</label>
-      <input type="password" id="login-pass" value="••••••••" placeholder="••••••••">
+      <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password">
     </div>
     <div class="l-row">
-      <label class="chk"><input type="checkbox" checked> Recordarme</label>
+      <label class="chk"><input type="checkbox" id="remember-me" checked> Recordarme</label>
       <a href="#" class="link-o">¿Olvidaste tu contraseña?</a>
     </div>
-
-    <button class="btn-login" id="login-btn">Iniciar sesión →</button>
-    <div class="l-foot">Motor SIFEN v0.1.0 · Ambiente configurado por empresa · Paraguay</div>
+    <button class="btn-login" id="login-btn">
+      <span id="login-btn-text">Iniciar sesión →</span>
+    </button>
+    <div class="l-foot">Motor SIFEN v0.1.0 · Paraguay · SET</div>
   </div>
 </div>
 
-<!-- ═══════════ EMPRESAS ═══════════ -->
+<!-- ══════════ EMPRESAS ══════════ -->
 <div id="scr-empresas" class="screen">
-
-  <!-- TOPBAR -->
   <div class="topbar">
     <div class="tb-logo">
       <div class="tb-logo-icon" id="top-logo-e"></div>
       <span class="tb-logo-text"><span>NODO</span> Engine</span>
     </div>
     <div class="divider"></div>
-    <span class="fs-12 text-3">Panel de administración</span>
+    <span class="fs-12 text-3" id="top-user-label">Panel de administración</span>
     <div class="tb-spacer"></div>
     <div class="tb-actions">
-      <button class="theme-btn" data-theme-icon onclick="toggleTheme()" title="Cambiar tema">☀️</button>
-      <div class="icon-btn" onclick="toggleNotif()" title="Notificaciones">
-        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-          <path d="M13.73 21a2 2 0 01-3.46 0"/>
-        </svg>
-        <div class="notif-dot"></div>
+      <button class="theme-btn" data-theme-icon onclick="toggleTheme()">☀️</button>
+      <div class="icon-btn" onclick="toggleNotif()">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <div class="notif-dot" id="notif-dot" style="display:none"></div>
       </div>
       <div class="divider"></div>
-      <div class="avatar" title="Admin">A</div>
+      <div class="avatar" id="top-avatar" title="Cerrar sesión" onclick="doLogout()">A</div>
     </div>
   </div>
 
-  <!-- NOTIF PANEL -->
+  <!-- NOTIF -->
   <div class="notif-overlay" id="notif-overlay" onclick="toggleNotif()">
     <div class="notif-panel" onclick="event.stopPropagation()">
       <div class="np-head">Notificaciones <span style="font-size:11px;color:var(--orange);font-weight:400;cursor:pointer">Marcar leído</span></div>
-      <div class="ni"><div class="ni-dot"></div><div><div class="ni-title">⚠️ Certificado próximo a vencer</div><div class="ni-sub">Distribuidora Centro — 12 días</div></div></div>
-      <div class="ni"><div class="ni-dot" style="background:var(--red)"></div><div><div class="ni-title">❌ Error SET — lote #1028</div><div class="ni-sub">Farmacia Del Pueblo · Hace 15 min</div></div></div>
-      <div class="ni"><div class="ni-dot" style="background:var(--green)"></div><div><div class="ni-title">✅ Lote #1027 aprobado — 48 docs</div><div class="ni-sub">SuperMercado Luque · Hace 1 hora</div></div></div>
+      <div id="notif-list">
+        <div class="ni"><div class="ni-dot" style="background:var(--text3)"></div><div><div class="ni-title" style="color:var(--text3)">Sin notificaciones</div></div></div>
+      </div>
     </div>
   </div>
 
-  <!-- EMPRESAS BODY -->
+  <!-- BODY -->
   <div class="emp-body">
     <div class="emp-header">
       <div>
         <div class="emp-title">Empresas</div>
-        <div class="emp-sub" id="emp-sub">Cargando tenants...</div>
+        <div class="emp-sub" id="emp-sub">Cargando...</div>
       </div>
-      <div class="flex gap-10">
-        <button class="btn btn-g btn-sm">⬇ Exportar</button>
+      <div class="emp-actions">
+        <button class="btn btn-g btn-sm" onclick="exportTenants()">⬇ Exportar</button>
         <button class="btn btn-o btn-sm" onclick="openModal('modal-nueva-empresa')">+ Nueva empresa</button>
       </div>
     </div>
@@ -103,20 +103,32 @@
         <svg width="13" height="13" fill="none" stroke="var(--text3)" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input id="search-input" placeholder="Buscar por nombre o RUC..." oninput="filterTenants()">
       </div>
-      <div class="filter-pill on"    onclick="setFilter('all',this)">Todos</div>
-      <div class="filter-pill"       onclick="setFilter('active',this)">Activos</div>
-      <div class="filter-pill"       onclick="setFilter('error',this)">Con errores</div>
-      <div class="filter-pill"       onclick="setFilter('prod',this)">Prod</div>
-      <div class="filter-pill"       onclick="setFilter('test',this)">Test</div>
+      <div class="filter-pill on" onclick="setFilter('all',this)">Todos</div>
+      <div class="filter-pill" onclick="setFilter('active',this)">Activos</div>
+      <div class="filter-pill" onclick="setFilter('cert-warn',this)">Cert. vence</div>
+      <div class="filter-pill" onclick="setFilter('prod',this)">Prod</div>
+      <div class="filter-pill" onclick="setFilter('test',this)">Test</div>
     </div>
 
-    <div class="emp-grid" id="tenant-grid">
-      <!-- Rendered by JS -->
+    <!-- SKELETON while loading -->
+    <div id="tenant-skeleton" class="emp-grid">
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:22px;height:180px;animation:pulse 1.5s infinite"></div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:22px;height:180px;animation:pulse 1.5s infinite .2s"></div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:22px;height:180px;animation:pulse 1.5s infinite .4s"></div>
+    </div>
+
+    <div class="emp-grid" id="tenant-grid" style="display:none"></div>
+
+    <div id="tenant-empty" style="display:none;text-align:center;padding:60px 20px;color:var(--text3)">
+      <div style="font-size:40px;margin-bottom:12px">🏢</div>
+      <div style="font-size:16px;font-weight:600;color:var(--text2);margin-bottom:6px">No hay empresas registradas</div>
+      <div style="font-size:13px;margin-bottom:20px">Creá tu primer tenant para comenzar</div>
+      <button class="btn btn-o" onclick="openModal('modal-nueva-empresa')">+ Crear primera empresa</button>
     </div>
   </div>
 </div>
 
-<!-- ═══════════ MODAL NUEVA EMPRESA ═══════════ -->
+<!-- ══════════ MODAL NUEVA EMPRESA ══════════ -->
 <div class="modal-overlay" id="modal-nueva-empresa">
   <div class="modal">
     <div class="modal-head">
@@ -124,14 +136,18 @@
       <button class="modal-close" onclick="closeModal('modal-nueva-empresa')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="fsec" style="margin-bottom:16px">
-        <div class="fsec-head"><div class="fsec-ico">🏢</div><div><div class="fsec-title">Datos básicos</div><div class="fsec-desc">Identificación fiscal del contribuyente</div></div></div>
+      <div id="create-error" class="alert alert-err" style="display:none;margin-bottom:14px">
+        <span>⚠️</span><div id="create-error-msg"></div>
+      </div>
+
+      <div class="fsec" style="margin-bottom:14px">
+        <div class="fsec-head"><div class="fsec-ico">🏢</div><div><div class="fsec-title">Datos fiscales</div><div class="fsec-desc">Información ante la SET</div></div></div>
         <div class="fsec-body" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-          <div class="field"><label>RUC *</label><input placeholder="80012345-6" id="new-ruc"></div>
-          <div class="field"><label>Razón social *</label><input placeholder="Empresa S.A." id="new-razon"></div>
-          <div class="field"><label>Nombre comercial</label><input placeholder="Mi Empresa" id="new-nombre"></div>
-          <div class="field"><label>Email</label><input type="email" placeholder="fe@empresa.py" id="new-email"></div>
-          <div class="field"><label>Teléfono</label><input placeholder="021-555-0000" id="new-tel"></div>
+          <div class="field"><label>RUC *</label><input id="new-ruc" placeholder="80012345-6" maxlength="12"></div>
+          <div class="field"><label>Razón social *</label><input id="new-razon" placeholder="Mi Empresa S.A."></div>
+          <div class="field"><label>Nombre comercial</label><input id="new-nombre" placeholder="Mi Empresa"></div>
+          <div class="field"><label>Email</label><input type="email" id="new-email" placeholder="fe@empresa.py"></div>
+          <div class="field"><label>Teléfono</label><input id="new-tel" placeholder="021-555-0000"></div>
           <div class="field"><label>Plan</label>
             <select id="new-plan">
               <option value="starter">Starter</option>
@@ -141,31 +157,30 @@
           </div>
         </div>
       </div>
-      <div class="fsec">
+
+      <div class="fsec" style="margin-bottom:14px">
         <div class="fsec-head"><div class="fsec-ico">🌐</div><div><div class="fsec-title">Ambiente inicial</div></div></div>
         <div class="fsec-body">
-          <div class="env-sw">
-            <div class="env-opt on" onclick="setEnvModal(this)"><div class="env-opt-ico">⚙️</div><div class="env-opt-lbl">Test</div><div class="env-opt-desc">Pruebas SIFEN</div></div>
-            <div class="env-opt" onclick="setEnvModal(this)"><div class="env-opt-ico">🚀</div><div class="env-opt-lbl">Producción</div><div class="env-opt-desc">Envío real a SET</div></div>
+          <div class="env-sw" id="new-env-sw">
+            <div class="env-opt on" onclick="pickEnv(this,'test')"><div class="env-opt-ico">⚙️</div><div class="env-opt-lbl">Test</div><div class="env-opt-desc">Pruebas SIFEN</div></div>
+            <div class="env-opt" onclick="pickEnv(this,'prod')"><div class="env-opt-ico">🚀</div><div class="env-opt-lbl">Producción</div><div class="env-opt-desc">Envío real a SET</div></div>
           </div>
         </div>
       </div>
 
-      <!-- LOGO UPLOAD en el modal de nueva empresa -->
-      <div class="fsec" style="margin-top:16px">
-        <div class="fsec-head"><div class="fsec-ico">🖼</div><div><div class="fsec-title">Logo de la empresa</div><div class="fsec-desc">Se mostrará en el encabezado del KUDE (factura PDF)</div></div></div>
+      <div class="fsec">
+        <div class="fsec-head"><div class="fsec-ico">🖼</div><div><div class="fsec-title">Logo</div><div class="fsec-desc">Aparece en el KUDE (factura PDF)</div></div></div>
         <div class="fsec-body">
           <div class="logo-upload-wrap">
-            <div class="logo-preview" id="new-logo-preview">
-              <span class="logo-preview-placeholder">🏢</span>
-            </div>
+            <div class="logo-preview" id="new-logo-preview"><span class="logo-preview-placeholder">🏢</span></div>
             <div style="flex:1">
               <label class="upload-zone" for="new-logo-input">
-                <div style="font-size:24px;margin-bottom:8px">📂</div>
+                <div style="font-size:22px;margin-bottom:8px">📂</div>
                 <div style="font-size:13px;font-weight:600;margin-bottom:4px">Subir logo</div>
-                <div class="fs-11 text-3">PNG, JPG o SVG — máx. 2MB · recomendado 300×100px</div>
+                <div class="fs-11 text-3">PNG, JPG o SVG — máx. 2MB</div>
               </label>
-              <input type="file" id="new-logo-input" accept="image/*" style="display:none" onchange="previewLogo(this,'new-logo-preview')">
+              <input type="file" id="new-logo-input" accept="image/*" style="display:none" onchange="previewLogoFile(this,'new-logo-preview')">
+              <button class="btn btn-g btn-sm" style="margin-top:8px;width:100%" onclick="document.getElementById('new-logo-input').click()">📂 Seleccionar</button>
             </div>
           </div>
         </div>
@@ -173,78 +188,212 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-g btn-sm" onclick="closeModal('modal-nueva-empresa')">Cancelar</button>
-      <button class="btn btn-o btn-sm" onclick="createTenant()">Crear empresa →</button>
+      <button class="btn btn-o btn-sm" id="create-btn" onclick="createTenant()">
+        <span id="create-btn-text">Crear empresa →</span>
+      </button>
     </div>
   </div>
 </div>
 
-<script type="module">
-import { getTheme, applyTheme, toggleTheme, toggleNotif, openModal, closeModal, toast, nodoSvg, showScreen, enterTenant } from './js/app.js';
-import { TENANTS } from './js/data.js';
+<style>
+@keyframes pulse {
+  0%,100% { opacity:1 }
+  50%      { opacity:0.5 }
+}
+</style>
 
-// Expose to HTML onclick
+<script type="module">
+import { getTheme, applyTheme, toggleTheme, toggleNotif, openModal, closeModal, toast, nodoSvg, showScreen } from './js/app.js';
+import { login, logout, isLoggedIn, getAuthUser, clearSession } from './js/api.js';
+import { getTenants, createTenant as apiCreateTenant, uploadLogo } from './js/api.js';
+
+// ── EXPOSE GLOBALS ───────────────────────────────────────────
 window.toggleTheme  = toggleTheme;
 window.toggleNotif  = toggleNotif;
 window.openModal    = openModal;
 window.closeModal   = closeModal;
 
-// Init
+// ── INIT ─────────────────────────────────────────────────────
 applyTheme(getTheme());
 document.getElementById('login-logo-icon').innerHTML = nodoSvg(22);
 document.getElementById('top-logo-e').innerHTML      = nodoSvg(17);
 
-// Login
-document.getElementById('login-btn').addEventListener('click', () => {
-  showScreen('scr-empresas');
-  renderGrid(TENANTS);
-});
-
-// ── TENANT GRID ──────────────────────────────────────────────
-let activeFilter = 'all';
-let searchQuery  = '';
-
-function statusBadge(t) {
-  if (t.status === 'active')    return `<span class="badge badge-green"><span class="bd"></span>Activo</span>`;
-  if (t.status === 'error')     return `<span class="badge badge-red"><span class="bd"></span>Error SET</span>`;
-  if (t.status === 'cert-warn') return `<span class="badge badge-yellow"><span class="bd"></span>Cert. vence</span>`;
-  if (t.status === 'pending')   return `<span class="badge badge-gray">Pendiente</span>`;
-  return '';
+// Si ya hay sesión activa, ir directo a empresas
+if (isLoggedIn()) {
+  showEmpresasScreen();
 }
 
-function envBadge(env) {
-  return env === 'prod'
-    ? `<span class="badge badge-green">🚀 Prod</span>`
-    : `<span class="badge badge-yellow">⚙ Test</span>`;
+// Enter key en login
+document.getElementById('login-pass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+// ── LOGIN ─────────────────────────────────────────────────────
+window.doLogin = async () => {};  // declarado abajo
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  if (!email || !pass) { showLoginError('Completá email y contraseña'); return; }
+
+  const btn  = document.getElementById('login-btn');
+  const text = document.getElementById('login-btn-text');
+  btn.disabled = true;
+  text.textContent = 'Ingresando...';
+  document.getElementById('login-error').style.display = 'none';
+
+  try {
+    const user = await login(email, pass);
+    showEmpresasScreen();
+  } catch (err) {
+    showLoginError(err.message || 'Credenciales incorrectas');
+    btn.disabled = false;
+    text.textContent = 'Iniciar sesión →';
+  }
+}
+window.doLogin = doLogin;
+document.getElementById('login-btn').addEventListener('click', doLogin);
+
+function showLoginError(msg) {
+  document.getElementById('login-error').style.display = 'flex';
+  document.getElementById('login-error-msg').textContent = msg;
+}
+
+// ── LOGOUT ───────────────────────────────────────────────────
+window.doLogout = () => {
+  clearSession();
+  showScreen('scr-login');
+};
+
+// ── EMPRESAS SCREEN ──────────────────────────────────────────
+function showEmpresasScreen() {
+  showScreen('scr-empresas');
+
+  // Mostrar email del usuario
+  const user = getAuthUser();
+  if (user?.email) {
+    const label = document.getElementById('top-user-label');
+    if (label) label.textContent = user.email;
+    const avatar = document.getElementById('top-avatar');
+    if (avatar) avatar.textContent = user.email[0].toUpperCase();
+  }
+
+  loadTenants();
+}
+
+// ── LOAD TENANTS ─────────────────────────────────────────────
+let allTenants   = [];
+let activeFilter = 'all';
+
+async function loadTenants() {
+  document.getElementById('tenant-skeleton').style.display = 'grid';
+  document.getElementById('tenant-grid').style.display     = 'none';
+  document.getElementById('tenant-empty').style.display    = 'none';
+
+  try {
+    allTenants = await getTenants();
+    buildNotifications(allTenants);
+  } catch (err) {
+    // Si falla la API, mostramos mensaje
+    allTenants = [];
+    toast('Error cargando empresas: ' + err.message, 'err');
+  }
+
+  document.getElementById('tenant-skeleton').style.display = 'none';
+  renderGrid(getFiltered());
+}
+
+function buildNotifications(tenants) {
+  const warns = tenants.filter(t => t.certWarn);
+  const dot   = document.getElementById('notif-dot');
+  if (warns.length > 0 && dot) dot.style.display = 'block';
+
+  const list = document.getElementById('notif-list');
+  if (!list) return;
+  if (warns.length === 0) {
+    list.innerHTML = `<div class="ni"><div class="ni-dot" style="background:var(--green)"></div><div><div class="ni-title" style="color:var(--text2)">Todo en orden</div><div class="ni-sub">Sin alertas activas</div></div></div>`;
+    return;
+  }
+  list.innerHTML = warns.map(t => `
+    <div class="ni" onclick="goPanel('${t.id}')">
+      <div class="ni-dot" style="background:var(--yellow)"></div>
+      <div>
+        <div class="ni-title">⚠️ Certificado vence en ${t.certDays} días</div>
+        <div class="ni-sub">${t.name}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── FILTER & SEARCH ──────────────────────────────────────────
+function getFiltered() {
+  const q = (document.getElementById('search-input')?.value || '').toLowerCase();
+  return allTenants.filter(t => {
+    const matchQ = !q || t.name.toLowerCase().includes(q) || t.ruc.includes(q);
+    let matchF = true;
+    if (activeFilter === 'active')    matchF = t.status === 'active';
+    if (activeFilter === 'cert-warn') matchF = t.certWarn;
+    if (activeFilter === 'prod')      matchF = t.env === 'prod';
+    if (activeFilter === 'test')      matchF = t.env === 'test';
+    return matchQ && matchF;
+  });
+}
+
+window.filterTenants = () => renderGrid(getFiltered());
+window.setFilter = (f, el) => {
+  activeFilter = f;
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('on'));
+  el.classList.add('on');
+  renderGrid(getFiltered());
+};
+
+// ── RENDER CARDS ─────────────────────────────────────────────
+function statusBadge(t) {
+  if (t.status === 'active')    return `<span class="badge badge-green"><span class="bd"></span>Activo</span>`;
+  if (t.status === 'cert-warn') return `<span class="badge badge-yellow"><span class="bd"></span>Cert. vence</span>`;
+  if (t.status === 'inactive')  return `<span class="badge badge-red"><span class="bd"></span>Inactivo</span>`;
+  return `<span class="badge badge-gray">Pendiente</span>`;
 }
 
 function renderCard(t) {
-  const statVal = (v, unit='') => v > 0 ? `<div class="emp-stat-val" style="color:var(--orange)">${v.toLocaleString()}${unit}</div>` : `<div class="emp-stat-val text-3">—</div>`;
-  const aprVal  = t.aprobados > 0 ? `<div class="emp-stat-val ${t.aprobados < 97 ? 'down' : 'up'}">${t.aprobados}%</div>` : `<div class="emp-stat-val text-3">—</div>`;
-  const logo    = t.logo
-    ? `<div class="emp-avatar" style="background:var(--bg4)"><img src="${t.logo}" alt="logo"></div>`
-    : `<div class="emp-avatar" style="${t.avatarGradient ? `background:${t.avatarGradient}` : ''}">${t.avatar}</div>`;
-  const certWarn = t.certWarn ? `<span title="Certificado vence pronto" style="margin-left:4px">⚠️</span>` : '';
+  const logo = t.logo
+    ? `<div class="emp-avatar" style="background:var(--bg4);padding:4px"><img src="${t.logo}" alt="logo" style="width:100%;height:100%;object-fit:contain;border-radius:8px"></div>`
+    : `<div class="emp-avatar" style="background:${t.avatarGradient}">${t.avatar}</div>`;
+
+  const pct = t.aprobados > 0
+    ? `<div class="emp-stat-val ${t.aprobados < 97 ? 'down' : 'up'}">${t.aprobados}%</div>`
+    : `<div class="emp-stat-val text-3">—</div>`;
+
   return `
     <div class="emp-card" onclick="goPanel('${t.id}')">
       <div class="emp-card-glow"></div>
       <div class="emp-card-top">
-        <div style="display:flex;align-items:flex-start;gap:13px;flex:1">
+        <div style="display:flex;align-items:flex-start;gap:13px;flex:1;min-width:0">
           ${logo}
-          <div class="emp-info">
-            <div class="emp-name">${t.name}</div>
+          <div class="emp-info" style="min-width:0">
+            <div class="emp-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.name}</div>
             <div class="emp-ruc mono">RUC: ${t.ruc}</div>
           </div>
         </div>
         ${statusBadge(t)}
       </div>
       <div class="emp-stats">
-        <div class="emp-stat">${statVal(t.docsHoy)}<div class="emp-stat-lbl">Docs hoy</div></div>
-        <div class="emp-stat">${statVal(Math.round(t.docsmes/1000), 'k')}<div class="emp-stat-lbl">Este mes</div></div>
-        <div class="emp-stat">${aprVal}<div class="emp-stat-lbl">Aprobados</div></div>
+        <div class="emp-stat">
+          <div class="emp-stat-val" style="color:var(--orange)">${t.docsHoy > 0 ? t.docsHoy.toLocaleString() : '—'}</div>
+          <div class="emp-stat-lbl">Docs hoy</div>
+        </div>
+        <div class="emp-stat">
+          <div class="emp-stat-val">${t.docsmes > 0 ? (t.docsmes > 999 ? (t.docsmes/1000).toFixed(1)+'k' : t.docsmes) : '—'}</div>
+          <div class="emp-stat-lbl">Este mes</div>
+        </div>
+        <div class="emp-stat">
+          ${pct}
+          <div class="emp-stat-lbl">Aprobados</div>
+        </div>
       </div>
       <div class="emp-card-foot">
-        ${envBadge(t.env)}
-        <span class="emp-last">${t.lastActivity}${certWarn}</span>
+        <span class="badge ${t.env === 'prod' ? 'badge-green' : 'badge-yellow'}">${t.env === 'prod' ? '🚀 Prod' : '⚙ Test'}</span>
+        <span class="emp-last">${t.lastActivity}${t.certWarn ? ' ⚠️' : ''}</span>
       </div>
     </div>
   `;
@@ -253,70 +402,140 @@ function renderCard(t) {
 function renderGrid(tenants) {
   const grid = document.getElementById('tenant-grid');
   const sub  = document.getElementById('emp-sub');
-  sub.textContent = `${tenants.length} tenant${tenants.length !== 1 ? 's' : ''} registrado${tenants.length !== 1 ? 's' : ''} — seleccioná una empresa para gestionar`;
-  grid.innerHTML  = tenants.map(renderCard).join('');
+  const empty = document.getElementById('tenant-empty');
+
+  const n = tenants.length;
+  sub.textContent = `${n} tenant${n !== 1 ? 's' : ''} — seleccioná una empresa para gestionar`;
+
+  if (n === 0) {
+    grid.style.display  = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  grid.style.display  = 'grid';
+  grid.innerHTML = tenants.map(renderCard).join('');
 }
 
-function getFiltered() {
-  return TENANTS.filter(t => {
-    const q = searchQuery.toLowerCase();
-    const matchQ = !q || t.name.toLowerCase().includes(q) || t.ruc.includes(q);
-    let matchF = true;
-    if (activeFilter === 'active')  matchF = t.status === 'active';
-    if (activeFilter === 'error')   matchF = t.status === 'error' || t.status === 'cert-warn';
-    if (activeFilter === 'prod')    matchF = t.env === 'prod';
-    if (activeFilter === 'test')    matchF = t.env === 'test';
-    return matchQ && matchF;
-  });
-}
-
-window.filterTenants = () => {
-  searchQuery = document.getElementById('search-input').value;
-  renderGrid(getFiltered());
-};
-
-window.setFilter = (f, el) => {
-  activeFilter = f;
-  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('on'));
-  el.classList.add('on');
-  renderGrid(getFiltered());
-};
-
+// ── GO PANEL ─────────────────────────────────────────────────
 window.goPanel = (id) => {
-  const tenant = TENANTS.find(t => t.id === id);
+  const tenant = allTenants.find(t => t.id === id);
   if (!tenant) return;
-  // Store and navigate
   sessionStorage.setItem('nodo-tenant', JSON.stringify(tenant));
   window.location.href = 'panel.html';
 };
 
-// ── NEW TENANT MODAL ──────────────────────────────────────────
-window.setEnvModal = (el) => {
-  el.closest('.env-sw').querySelectorAll('.env-opt').forEach(o => o.classList.remove('on'));
+// ── CREATE TENANT ─────────────────────────────────────────────
+let newEnv = 'test';
+window.pickEnv = (el, env) => {
+  newEnv = env;
+  document.querySelectorAll('#new-env-sw .env-opt').forEach(o => o.classList.remove('on'));
   el.classList.add('on');
 };
 
-window.previewLogo = (input, previewId) => {
+let logoFile = null;
+window.previewLogoFile = (input, previewId) => {
   const file = input.files[0];
   if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { toast('El logo no puede superar los 2MB', 'err'); return; }
+  logoFile = file;
   const reader = new FileReader();
-  reader.onload = (e) => {
-    const preview = document.getElementById(previewId);
-    if (preview) preview.innerHTML = `<img src="${e.target.result}" alt="Logo">`;
+  reader.onload = e => {
+    const el = document.getElementById(previewId);
+    if (el) el.innerHTML = `<img src="${e.target.result}" alt="logo">`;
   };
   reader.readAsDataURL(file);
 };
 
-window.createTenant = () => {
+window.createTenant = async () => {
   const ruc   = document.getElementById('new-ruc').value.trim();
   const razon = document.getElementById('new-razon').value.trim();
-  if (!ruc || !razon) { toast('Completá RUC y Razón social', 'err'); return; }
-  toast(`Empresa "${razon}" creada correctamente`, 'ok');
-  closeModal('modal-nueva-empresa');
+  const nombre = document.getElementById('new-nombre').value.trim();
+  const email  = document.getElementById('new-email').value.trim();
+  const tel    = document.getElementById('new-tel').value.trim();
+  const plan   = document.getElementById('new-plan').value;
+
+  document.getElementById('create-error').style.display = 'none';
+
+  if (!ruc || !razon) {
+    document.getElementById('create-error').style.display = 'flex';
+    document.getElementById('create-error-msg').textContent = 'RUC y Razón social son obligatorios';
+    return;
+  }
+
+  // Validar formato RUC paraguayo (números y guión)
+  if (!/^\d{1,8}-\d$/.test(ruc)) {
+    document.getElementById('create-error').style.display = 'flex';
+    document.getElementById('create-error-msg').textContent = 'Formato de RUC inválido. Ejemplo: 80012345-6';
+    return;
+  }
+
+  const btn  = document.getElementById('create-btn');
+  const text = document.getElementById('create-btn-text');
+  btn.disabled = true;
+  text.textContent = 'Creando...';
+
+  try {
+    // 1. Crear tenant en Supabase
+    const tenant = await apiCreateTenant({
+      ruc,
+      razonSocial:    razon,
+      nombreFantasia: nombre || null,
+      email:          email  || null,
+      telefono:       tel    || null,
+      ambiente:       newEnv,
+      plan,
+    });
+
+    // 2. Subir logo si hay uno
+    if (logoFile) {
+      text.textContent = 'Subiendo logo...';
+      try {
+        await uploadLogo(tenant.id, logoFile);
+      } catch (e) {
+        toast('Empresa creada, pero error subiendo logo: ' + e.message, 'warn');
+      }
+    }
+
+    // 3. Éxito
+    closeModal('modal-nueva-empresa');
+    toast(`✅ Empresa "${razon}" creada correctamente`, 'ok');
+
+    // Limpiar form
+    ['new-ruc','new-razon','new-nombre','new-email','new-tel'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('new-logo-preview').innerHTML = '<span class="logo-preview-placeholder">🏢</span>';
+    logoFile = null;
+
+    // Recargar lista
+    await loadTenants();
+
+    // Ir al panel de la nueva empresa
+    setTimeout(() => {
+      sessionStorage.setItem('nodo-tenant', JSON.stringify(tenant));
+      window.location.href = 'panel.html';
+    }, 800);
+
+  } catch (err) {
+    document.getElementById('create-error').style.display = 'flex';
+    document.getElementById('create-error-msg').textContent = err.message || 'Error creando la empresa';
+  } finally {
+    btn.disabled = false;
+    text.textContent = 'Crear empresa →';
+  }
 };
 
-// Initial render
-renderGrid(TENANTS);
+// ── EXPORT ───────────────────────────────────────────────────
+window.exportTenants = () => {
+  const csv = ['Razón social,RUC,Ambiente,Estado,Plan,Docs hoy,Este mes']
+    .concat(allTenants.map(t => `"${t.name}",${t.ruc},${t.env},${t.status},${t.plan},${t.docsHoy},${t.docsmes}`))
+    .join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = `tenants-${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+};
 </script>
 </body>
 </html>
