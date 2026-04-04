@@ -123,14 +123,16 @@ export { sha256 };
 
 // ── TENANTS ──────────────────────────────────────────────────
 function mapTenant(row) {
-  const name = row.razon_social || row.nombre || '';
+  const razon  = row.razon_social || row.nombre || '';
+  const nombre = row.nombre_fantasia || razon;
   const certDays = row.cert_vencimiento
     ? Math.floor((new Date(row.cert_vencimiento) - new Date()) / 86400000)
     : null;
 
   return {
     id:             row.id,
-    name,
+    name:           nombre,
+    razonSocialCompleta: razon,
     nombreComercial: row.nombre_fantasia || row.nombre || '',
     ruc:            row.ruc,
     env:            row.ambiente || 'test',
@@ -138,7 +140,7 @@ function mapTenant(row) {
                       ? 'cert-warn'
                       : (row.activo ? 'active' : 'inactive'),
     plan:           row.plan || 'starter',
-    avatar:         (row.nombre_fantasia || name)[0]?.toUpperCase() || '?',
+    avatar:         (nombre[0] || '?').toUpperCase(),
     avatarGradient: avatarColor(row.ruc || ''),
     logo:           row.logo_url || null,
     docsHoy:        row.tenant_stats?.[0]?.docs_hoy        || row.docs_hoy  || 0,

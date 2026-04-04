@@ -2103,11 +2103,124 @@ window.certFileSelected = (input) => {
 };
 
 // ── SAVE ACTIONS ──────────────────────────────────────────────
-window.saveConfig = () => toast('Configuración guardada correctamente', 'ok');
-window.saveSmtp   = () => toast('Configuración de correo guardada', 'ok');
-window.testSmtp   = () => {
-  toast('Enviando email de prueba...', 'warn');
-  setTimeout(() => toast('✅ Email de prueba enviado correctamente', 'ok'), 1500);
+window.saveConfig = async () => {
+  const tenantId = window._currentTenant?.id;
+  if (!tenantId) return;
+  try {
+    const body = {
+      razonSocial:   document.getElementById('cfg-razon')?.value.trim(),
+      nombreFantasia: document.getElementById('cfg-fantasia')?.value.trim(),
+      direccion:     document.getElementById('cfg-dir')?.value.trim(),
+      telefono:      document.getElementById('cfg-tel')?.value.trim(),
+      email:         document.getElementById('cfg-email')?.value.trim(),
+      csc:           document.getElementById('cfg-csc')?.value.trim(),
+      idCsc:         document.getElementById('cfg-id-csc')?.value.trim(),
+    };
+    const res = await fetch(`${SUPA_URL}/rest/v1/tenants?id=eq.${tenantId}`, {
+      method: 'PATCH',
+      headers: { ...SB_HEADERS, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({
+        razon_social:    body.razonSocial,
+        nombre_fantasia: body.nombreFantasia,
+        direccion:       body.direccion,
+        telefono:        body.telefono,
+        email:           body.email,
+        csc:             body.csc,
+        id_csc:          body.idCsc,
+      }),
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    toast('✅ Configuración guardada', 'ok');
+  } catch(e) { toast('Error guardando: ' + e.message, 'err'); }
+};
+
+window.saveSmtp = async () => {
+  const tenantId = window._currentTenant?.id;
+  if (!tenantId) return;
+
+  const host     = document.getElementById('smtp-host')?.value.trim();
+  const port     = parseInt(document.getElementById('smtp-port')?.value || '587');
+  const user     = document.getElementById('smtp-user')?.value.trim();
+  const pass     = document.getElementById('smtp-pass')?.value;
+  const from     = document.getElementById('smtp-from')?.value.trim();
+  const fromName = document.getElementById('smtp-fromname')?.value.trim();
+  const ssl      = document.getElementById('smtp-ssl')?.checked;
+
+  if (!host) { toast('Completá el SMTP Host', 'err'); return; }
+  if (!from) { toast('Completá el email remitente', 'err'); return; }
+
+  const btn = document.querySelector('#pg-correo .btn-o');
+  if (btn) btn.disabled = true;
+
+  try {
+    const body = {
+      smtp_host:      host,
+      smtp_port:      port,
+      smtp_user:      user  || null,
+      smtp_from:      from,
+      smtp_from_name: fromName || null,
+      smtp_ssl:       ssl,
+    };
+    // Solo actualizar contraseña si se ingresó una nueva
+    if (pass && pass !== '••••••••') body.smtp_pass = pass;
+
+    const res = await fetch(`${SUPA_URL}/rest/v1/tenants?id=eq.${tenantId}`, {
+      method:  'PATCH',
+      headers: { ...SB_HEADERS, 'Prefer': 'return=minimal' },
+      body:    JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    toast('✅ Configuración de correo guardada', 'ok');
+
+    // Actualizar tenant en memoria
+    if (window._currentTenant) {
+      window._currentTenant.smtpHost     = host;
+      window._currentTenant.smtpPort     = port;
+      window._currentTenant.smtpUser     = user;
+      window._currentTenant.smtpFrom     = from;
+      window._currentTenant.smtpFromName = fromName;
+      window._currentTenant.smtpSsl      = ssl;
+    }
+  } catch(e) {
+    toast('Error guardando: ' + e.message, 'err');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+};
+
+window.testSmtp = async () => {
+  const tenantId = window._currentTenant?.id;
+  const apiUrl   = window._CONFIG?.API_URL;
+  if (!tenantId || !apiUrl) { toast('Sin configuración disponible', 'err'); return; }
+
+  const from = document.getElementById('smtp-from')?.value.trim();
+  if (!from) { toast('Guardá la configuración primero', 'err'); return; }
+
+  toast('📧 Enviando email de prueba...', 'warn');
+
+  try {
+    // Primero guardar la config actual
+    await window.saveSmtp();
+
+    // Luego llamar al motor para que envíe el test
+    const apiKey = await getApiKey();
+    if (!apiKey) { toast('Generá una API Key primero', 'err'); return; }
+
+    const res = await fetch(`${apiUrl}/tenants/${tenantId}/test-email`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
+      body:    JSON.stringify({ destinatario: from }),
+    });
+
+    if (res.ok) {
+      toast('✅ Email de prueba enviado a ' + from, 'ok');
+    } else {
+      const err = await res.json().catch(() => ({}));
+      toast('Error: ' + (err.error || 'No se pudo enviar'), 'err');
+    }
+  } catch(e) {
+    toast('Error: ' + e.message, 'err');
+  }
 };
 
 // ── API KEYS ──────────────────────────────────────────────────
