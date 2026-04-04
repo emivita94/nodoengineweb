@@ -840,7 +840,14 @@ window.toggleTheme = toggleTheme;
 window.toggleNotif = toggleNotif;
 window.openModal   = openModal;
 window.closeModal  = closeModal;
-window.showPage    = (id) => { showPage(id); closeSidebar(); };
+window.showPage = (id) => {
+  showPage(id);
+  closeSidebar();
+  // Cargar datos al navegar a documentos
+  if (id === 'documentos' && window._currentTenant?.id) {
+    loadDocumentos(window._currentTenant.id);
+  }
+};
 window.setEnv      = setEnv;
 
 // ── SIDEBAR MOBILE ────────────────────────────────────────────
@@ -1041,22 +1048,26 @@ async function loadPuntos(tenantId) {
 
     // Agrupar por establecimiento
     const estabMap = {};
+    // Agrupar por establecimiento y deduplicar por número de timbrado
+    // (mismo timbrado puede estar para factura y nota crédito — UI simplificada)
     timbrados.forEach(t => {
-      const est = (estabs || []).find(e => e.id === t.establecimiento_id);
-      const punto = (puntos || []).find(p => p.id === t.punto_id);
+      const est    = (estabs || []).find(e => e.id === t.establecimiento_id);
+      const punto  = (puntos  || []).find(p => p.id === t.punto_id);
       const estCod = est?.codigo || '001';
       const estNom = est?.nombre || punto?.descripcion || 'Establecimiento ' + estCod;
       if (!estabMap[estCod]) estabMap[estCod] = { codigo: estCod, nombre: estNom, timbrados: [] };
 
-      estabMap[estCod].timbrados.push({
-        id:        t.id,
-        numero:    t.numero_timbrado,
-        desde:     t.vigencia_desde?.split('T')[0] || '—',
-        hasta:     t.vigencia_hasta?.split('T')[0] || '—',
-        activo:    t.activo,
-        puntoCod:  punto?.codigo || '001',
-        tipoDoc:   t.tipo_documento,
-      });
+      // No agregar si ya existe un timbrado con el mismo número
+      const yaExiste = estabMap[estCod].timbrados.some(x => x.numero === t.numero_timbrado);
+      if (!yaExiste) {
+        estabMap[estCod].timbrados.push({
+          id:     t.id,
+          numero: t.numero_timbrado,
+          desde:  t.vigencia_desde?.split('T')[0] || '—',
+          hasta:  t.vigencia_hasta?.split('T')[0] || '—',
+          activo: t.activo,
+        });
+      }
     });
 
     // Tipos de documento legibles
@@ -1390,19 +1401,17 @@ window.revokeKey = async (keyId) => {
   }
 };
 // ── DOCUMENTOS — datos reales de Supabase ────────────────────
-const docsBody = document.getElementById('docs-body');
-
-async function loadDocumentos(tenantId, { estado = '', limit = 20, offset = 0 } = {}) {
+async function loadDocumentos(tenantId, { tipo = '', estado = '', limit = 20, offset = 0 } = {}) {
+  const docsBody = document.getElementById('docs-body');
   if (!docsBody) return;
   docsBody.innerHTML = `<tr><td colspan="7" style="padding:20px;text-align:center;color:var(--text3)">Cargando...</td></tr>`;
 
   try {
     let q = `documentos?tenant_id=eq.${tenantId}&order=creado_en.desc&limit=${limit}&offset=${offset}`;
     if (estado) q += `&estado=eq.${estado}`;
+    if (tipo)   q += `&tipo_documento=eq.${tipo}`;
 
-    const res = await fetch(`${SUPA_URL}/rest/v1/${q}`, {
-      headers: { ...SB_HEADERS, 'Prefer': 'count=exact' }
-    });
+    const res  = await fetch(`${SUPA_URL}/rest/v1/${q}`, { headers: SB_HEADERS });
     const docs = await res.json();
 
     if (!docs?.length) {
@@ -1410,32 +1419,38 @@ async function loadDocumentos(tenantId, { estado = '', limit = 20, offset = 0 } 
       return;
     }
 
+    const tipoLabel = { 1:'Factura', 4:'Autofactura', 5:'Nota crédito', 6:'Nota débito', 7:'Remisión' };
+
     docsBody.innerHTML = docs.map(d => {
-      const estado = d.estado || 'pendiente';
-      const badge = estado === 'aprobado'
+      const est  = d.estado || 'pendiente';
+      const badge = est === 'aprobado'
         ? `<span class="badge badge-green"><span class="bd"></span>Aprobado</span>`
-        : estado === 'rechazado'
+        : est === 'rechazado'
         ? `<span class="badge badge-red"><span class="bd"></span>Rechazado</span>`
-        : estado === 'cancelado'
+        : est === 'cancelado'
         ? `<span class="badge badge-gray">Cancelado</span>`
         : `<span class="badge badge-yellow"><span class="bd"></span>Pendiente</span>`;
 
-      const fecha = d.creado_en ? new Date(d.creado_en).toLocaleString('es-PY', { dateStyle:'short', timeStyle:'short' }) : '—';
-      const monto = d.monto_total ? '₲ ' + Number(d.monto_total).toLocaleString() : '—';
-      const iva   = (d.monto_iva_10 || 0) + (d.monto_iva_5 || 0);
-      const puedeKude = estado === 'aprobado';
+      const fecha   = d.creado_en ? new Date(d.creado_en).toLocaleString('es-PY',{dateStyle:'short',timeStyle:'short'}) : '—';
+      const monto   = d.monto_total ? '₲ ' + Number(d.monto_total).toLocaleString() : '—';
+      const iva     = (Number(d.monto_iva_10)||0) + (Number(d.monto_iva_5)||0);
+      const puedeKude = est === 'aprobado';
+      const apiUrl  = window._CONFIG?.API_URL || '';
 
       return `<tr>
-        <td class="mono fs-12">${d.numero || d.cdc?.substring(0,15) || '—'}</td>
+        <td>
+          <div class="mono fs-12">${d.numero || '—'}</div>
+          <div style="font-size:10px;color:var(--text3)">${tipoLabel[d.tipo_documento] || 'Doc.'}</div>
+        </td>
         <td>${d.receptor_razon || 'Innominado'}<br><span class="fs-11 text-3">${d.receptor_doc || ''}</span></td>
         <td class="fs-12 text-2">${fecha}</td>
         <td class="fw-600">${monto}</td>
-        <td class="fs-12 text-2">₲ ${iva > 0 ? iva.toLocaleString() : '—'}</td>
+        <td class="fs-12 text-2">${iva > 0 ? '₲ '+iva.toLocaleString() : '—'}</td>
         <td>${badge}</td>
         <td><div class="td-act">
-          <button class="btn btn-g btn-xs" title="Ver detalle" onclick="verDocumento('${d.cdc}')">🔍</button>
-          <button class="btn btn-g btn-xs" title="Descargar XML" onclick="descargarXml('${d.cdc}')" ${!puedeKude?'disabled style="opacity:.3"':''}>📄</button>
-          <button class="btn btn-g btn-xs" title="KUDE PDF" onclick="descargarKude('${d.cdc}')" ${!puedeKude?'disabled style="opacity:.3"':''}>🖨</button>
+          <button class="btn btn-g btn-xs" title="Ver CDC" onclick="alert('CDC:\\n${d.cdc||'—'}')">🔍</button>
+          <button class="btn btn-g btn-xs" title="Descargar XML" ${!puedeKude?'disabled style="opacity:.3"':''} onclick="window.open('${apiUrl}/documentos/${d.cdc}/xml','_blank')">📄</button>
+          <button class="btn btn-g btn-xs" title="KUDE PDF" ${!puedeKude?'disabled style="opacity:.3"':''} onclick="window.open('${apiUrl}/documentos/${d.cdc}/kude?formato=a4','_blank')">🖨</button>
         </div></td>
       </tr>`;
     }).join('');
@@ -1445,30 +1460,12 @@ async function loadDocumentos(tenantId, { estado = '', limit = 20, offset = 0 } 
   }
 }
 
-// Acciones de documentos
-window.verDocumento  = (cdc) => { if (cdc) window.open(`${window._CONFIG?.API_URL}/documentos/${cdc}`, '_blank'); };
-window.descargarXml  = (cdc) => { if (cdc) window.open(`${window._CONFIG?.API_URL}/documentos/${cdc}/xml`, '_blank'); };
-window.descargarKude = (cdc) => { if (cdc) window.open(`${window._CONFIG?.API_URL}/documentos/${cdc}/kude?formato=a4`, '_blank'); };
-
 // ── LOTES TABLE ───────────────────────────────────────────────
 function loteBadge(e) {
   if (e==='approved')   return `<span class="badge badge-green"><span class="bd"></span>Aprobado</span>`;
   if (e==='error')      return `<span class="badge badge-red"><span class="bd"></span>Error</span>`;
   if (e==='processing') return `<span class="badge badge-yellow"><span class="bd"></span>Procesando</span>`;
   return `<span class="badge badge-gray">${e}</span>`;
-}
-const lotesBody = document.getElementById('lotes-body');
-if (lotesBody) {
-  lotesBody.innerHTML = MOCK_LOTES.map(l => `
-    <tr>
-      <td class="mono">${l.id}</td>
-      <td>${l.docs} docs</td>
-      <td class="fs-12 text-2">${l.fecha}</td>
-      <td>${loteBadge(l.estado)}</td>
-      <td class="mono fs-12" style="color:${l.estado==='approved'?'var(--green)':l.estado==='error'?'var(--red)':'var(--text3)'}">${l.resp}</td>
-      <td><button class="btn ${l.estado==='error'?'btn-d':'btn-g'} btn-sm" onclick="${l.estado==='error'?"openModal('modal-lote-error')":"''"}">🔍 Ver</button></td>
-    </tr>
-  `).join('');
 }
 
 // ── TAB SWITCH ────────────────────────────────────────────────
