@@ -1583,8 +1583,59 @@ window.verDoc = (data) => {
   });
   openModal('modal-doc');
 };
-window.abrirXml  = (cdc) => { if(cdc&&window._CONFIG?.API_URL) window.open(`${window._CONFIG.API_URL}/documentos/${cdc}/xml`,'_blank'); };
-window.abrirKude = (cdc) => { if(cdc&&window._CONFIG?.API_URL) window.open(`${window._CONFIG.API_URL}/documentos/${cdc}/kude?formato=a4`,'_blank'); };
+window.abrirXml = async (cdc) => {
+  if (!cdc || !window._CONFIG?.API_URL) return;
+  const apiKey = getStoredApiKey();
+  if (!apiKey) { mostrarModalApiKey(cdc, 'xml'); return; }
+  descargarConKey(cdc, 'xml', apiKey);
+};
+
+window.abrirKude = async (cdc) => {
+  if (!cdc || !window._CONFIG?.API_URL) return;
+  const apiKey = getStoredApiKey();
+  if (!apiKey) { mostrarModalApiKey(cdc, 'kude'); return; }
+  descargarConKey(cdc, 'kude', apiKey);
+};
+
+function getStoredApiKey() {
+  // Primero buscar en sessionStorage (guardada al ver docs)
+  const tenantId = window._currentTenant?.id;
+  return sessionStorage.getItem(`nodo-apikey-${tenantId}`) || null;
+}
+
+async function descargarConKey(cdc, tipo, apiKey) {
+  const apiUrl = window._CONFIG.API_URL;
+  const url    = tipo === 'xml'
+    ? `${apiUrl}/documentos/${cdc}/xml`
+    : `${apiUrl}/documentos/${cdc}/kude?formato=a4`;
+  try {
+    const res = await fetch(url, { headers: { 'X-API-Key': apiKey } });
+    if (res.status === 401) {
+      sessionStorage.removeItem(`nodo-apikey-${window._currentTenant?.id}`);
+      toast('API Key inválida — ingresá una nueva', 'err');
+      mostrarModalApiKey(cdc, tipo);
+      return;
+    }
+    if (!res.ok) { toast('Error ' + res.status + ' al descargar', 'err'); return; }
+    const blob = await res.blob();
+    const ext  = tipo === 'xml' ? 'xml' : 'pdf';
+    const burl = URL.createObjectURL(blob);
+    if (tipo === 'kude') {
+      window.open(burl, '_blank');
+    } else {
+      const a = document.createElement('a'); a.href = burl; a.download = `${cdc}.${ext}`; a.click();
+    }
+    setTimeout(() => URL.revokeObjectURL(burl), 5000);
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+}
+
+function mostrarModalApiKey(cdc, tipo) {
+  // Modal simple para ingresar la API Key
+  const key = prompt(`Ingresá la API Key del tenant (sk_live_... o sk_test_...):\n\nPodés verla en Configuración → API Keys`);
+  if (!key?.startsWith('sk_')) { toast('API Key inválida', 'err'); return; }
+  sessionStorage.setItem(`nodo-apikey-${window._currentTenant?.id}`, key);
+  descargarConKey(cdc, tipo, key);
+}
 window.descargarDocXml  = () => { if(_docActual?.cdc) abrirXml(_docActual.cdc); };
 window.descargarDocKude = () => { if(_docActual?.cdc) abrirKude(_docActual.cdc); };
 window.exportarDocsCsv = () => {
