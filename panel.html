@@ -829,7 +829,11 @@
 <script type="module">
 import { getTheme, applyTheme, toggleTheme, toggleNotif, openModal, closeModal, toast, nodoSvg, showPage, setEnv } from './js/app.js';
 import { isLoggedIn, clearSession } from './js/api.js';
-import { MOCK_DOCS, MOCK_LOTES } from './js/data.js';
+import { MOCK_LOTES } from './js/data.js';
+
+// ── Variables globales — declaradas al inicio para evitar TDZ ──
+let SUPA_URL = '', SB_HEADERS = {};
+let actividades = [];
 
 // Expose globals
 window.toggleTheme = toggleTheme;
@@ -860,13 +864,12 @@ if (!isLoggedIn()) {
 
 // Load tenant from session
 const raw = sessionStorage.getItem('nodo-tenant');
-const tenant = raw ? JSON.parse(raw) : null;
+const tenantBase = raw ? JSON.parse(raw) : null;
 
-if (!tenant) {
+if (!tenantBase) {
   window.location.href = 'index.html';
 } else {
-  window._currentTenant = tenant;
-  // Cargar config primero, luego poblar el panel
+  // Cargar config primero
   try {
     const cfgMod = await import('./js/config.js');
     SUPA_URL   = cfgMod.CONFIG.SUPABASE_URL;
@@ -875,6 +878,19 @@ if (!tenant) {
     window._CONFIG = cfgMod.CONFIG;
   } catch(e) { console.warn('[NODO] config no cargado:', e.message); }
 
+  // Recargar tenant fresco desde Supabase para tener todos los campos
+  let tenant = tenantBase;
+  try {
+    const res  = await fetch(`${SUPA_URL}/rest/v1/tenants?id=eq.${tenantBase.id}&limit=1`, { headers: SB_HEADERS });
+    const rows = await res.json();
+    if (rows?.length) {
+      // importar mapTenant desde api.js
+      const apiMod = await import('./js/api.js');
+      tenant = await apiMod.getTenant(tenantBase.id);
+    }
+  } catch(e) { console.warn('[NODO] No se pudo recargar tenant:', e.message); }
+
+  window._currentTenant = tenant;
   populatePanel(tenant);
   populateIntegracion(tenant);
 }
@@ -1198,11 +1214,7 @@ window.deleteTimbrado = async (timbradoId, tenantId) => {
   }
 };
 
-// ── SUPABASE HEADERS (se llenan en init antes de populatePanel) ──
-let SUPA_URL = '', SB_HEADERS = {};
-
 // ── ACTIVIDADES ───────────────────────────────────────────────
-let actividades = [];
 function renderActividades(list) {
   actividades = list;
   const tbody = document.getElementById('actividades-body');
