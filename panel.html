@@ -866,10 +866,17 @@ if (!tenant) {
   window.location.href = 'index.html';
 } else {
   window._currentTenant = tenant;
+  // Cargar config primero, luego poblar el panel
+  try {
+    const cfgMod = await import('./js/config.js');
+    SUPA_URL   = cfgMod.CONFIG.SUPABASE_URL;
+    const key  = cfgMod.CONFIG.SUPABASE_SERVICE;
+    SB_HEADERS = { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' };
+    window._CONFIG = cfgMod.CONFIG;
+  } catch(e) { console.warn('[NODO] config no cargado:', e.message); }
+
   populatePanel(tenant);
   populateIntegracion(tenant);
-  // Load config for API URL
-  import('./js/config.js').then(m => { window._CONFIG = m.CONFIG; populateIntegracion(tenant); }).catch(()=>{});
 }
 
 function populatePanel(t) {
@@ -993,6 +1000,9 @@ function populatePanel(t) {
 
   // Puntos de expedición — cargar desde BD
   loadPuntos(t.id);
+
+  // Documentos reales
+  loadDocumentos(t.id);
 }
 
 // ── ESTABLECIMIENTOS Y TIMBRADOS (estilo Facturasend) ─────────
@@ -1188,15 +1198,10 @@ window.deleteTimbrado = async (timbradoId, tenantId) => {
   }
 };
 
-// ── SUPABASE HEADERS para llamadas directas ───────────────────
+// ── SUPABASE HEADERS (se llenan en init antes de populatePanel) ──
 let SUPA_URL = '', SB_HEADERS = {};
-try {
-  const cfg = await import('./js/config.js');
-  SUPA_URL   = cfg.CONFIG.SUPABASE_URL;
-  const key  = cfg.CONFIG.SUPABASE_SERVICE;
-  SB_HEADERS = { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' };
-} catch(e) { console.warn('[NODO] config no cargado'); }
 
+// ── ACTIVIDADES ───────────────────────────────────────────────
 let actividades = [];
 function renderActividades(list) {
   actividades = list;
@@ -1372,29 +1377,66 @@ window.revokeKey = async (keyId) => {
     toast('Error revocando key: ' + e.message, 'err');
   }
 };
-function estadoBadge(e) {
-  if (e==='approved') return `<span class="badge badge-green"><span class="bd"></span>Aprobado</span>`;
-  if (e==='rejected') return `<span class="badge badge-red"><span class="bd"></span>Rechazado</span>`;
-  return `<span class="badge badge-yellow"><span class="bd"></span>Pendiente</span>`;
-}
+// ── DOCUMENTOS — datos reales de Supabase ────────────────────
 const docsBody = document.getElementById('docs-body');
-if (docsBody) {
-  docsBody.innerHTML = MOCK_DOCS.map(d => `
-    <tr>
-      <td class="mono fs-12">${d.numero}</td>
-      <td>${d.cliente}<br><span class="fs-11 text-3">${d.doc}</span></td>
-      <td class="fs-12 text-2">${d.fecha}</td>
-      <td class="fw-600">₲ ${d.monto}</td>
-      <td class="fs-12 text-2">₲ ${d.iva}</td>
-      <td>${estadoBadge(d.estado)}</td>
-      <td><div class="td-act">
-        <button class="btn btn-g btn-xs" title="Ver detalle">🔍</button>
-        <button class="btn btn-g btn-xs" title="Descargar XML">📄</button>
-        <button class="btn btn-g btn-xs" title="KUDE PDF" ${d.estado!=='approved'?'disabled style="opacity:.3"':''}>🖨</button>
-      </div></td>
-    </tr>
-  `).join('');
+
+async function loadDocumentos(tenantId, { estado = '', limit = 20, offset = 0 } = {}) {
+  if (!docsBody) return;
+  docsBody.innerHTML = `<tr><td colspan="7" style="padding:20px;text-align:center;color:var(--text3)">Cargando...</td></tr>`;
+
+  try {
+    let q = `documentos?tenant_id=eq.${tenantId}&order=creado_en.desc&limit=${limit}&offset=${offset}`;
+    if (estado) q += `&estado=eq.${estado}`;
+
+    const res = await fetch(`${SUPA_URL}/rest/v1/${q}`, {
+      headers: { ...SB_HEADERS, 'Prefer': 'count=exact' }
+    });
+    const docs = await res.json();
+
+    if (!docs?.length) {
+      docsBody.innerHTML = `<tr><td colspan="7" style="padding:32px;text-align:center;color:var(--text3)">Sin documentos registrados</td></tr>`;
+      return;
+    }
+
+    docsBody.innerHTML = docs.map(d => {
+      const estado = d.estado || 'pendiente';
+      const badge = estado === 'aprobado'
+        ? `<span class="badge badge-green"><span class="bd"></span>Aprobado</span>`
+        : estado === 'rechazado'
+        ? `<span class="badge badge-red"><span class="bd"></span>Rechazado</span>`
+        : estado === 'cancelado'
+        ? `<span class="badge badge-gray">Cancelado</span>`
+        : `<span class="badge badge-yellow"><span class="bd"></span>Pendiente</span>`;
+
+      const fecha = d.creado_en ? new Date(d.creado_en).toLocaleString('es-PY', { dateStyle:'short', timeStyle:'short' }) : '—';
+      const monto = d.monto_total ? '₲ ' + Number(d.monto_total).toLocaleString() : '—';
+      const iva   = (d.monto_iva_10 || 0) + (d.monto_iva_5 || 0);
+      const puedeKude = estado === 'aprobado';
+
+      return `<tr>
+        <td class="mono fs-12">${d.numero || d.cdc?.substring(0,15) || '—'}</td>
+        <td>${d.receptor_razon || 'Innominado'}<br><span class="fs-11 text-3">${d.receptor_doc || ''}</span></td>
+        <td class="fs-12 text-2">${fecha}</td>
+        <td class="fw-600">${monto}</td>
+        <td class="fs-12 text-2">₲ ${iva > 0 ? iva.toLocaleString() : '—'}</td>
+        <td>${badge}</td>
+        <td><div class="td-act">
+          <button class="btn btn-g btn-xs" title="Ver detalle" onclick="verDocumento('${d.cdc}')">🔍</button>
+          <button class="btn btn-g btn-xs" title="Descargar XML" onclick="descargarXml('${d.cdc}')" ${!puedeKude?'disabled style="opacity:.3"':''}>📄</button>
+          <button class="btn btn-g btn-xs" title="KUDE PDF" onclick="descargarKude('${d.cdc}')" ${!puedeKude?'disabled style="opacity:.3"':''}>🖨</button>
+        </div></td>
+      </tr>`;
+    }).join('');
+
+  } catch(e) {
+    docsBody.innerHTML = `<tr><td colspan="7" style="padding:20px;text-align:center;color:var(--red)">Error: ${e.message}</td></tr>`;
+  }
 }
+
+// Acciones de documentos
+window.verDocumento  = (cdc) => { if (cdc) window.open(`${window._CONFIG?.API_URL}/documentos/${cdc}`, '_blank'); };
+window.descargarXml  = (cdc) => { if (cdc) window.open(`${window._CONFIG?.API_URL}/documentos/${cdc}/xml`, '_blank'); };
+window.descargarKude = (cdc) => { if (cdc) window.open(`${window._CONFIG?.API_URL}/documentos/${cdc}/kude?formato=a4`, '_blank'); };
 
 // ── LOTES TABLE ───────────────────────────────────────────────
 function loteBadge(e) {
@@ -1425,6 +1467,12 @@ window.swTab = (el, tabId, allIds) => {
     const pane = document.getElementById(id);
     if (pane) pane.style.display = id === tabId ? 'block' : 'none';
   });
+  // Recargar documentos según tab
+  const tenantId = window._currentTenant?.id;
+  if (!tenantId) return;
+  if (tabId === 'tb-fac')   loadDocumentos(tenantId, { estado: '' });
+  if (tabId === 'tb-nc')    loadDocumentos(tenantId, { estado: 'aprobado' }); // tipo_documento=5 filtrado en UI
+  if (tabId === 'tb-otros') loadDocumentos(tenantId, { estado: '' });
 };
 
 // ── LOGO UPLOAD ───────────────────────────────────────────────
