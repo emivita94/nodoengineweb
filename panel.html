@@ -1362,50 +1362,41 @@ function populateIntegracion(t) {
 async function loadApiKeys(tenantId) {
   const tbody = document.getElementById('keys-body');
   if (!tbody) return;
+  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:20px;font-size:13px">Cargando...</td></tr>`;
   try {
-    const { getApiKeys } = await import('./js/api.js');
-    const keys = await getApiKeys(tenantId);
-    if (!keys || keys.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:20px;font-size:13px">Sin API Keys — generá la primera para el cliente</td></tr>`;
+    const res  = await fetch(`${SUPA_URL}/rest/v1/api_keys?tenant_id=eq.${tenantId}&order=creada_en.desc`, { headers: SB_HEADERS });
+    const keys = await res.json();
+    if (!keys?.length) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:20px;font-size:13px">Sin API Keys — generá la primera</td></tr>`;
       return;
     }
     tbody.innerHTML = keys.map(k => `
       <tr>
         <td class="fw-600">${k.nombre || 'Sin nombre'}</td>
-        <td><code style="background:var(--bg4);padding:2px 8px;border-radius:4px;font-size:12px;font-family:monospace">${k.key_prefix || '—'}</code></td>
+        <td>
+          ${k.key_plain
+            ? `<code style="background:var(--bg4);padding:3px 10px;border-radius:4px;font-size:12px;font-family:monospace;color:var(--orange)">${k.key_plain}</code>
+               <button class="btn btn-g btn-xs" style="margin-left:6px" onclick="copiarKey('${k.key_plain}')">📋</button>`
+            : `<code style="background:var(--bg4);padding:3px 10px;border-radius:4px;font-size:12px;font-family:monospace;color:var(--text3)">${k.key_prefix}••••••••</code>
+               <span style="font-size:11px;color:var(--text3);margin-left:6px">(generada antes de v2)</span>`
+          }
+        </td>
         <td><span class="badge ${k.key_prefix?.includes('live') ? 'badge-green' : 'badge-yellow'}">${k.key_prefix?.includes('live') ? '🚀 Prod' : '⚙ Test'}</span></td>
         <td class="fs-12 text-2">${k.ultimo_uso ? timeAgoStr(k.ultimo_uso) : 'Nunca'}</td>
-        <td class="fs-12 text-2">${k.creada_en ? new Date(k.creada_en).toLocaleDateString('es-PY') : '—'}</td>
         <td><span class="badge ${k.activa ? 'badge-green' : 'badge-red'}">${k.activa ? 'Activa' : 'Revocada'}</span></td>
         <td><div class="td-act">
           ${k.activa ? `<button class="btn btn-d btn-xs" onclick="revokeKey('${k.id}')">Revocar</button>` : ''}
         </div></td>
       </tr>
     `).join('');
-  } catch (e) {
-    // Demo mode: show placeholder keys
-    tbody.innerHTML = `
-      <tr>
-        <td class="fw-600">Default</td>
-        <td><code style="background:var(--bg4);padding:2px 8px;border-radius:4px;font-size:12px;font-family:monospace">sk_test_aB3x</code></td>
-        <td><span class="badge badge-yellow">⚙ Test</span></td>
-        <td class="fs-12 text-2">Hace 5 min</td>
-        <td class="fs-12 text-2">01/01/2025</td>
-        <td><span class="badge badge-green">Activa</span></td>
-        <td><div class="td-act"><button class="btn btn-d btn-xs" onclick="toast('Demo: revocar key','warn')">Revocar</button></div></td>
-      </tr>
-      <tr>
-        <td class="fw-600">ERP Producción</td>
-        <td><code style="background:var(--bg4);padding:2px 8px;border-radius:4px;font-size:12px;font-family:monospace">sk_live_cD7y</code></td>
-        <td><span class="badge badge-green">🚀 Prod</span></td>
-        <td class="fs-12 text-2">Hace 1 hora</td>
-        <td class="fs-12 text-2">15/03/2025</td>
-        <td><span class="badge badge-green">Activa</span></td>
-        <td><div class="td-act"><button class="btn btn-d btn-xs" onclick="toast('Demo: revocar key','warn')">Revocar</button></div></td>
-      </tr>
-    `;
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--red);padding:20px;font-size:13px">Error: ${e.message}</td></tr>`;
   }
 }
+
+window.copiarKey = (key) => {
+  navigator.clipboard.writeText(key).then(() => toast('API Key copiada al portapapeles ✅', 'ok'));
+};
 
 function timeAgoStr(dateStr) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -1585,22 +1576,41 @@ window.verDoc = (data) => {
 };
 window.abrirXml = async (cdc) => {
   if (!cdc || !window._CONFIG?.API_URL) return;
-  const apiKey = getStoredApiKey();
-  if (!apiKey) { mostrarModalApiKey(cdc, 'xml'); return; }
+  const apiKey = await getApiKey();
+  if (!apiKey) return;
   descargarConKey(cdc, 'xml', apiKey);
 };
 
 window.abrirKude = async (cdc) => {
   if (!cdc || !window._CONFIG?.API_URL) return;
-  const apiKey = getStoredApiKey();
-  if (!apiKey) { mostrarModalApiKey(cdc, 'kude'); return; }
+  const apiKey = await getApiKey();
+  if (!apiKey) return;
   descargarConKey(cdc, 'kude', apiKey);
 };
 
-function getStoredApiKey() {
-  // Primero buscar en sessionStorage (guardada al ver docs)
+// Obtiene la API Key plain del tenant desde Supabase
+async function getApiKey() {
   const tenantId = window._currentTenant?.id;
-  return sessionStorage.getItem(`nodo-apikey-${tenantId}`) || null;
+  if (!tenantId) return null;
+
+  // Usar la cacheada en sesión si ya la tenemos
+  const cached = sessionStorage.getItem(`nodo-apikey-${tenantId}`);
+  if (cached) return cached;
+
+  try {
+    const res  = await fetch(`${SUPA_URL}/rest/v1/api_keys?tenant_id=eq.${tenantId}&activa=eq.true&key_plain=not.is.null&order=creada_en.desc&limit=1`, { headers: SB_HEADERS });
+    const rows = await res.json();
+    if (!rows?.length || !rows[0].key_plain) {
+      toast('Este tenant no tiene API Key activa. Generá una en Configuración → API Keys.', 'warn');
+      return null;
+    }
+    const key = rows[0].key_plain;
+    sessionStorage.setItem(`nodo-apikey-${tenantId}`, key);
+    return key;
+  } catch(e) {
+    toast('Error obteniendo API Key: ' + e.message, 'err');
+    return null;
+  }
 }
 
 async function descargarConKey(cdc, tipo, apiKey) {
@@ -1610,31 +1620,18 @@ async function descargarConKey(cdc, tipo, apiKey) {
     : `${apiUrl}/documentos/${cdc}/kude?formato=a4`;
   try {
     const res = await fetch(url, { headers: { 'X-API-Key': apiKey } });
-    if (res.status === 401) {
-      sessionStorage.removeItem(`nodo-apikey-${window._currentTenant?.id}`);
-      toast('API Key inválida — ingresá una nueva', 'err');
-      mostrarModalApiKey(cdc, tipo);
-      return;
-    }
     if (!res.ok) { toast('Error ' + res.status + ' al descargar', 'err'); return; }
     const blob = await res.blob();
-    const ext  = tipo === 'xml' ? 'xml' : 'pdf';
-    const burl = URL.createObjectURL(blob);
     if (tipo === 'kude') {
+      const burl = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
       window.open(burl, '_blank');
+      setTimeout(() => URL.revokeObjectURL(burl), 5000);
     } else {
-      const a = document.createElement('a'); a.href = burl; a.download = `${cdc}.${ext}`; a.click();
+      const burl = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = burl; a.download = `${cdc}.xml`; a.click();
+      setTimeout(() => URL.revokeObjectURL(burl), 1000);
     }
-    setTimeout(() => URL.revokeObjectURL(burl), 5000);
   } catch(e) { toast('Error: ' + e.message, 'err'); }
-}
-
-function mostrarModalApiKey(cdc, tipo) {
-  // Modal simple para ingresar la API Key
-  const key = prompt(`Ingresá la API Key del tenant (sk_live_... o sk_test_...):\n\nPodés verla en Configuración → API Keys`);
-  if (!key?.startsWith('sk_')) { toast('API Key inválida', 'err'); return; }
-  sessionStorage.setItem(`nodo-apikey-${window._currentTenant?.id}`, key);
-  descargarConKey(cdc, tipo, key);
 }
 window.descargarDocXml  = () => { if(_docActual?.cdc) abrirXml(_docActual.cdc); };
 window.descargarDocKude = () => { if(_docActual?.cdc) abrirKude(_docActual.cdc); };
