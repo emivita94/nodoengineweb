@@ -207,10 +207,10 @@ import { getTheme, applyTheme, toggleTheme, toggleNotif, openModal, closeModal, 
 import { login, isLoggedIn, getAuthUser, clearSession } from './js/api.js';
 import { getTenants, createTenant as apiCreateTenant, uploadLogo } from './js/api.js';
 
-// Demo session fallback
-function saveSessionDemo(email) {
-  localStorage.setItem('nodo-auth-token', 'demo-' + Date.now());
-  localStorage.setItem('nodo-auth-user', JSON.stringify({ email, id: 'demo' }));
+// Demo session fallback (solo para credencial admin fija)
+function saveSessionAdmin(email) {
+  localStorage.setItem('nodo-auth-token', 'admin-fixed-' + Date.now());
+  localStorage.setItem('nodo-auth-user', JSON.stringify({ email, id: 'admin', role: 'admin' }));
 }
 
 // ── EXPOSE GLOBALS ───────────────────────────────────────────
@@ -224,7 +224,13 @@ applyTheme(getTheme());
 document.getElementById('login-logo-icon').innerHTML = nodoSvg(22);
 document.getElementById('top-logo-e').innerHTML      = nodoSvg(17);
 
-// Si ya hay sesión activa, ir directo a empresas
+// Limpiar cualquier sesión demo vieja que pueda haber quedado
+const existingToken = localStorage.getItem('nodo-auth-token');
+if (existingToken && existingToken.startsWith('demo-')) {
+  clearSession();
+}
+
+// Solo ir directo si hay sesión válida (admin-fixed o Supabase real)
 if (isLoggedIn()) {
   showEmpresasScreen();
 }
@@ -234,16 +240,10 @@ document.getElementById('login-pass').addEventListener('keydown', e => {
   if (e.key === 'Enter') doLogin();
 });
 
-// ── CREDENCIALES ADMIN NODO ───────────────────────────────────
-const ADMIN_CREDENTIALS = [
-  { email: 'info@nodoinformatica.com', password: 'Abc1234*' },
-];
-
-function checkAdminCredentials(email, password) {
-  return ADMIN_CREDENTIALS.some(
-    c => c.email.toLowerCase() === email.toLowerCase() && c.password === password
-  );
-}
+// ── CREDENCIAL ADMIN FIJA ─────────────────────────────────────
+// Solo este usuario puede entrar cuando no hay Supabase configurado
+const ADMIN_EMAIL    = 'info@nodoinformatica.com';
+const ADMIN_PASSWORD = 'Abc1234*';
 
 // ── LOGIN ─────────────────────────────────────────────────────
 async function doLogin() {
@@ -258,25 +258,25 @@ async function doLogin() {
   const btn  = document.getElementById('login-btn');
   const text = document.getElementById('login-btn-text');
   btn.disabled = true;
-  text.textContent = 'Ingresando...';
+  text.textContent = 'Verificando...';
   document.getElementById('login-error').style.display = 'none';
 
   try {
-    // 1. Verificar credenciales admin locales primero
-    if (checkAdminCredentials(email, pass)) {
-      saveSessionDemo(email);
+    // 1. Credencial admin fija (siempre disponible)
+    if (email.toLowerCase() === ADMIN_EMAIL.toLowerCase() && pass === ADMIN_PASSWORD) {
+      saveSessionAdmin(email);
       showEmpresasScreen();
       return;
     }
 
-    // 2. Intentar con Supabase Auth
+    // 2. Cualquier otro usuario → Supabase Auth
     await login(email, pass);
     showEmpresasScreen();
 
   } catch (err) {
-    let msg = err.message || 'Error al iniciar sesión';
+    const msg = err.message || 'Error al iniciar sesión';
     if (msg === 'CONFIG_MISSING') {
-      showLoginError('Supabase no configurado. Usá info@nodoinformatica.com / Abc1234*');
+      showLoginError('Credenciales incorrectas');
     } else {
       showLoginError(msg);
     }
@@ -327,14 +327,29 @@ async function loadTenants() {
   try {
     allTenants = await getTenants();
     buildNotifications(allTenants);
+    document.getElementById('tenant-skeleton').style.display = 'none';
+    renderGrid(getFiltered());
   } catch (err) {
-    // Si falla la API, mostramos mensaje
+    document.getElementById('tenant-skeleton').style.display = 'none';
     allTenants = [];
-    toast('Error cargando empresas: ' + err.message, 'err');
-  }
 
-  document.getElementById('tenant-skeleton').style.display = 'none';
-  renderGrid(getFiltered());
+    // Mostrar error específico
+    const empty = document.getElementById('tenant-empty');
+    empty.style.display = 'block';
+    empty.innerHTML = `
+      <div style="font-size:36px;margin-bottom:14px">⚠️</div>
+      <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:8px">Error conectando con Supabase</div>
+      <div style="font-size:13px;color:var(--text3);margin-bottom:20px;max-width:400px;margin-left:auto;margin-right:auto">${err.message}</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:20px">
+        Verificá que <code style="background:var(--bg4);padding:2px 6px;border-radius:4px">js/config.js</code> 
+        tenga las credenciales correctas y que las políticas RLS estén configuradas en Supabase.
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-g btn-sm" onclick="loadTenants()">↺ Reintentar</button>
+        <a href="docs/setup.html" class="btn btn-o btn-sm" target="_blank">📖 Ver guía de configuración</a>
+      </div>
+    `;
+  }
 }
 
 function buildNotifications(tenants) {

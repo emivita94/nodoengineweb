@@ -1,19 +1,17 @@
 // ============================================================
 // NODO Engine — api.js
-// Cliente Supabase + Railway. Nunca explota si falta config.
 // ============================================================
 
-// ── CONFIG (con fallback seguro) ─────────────────────────────
+// ── CONFIG ───────────────────────────────────────────────────
 let CONFIG = { SUPABASE_URL: '', SUPABASE_ANON: '', API_URL: '' };
 
 try {
   const mod = await import('./config.js');
   CONFIG = mod.CONFIG || CONFIG;
 } catch {
-  console.warn('[NODO] config.js no encontrado — modo demo activo');
+  console.warn('[NODO] config.js no encontrado');
 }
 
-// Verificar si la config está completa
 function hasRealConfig() {
   return (
     CONFIG.SUPABASE_URL  &&
@@ -23,7 +21,7 @@ function hasRealConfig() {
   );
 }
 
-// ── TOKEN / SESIÓN ───────────────────────────────────────────
+// ── SESIÓN ───────────────────────────────────────────────────
 const TOKEN_KEY = 'nodo-auth-token';
 const USER_KEY  = 'nodo-auth-user';
 
@@ -31,12 +29,21 @@ export function getAuthToken() { return localStorage.getItem(TOKEN_KEY); }
 export function getAuthUser()  {
   try { return JSON.parse(localStorage.getItem(USER_KEY)); } catch { return null; }
 }
-export function isLoggedIn()   { return !!getAuthToken(); }
+
+// isLoggedIn valida que el token NO sea demo si hay config real
+export function isLoggedIn() {
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (!token) return false;
+  // Si hay config real, tokens demo no son válidos
+  if (hasRealConfig() && token.startsWith('demo-')) return false;
+  return true;
+}
 
 function saveSession(session) {
   localStorage.setItem(TOKEN_KEY, session.access_token);
   localStorage.setItem(USER_KEY,  JSON.stringify(session.user));
 }
+
 export function clearSession() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
@@ -68,15 +75,9 @@ async function sb(path, opts = {}) {
 
 // ── AUTH ─────────────────────────────────────────────────────
 export async function login(email, password) {
-  // MODO DEMO: si no hay config real, aceptar cualquier credencial
+  // Sin config real → solo acepta la credencial admin fija
   if (!hasRealConfig()) {
-    console.warn('[NODO] Modo demo — login sin Supabase');
-    const fakeSession = {
-      access_token: 'demo-token-' + Date.now(),
-      user: { id: 'demo', email, role: 'admin' },
-    };
-    saveSession(fakeSession);
-    return fakeSession.user;
+    throw new Error('CONFIG_MISSING');
   }
 
   const res = await fetch(`${CONFIG.SUPABASE_URL}/auth/v1/token?grant_type=password`, {
@@ -90,7 +91,6 @@ export async function login(email, password) {
 
   const data = await res.json();
   if (!res.ok) {
-    // Traducir mensajes comunes de Supabase
     const msg = data.error_description || data.msg || data.message || '';
     if (msg.includes('Invalid login') || msg.includes('invalid_grant')) {
       throw new Error('Email o contraseña incorrectos');
@@ -135,7 +135,6 @@ function mapTenant(row) {
       : 'Recién creado',
     certDays,
     certWarn:       certDays !== null && certDays < 30,
-    // Config
     nombreFantasia: row.nombre_fantasia || '',
     direccion:      row.direccion       || '',
     telefono:       row.telefono        || '',
@@ -180,62 +179,18 @@ function avatarColor(ruc) {
   return palette[idx];
 }
 
-// DEMO DATA — se usa cuando no hay Supabase
-const DEMO_TENANTS = [
-  {
-    id: 'demo-001', ruc: '80012345-6', razon_social: 'SuperMercado Luque S.A.',
-    nombre_fantasia: 'SuperLuque', ambiente: 'test', activo: true, plan: 'pro',
-    email: 'fe@superluque.py', telefono: '021-555-1234',
-    direccion: 'Av. Principal 1234, Luque',
-    actualizado_en: new Date(Date.now() - 5 * 60000).toISOString(),
-    cert_vencimiento: new Date(Date.now() + 90 * 86400000).toISOString().split('T')[0],
-  },
-  {
-    id: 'demo-002', ruc: '70029871-3', razon_social: 'Farmacia Del Pueblo',
-    ambiente: 'prod', activo: true, plan: 'starter',
-    actualizado_en: new Date(Date.now() - 15 * 60000).toISOString(),
-    cert_vencimiento: new Date(Date.now() + 200 * 86400000).toISOString().split('T')[0],
-  },
-  {
-    id: 'demo-003', ruc: '55012890-1', razon_social: 'Distribuidora Centro S.A.',
-    nombre_fantasia: 'DistriCentro', ambiente: 'prod', activo: true, plan: 'enterprise',
-    actualizado_en: new Date(Date.now() - 3 * 3600000).toISOString(),
-    cert_vencimiento: new Date(Date.now() + 12 * 86400000).toISOString().split('T')[0], // vence en 12 días!
-  },
-];
-
 export async function getTenants() {
-  if (!hasRealConfig()) {
-    console.warn('[NODO] Cargando tenants DEMO');
-    return DEMO_TENANTS.map(mapTenant);
-  }
   const rows = await sb('tenants?order=creado_en.desc');
   return (rows || []).map(mapTenant);
 }
 
 export async function getTenant(id) {
-  if (!hasRealConfig()) {
-    const found = DEMO_TENANTS.find(t => t.id === id);
-    return found ? mapTenant(found) : null;
-  }
   const rows = await sb(`tenants?id=eq.${encodeURIComponent(id)}&limit=1`);
   if (!rows?.length) throw new Error('Tenant no encontrado');
   return mapTenant(rows[0]);
 }
 
 export async function createTenant({ ruc, razonSocial, nombreFantasia, email, telefono, ambiente, plan }) {
-  if (!hasRealConfig()) {
-    // Demo: simular creación
-    const fake = {
-      id: 'demo-' + Date.now(),
-      ruc, razon_social: razonSocial, nombre_fantasia: nombreFantasia,
-      email, telefono, ambiente: ambiente || 'test', plan: plan || 'starter',
-      activo: true, actualizado_en: new Date().toISOString(),
-    };
-    DEMO_TENANTS.unshift(fake);
-    return mapTenant(fake);
-  }
-
   const rows = await sb('tenants', {
     method: 'POST',
     body: JSON.stringify({
@@ -254,7 +209,6 @@ export async function createTenant({ ruc, razonSocial, nombreFantasia, email, te
 }
 
 export async function updateTenant(id, fields) {
-  if (!hasRealConfig()) { console.log('[NODO] Demo: updateTenant', fields); return null; }
   const body = {};
   const map = {
     razonSocial: 'razon_social', nombreFantasia: 'nombre_fantasia',
@@ -276,10 +230,6 @@ export async function updateTenant(id, fields) {
 
 // ── LOGO UPLOAD ───────────────────────────────────────────────
 export async function uploadLogo(tenantId, file) {
-  if (!hasRealConfig()) {
-    console.log('[NODO] Demo: uploadLogo omitido');
-    return null;
-  }
   const ext      = file.name.split('.').pop().toLowerCase();
   const filePath = `${tenantId}/logo.${ext}`;
   const res = await fetch(
@@ -307,11 +257,10 @@ export async function uploadLogo(tenantId, file) {
   return logoUrl;
 }
 
-// ── CERTIFICADO (va al motor Railway) ────────────────────────
+// ── CERTIFICADO ───────────────────────────────────────────────
 export async function uploadCertificado(tenantId, { base64, alias, password, vencimiento }) {
-  if (!hasRealConfig() || !CONFIG.API_URL || CONFIG.API_URL.includes('tu-api')) {
-    toast('[Demo] uploadCertificado omitido — configurá API_URL');
-    return { ok: true, mensaje: 'Demo: certificado no enviado' };
+  if (!CONFIG.API_URL || CONFIG.API_URL.includes('tu-api')) {
+    throw new Error('API_URL no configurada');
   }
   const res = await fetch(`${CONFIG.API_URL}/tenants/${tenantId}/certificado`, {
     method:  'POST',
@@ -324,25 +273,18 @@ export async function uploadCertificado(tenantId, { base64, alias, password, ven
 
 // ── API KEYS ──────────────────────────────────────────────────
 export async function getApiKeys(tenantId) {
-  if (!hasRealConfig()) return [];
   return sb(`api_keys?tenant_id=eq.${encodeURIComponent(tenantId)}&order=creada_en.desc`);
 }
 
 export async function revokeApiKey(keyId) {
-  if (!hasRealConfig()) return null;
   return sb(`api_keys?id=eq.${encodeURIComponent(keyId)}`, {
     method: 'PATCH',
     body: JSON.stringify({ activa: false }),
   });
 }
 
-// ── ESTABLECIMIENTOS / PUNTOS / TIMBRADOS ────────────────────
+// ── PUNTOS / TIMBRADOS ────────────────────────────────────────
 export async function createPunto({ tenantId, estCodigo, puntoCodigo, descripcion, timbrado, tipoDocumento, vigDesde, vigHasta, numeroMax }) {
-  if (!hasRealConfig()) {
-    console.log('[NODO] Demo: createPunto');
-    return { estId: 'demo', pId: 'demo' };
-  }
-  // 1. Establecimiento
   let estRows = await sb(`establecimientos?tenant_id=eq.${tenantId}&codigo=eq.${estCodigo}`);
   let estId;
   if (!estRows?.length) {
@@ -353,7 +295,6 @@ export async function createPunto({ tenantId, estCodigo, puntoCodigo, descripcio
     estId = r[0].id;
   } else { estId = estRows[0].id; }
 
-  // 2. Punto
   let pRows = await sb(`puntos_expedicion?establecimiento_id=eq.${estId}&codigo=eq.${puntoCodigo}`);
   let pId;
   if (!pRows?.length) {
@@ -364,7 +305,6 @@ export async function createPunto({ tenantId, estCodigo, puntoCodigo, descripcio
     pId = r[0].id;
   } else { pId = pRows[0].id; }
 
-  // 3. Timbrado
   await sb('timbrados', {
     method: 'POST',
     body: JSON.stringify({
@@ -379,7 +319,6 @@ export async function createPunto({ tenantId, estCodigo, puntoCodigo, descripcio
 
 // ── DOCUMENTOS ────────────────────────────────────────────────
 export async function getDocumentos(tenantId, { estado, limit = 20, offset = 0 } = {}) {
-  if (!hasRealConfig()) return [];
   let q = `documentos?tenant_id=eq.${tenantId}&order=creado_en.desc&limit=${limit}&offset=${offset}`;
   if (estado) q += `&estado=eq.${estado}`;
   return sb(q);
