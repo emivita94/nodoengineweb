@@ -262,11 +262,21 @@ async function doLogin() {
   document.getElementById('login-error').style.display = 'none';
 
   try {
-    // 1. Credencial admin fija (siempre disponible)
+    // 1. Credencial admin fija — intenta autenticar contra Supabase con esas credenciales
     if (email.toLowerCase() === ADMIN_EMAIL.toLowerCase() && pass === ADMIN_PASSWORD) {
-      saveSessionAdmin(email);
-      showEmpresasScreen();
-      return;
+      try {
+        // Primero intenta con Supabase (usuario debe existir allí también)
+        await login(email, pass);
+        showEmpresasScreen();
+        return;
+      } catch (supaErr) {
+        // Si Supabase falla pero las credenciales son correctas, igual dejamos entrar
+        // pero el token local no será JWT válido — solo funciona si RLS está desactivado
+        console.warn('[NODO] Admin fijo sin Supabase Auth:', supaErr.message);
+        saveSessionAdmin(email);
+        showEmpresasScreen();
+        return;
+      }
     }
 
     // 2. Cualquier otro usuario → Supabase Auth

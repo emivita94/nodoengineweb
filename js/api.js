@@ -53,12 +53,17 @@ export function clearSession() {
 async function sb(path, opts = {}) {
   if (!hasRealConfig()) throw new Error('CONFIG_MISSING');
 
+  // Si el token es del admin fijo (no es JWT real), usar el anon key directamente
+  const rawToken = getAuthToken() || '';
+  const isRealJwt = rawToken.startsWith('eyJ') && rawToken.split('.').length === 3;
+  const bearer = isRealJwt ? rawToken : CONFIG.SUPABASE_ANON;
+
   const url = `${CONFIG.SUPABASE_URL}/rest/v1/${path}`;
   const res = await fetch(url, {
     ...opts,
     headers: {
       'apikey':        CONFIG.SUPABASE_ANON,
-      'Authorization': `Bearer ${getAuthToken() || CONFIG.SUPABASE_ANON}`,
+      'Authorization': `Bearer ${bearer}`,
       'Content-Type':  'application/json',
       'Prefer':        opts.prefer || 'return=representation',
       ...(opts.headers || {}),
