@@ -131,13 +131,14 @@ function mapTenant(row) {
   return {
     id:             row.id,
     name,
+    nombreComercial: row.nombre_fantasia || row.nombre || '',
     ruc:            row.ruc,
     env:            row.ambiente || 'test',
     status:         certDays !== null && certDays < 30
                       ? 'cert-warn'
                       : (row.activo ? 'active' : 'inactive'),
     plan:           row.plan || 'starter',
-    avatar:         (name[0] || '?').toUpperCase(),
+    avatar:         (row.nombre_fantasia || name)[0]?.toUpperCase() || '?',
     avatarGradient: avatarColor(row.ruc || ''),
     logo:           row.logo_url || null,
     docsHoy:        row.docs_hoy  || 0,
@@ -148,21 +149,44 @@ function mapTenant(row) {
       : 'Recién creado',
     certDays,
     certWarn:       certDays !== null && certDays < 30,
-    nombreFantasia: row.nombre_fantasia || '',
-    direccion:      row.direccion       || '',
-    telefono:       row.telefono        || '',
-    email:          row.email           || '',
-    csc:            row.codigo_seguridad|| '',
-    idCsc:          row.id_csc          || '0001',
-    certAlias:      row.cert_alias      || '',
-    certDate:       row.cert_vencimiento|| '',
-    smtpHost:       row.smtp_host       || '',
-    smtpPort:       row.smtp_port       || 587,
-    smtpUser:       row.smtp_user       || '',
-    smtpSsl:        row.smtp_ssl !== false,
-    smtpFrom:       row.smtp_from       || '',
-    smtpFromName:   row.smtp_from_name  || '',
-    activo:         row.activo !== false,
+
+    // Datos fiscales
+    nombreFantasia:   row.nombre_fantasia    || '',
+    denominacion:     row.denominacion       || '',
+    direccion:        row.direccion          || '',
+    numeroCasa:       row.numero_casa        || '',
+    departamento:     row.departamento       || null,
+    departamentoDesc: row.departamento_desc  || '',
+    distrito:         row.distrito           || null,
+    distritoDesc:     row.distrito_desc      || '',
+    ciudad:           row.ciudad             || null,
+    ciudadDesc:       row.ciudad_desc        || '',
+    telefono:         row.telefono           || '',
+    email:            row.email              || '',
+    tipoContribuyente: row.tipo_contribuyente || 1,
+    tipoRegimen:      row.tipo_regimen       || 8,
+    actividadesEconomicas: row.actividades_economicas || [],
+
+    // Seguridad SIFEN
+    csc:              row.csc                || row.codigo_seguridad || '',
+    idCsc:            row.id_csc             || '0001',
+    codigoSeguridad:  row.codigo_seguridad   || '',
+
+    // Certificado
+    certAlias:        row.cert_alias         || '',
+    certDate:         row.cert_vencimiento   || '',
+    certPassword:     row.cert_password      || '',
+    tieneCertificado: !!row.certificado_enc,
+
+    // SMTP
+    smtpHost:         row.smtp_host          || '',
+    smtpPort:         row.smtp_port          || 587,
+    smtpUser:         row.smtp_user          || '',
+    smtpSsl:          row.smtp_ssl !== false,
+    smtpFrom:         row.smtp_from          || '',
+    smtpFromName:     row.smtp_from_name     || '',
+
+    activo:           row.activo !== false,
     _raw: row,
   };
 }

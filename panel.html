@@ -302,15 +302,10 @@
 
         <!-- PUNTOS DE EXPEDICIÓN -->
         <div class="fsec">
-          <div class="fsec-head"><div class="fsec-ico">🏭</div><div><div class="fsec-title">Puntos de expedición y timbrados</div><div class="fsec-desc">Establecimientos habilitados por la SET</div></div></div>
+          <div class="fsec-head"><div class="fsec-ico">🏭</div><div><div class="fsec-title">Establecimientos y timbrados</div><div class="fsec-desc">Habilitados por la SET — el tipo de documento lo define tu ERP al emitir</div></div></div>
           <div class="fsec-body">
-            <div style="overflow-x:auto;margin-bottom:14px">
-              <table id="puntos-table">
-                <thead><tr><th>Establecimiento</th><th>Punto</th><th>Descripción</th><th>Timbrado</th><th>Vigencia</th><th>Estado</th><th></th></tr></thead>
-                <tbody id="puntos-body"></tbody>
-              </table>
-            </div>
-            <button class="btn btn-g btn-sm" onclick="openModal('modal-punto')">+ Agregar punto de expedición</button>
+            <div id="establecimientos-wrap"></div>
+            <button class="btn btn-g btn-sm" style="margin-top:4px" onclick="openModal('modal-timbrado')">+ Agregar timbrado</button>
           </div>
         </div>
       </div>
@@ -738,33 +733,46 @@
   </div>
 </div>
 
-<!-- ══ MODAL: NUEVO PUNTO ══ -->
-<div class="modal-overlay" id="modal-punto">
+<!-- ══ MODAL: AGREGAR TIMBRADO ══ -->
+<div class="modal-overlay" id="modal-timbrado">
   <div class="modal">
-    <div class="modal-head"><div class="modal-title">Agregar punto de expedición</div><button class="modal-close" onclick="closeModal('modal-punto')">✕</button></div>
+    <div class="modal-head">
+      <div class="modal-title">Agregar timbrado</div>
+      <button class="modal-close" onclick="closeModal('modal-timbrado')">✕</button>
+    </div>
     <div class="modal-body">
-      <div class="grid-2" style="gap:14px">
-        <div class="field"><label>Código establecimiento *</label><input placeholder="001" maxlength="3" id="pt-est"></div>
-        <div class="field"><label>Código punto *</label><input placeholder="001" maxlength="3" id="pt-punto"></div>
-        <div class="field"><label>Descripción</label><input placeholder="Sucursal Central" id="pt-desc"></div>
-        <div class="field"><label>Número de timbrado *</label><input placeholder="12345678" maxlength="8" id="pt-timbrado"></div>
-        <div class="field"><label>Tipo documento</label>
-          <select id="pt-tipo">
-            <option value="1">1 — Factura electrónica</option>
-            <option value="4">4 — Autofactura</option>
-            <option value="5">5 — Nota de crédito</option>
-            <option value="6">6 — Nota de débito</option>
-            <option value="7">7 — Nota de remisión</option>
-          </select>
+      <div class="info-box" style="margin-bottom:16px">
+        <span style="font-size:16px;flex-shrink:0">ℹ️</span>
+        <div>El tipo de documento (factura, nota de crédito, etc.) lo define tu ERP al emitir. Aquí solo registrás el timbrado habilitado por la SET.</div>
+      </div>
+      <div style="display:grid;gap:14px">
+        <div class="field">
+          <label>Establecimiento *</label>
+          <input id="tb-est" placeholder="001" maxlength="3" value="001">
         </div>
-        <div class="field"><label>Número máximo</label><input placeholder="9999999" type="number" id="pt-max" value="9999999"></div>
-        <div class="field"><label>Vigencia desde *</label><input type="date" id="pt-desde"></div>
-        <div class="field"><label>Vigencia hasta *</label><input type="date" id="pt-hasta"></div>
+        <div class="field">
+          <label>Número de timbrado *</label>
+          <input id="tb-numero" placeholder="17352026" maxlength="8">
+        </div>
+        <div class="grid-2" style="gap:14px">
+          <div class="field">
+            <label>Vigencia desde *</label>
+            <input type="date" id="tb-desde">
+          </div>
+          <div class="field">
+            <label>Vigencia hasta *</label>
+            <input type="date" id="tb-hasta">
+          </div>
+        </div>
+        <div class="field">
+          <label>Descripción (opcional)</label>
+          <input id="tb-desc" placeholder="ej: Sucursal Central">
+        </div>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-g btn-sm" onclick="closeModal('modal-punto')">Cancelar</button>
-      <button class="btn btn-o btn-sm" onclick="addPunto()">Agregar punto →</button>
+      <button class="btn btn-g btn-sm" onclick="closeModal('modal-timbrado')">Cancelar</button>
+      <button class="btn btn-o btn-sm" onclick="saveTimbrado()">Guardar timbrado →</button>
     </div>
   </div>
 </div>
@@ -866,24 +874,25 @@ if (!tenant) {
 
 function populatePanel(t) {
   // Tenant bar
-  document.getElementById('p-name').textContent = t.name;
+  document.getElementById('p-name').textContent = t.nombreComercial || t.name;
   document.getElementById('p-ruc').textContent  = 'RUC: ' + t.ruc;
   const envEl = document.getElementById('p-env');
   if (t.env === 'prod') { envEl.textContent = '🚀 Producción'; envEl.classList.add('prod'); }
-  else                  { envEl.textContent = '⚙ Test'; }
+  else                  { envEl.textContent = '⚙ Test'; envEl.classList.remove('prod'); }
 
   // Page subtitles
-  document.getElementById('ph-dash-sub').textContent = t.name + ' · RUC ' + t.ruc;
-  document.getElementById('ph-cfg-sub').textContent  = t.name;
-  document.getElementById('ph-doc-sub').textContent  = t.name;
+  const displayName = t.nombreComercial || t.name;
+  document.getElementById('ph-dash-sub').textContent = displayName + ' · RUC ' + t.ruc;
+  document.getElementById('ph-cfg-sub').textContent  = displayName;
+  document.getElementById('ph-doc-sub').textContent  = displayName;
 
   // Stats
-  document.getElementById('stat-hoy').textContent  = t.docsHoy.toLocaleString();
-  document.getElementById('stat-mes').textContent  = t.docsmes.toLocaleString();
-  document.getElementById('stat-hoy-ch').textContent = '↑ 23% vs ayer';
-  document.getElementById('stat-mes-ch').textContent = `↑ ${t.aprobados}% aprobadas`;
+  document.getElementById('stat-hoy').textContent    = t.docsHoy.toLocaleString();
+  document.getElementById('stat-mes').textContent    = t.docsmes.toLocaleString();
+  document.getElementById('stat-hoy-ch').textContent = '↑ vs ayer';
+  document.getElementById('stat-mes-ch').textContent = t.aprobados > 0 ? `↑ ${t.aprobados}% aprobadas` : 'Sin datos aún';
 
-  // Cert days
+  // Cert
   if (t.certDays !== null) {
     ['cert-days-tl','cert-days-txt','log-cert-days'].forEach(id => {
       const el = document.getElementById(id);
@@ -891,53 +900,295 @@ function populatePanel(t) {
     });
   }
   if (t.certWarn) {
-    document.getElementById('cert-warn-alert').style.display = 'flex';
-    document.getElementById('cert-warn-days').textContent = t.certDays;
-    document.querySelector('.cert-status-block')?.classList.replace('cert-ok','cert-warn');
+    const wa = document.getElementById('cert-warn-alert');
+    if (wa) wa.style.display = 'flex';
+    const wd = document.getElementById('cert-warn-days');
+    if (wd) wd.textContent = t.certDays;
   }
 
-  // Cert info in config
-  document.getElementById('cert-alias-txt').textContent = t.certAlias || '—';
-  document.getElementById('cert-date-txt').textContent  = t.certDate  || '31/12/2025';
-  document.getElementById('cert-days-txt').textContent  = t.certDays  || '—';
-
-  // Logo preview
-  if (t.logo) {
-    document.getElementById('cfg-logo-preview').innerHTML = `<img src="${t.logo}" alt="logo">`;
+  // Cert status block
+  const certBlock = document.getElementById('cert-status-block');
+  if (certBlock) {
+    if (t.tieneCertificado) {
+      certBlock.className = t.certWarn ? 'cert-warn' : 'cert-ok';
+      certBlock.innerHTML = `
+        <span style="font-size:18px">${t.certWarn ? '⚠️' : '✅'}</span>
+        <div>
+          <div class="fw-600 fs-12">${t.certWarn ? 'Certificado próximo a vencer' : 'Certificado cargado y válido'}</div>
+          <div class="fs-12 text-2">Alias: <span class="mono">${t.certAlias || '—'}</span>
+            ${t.certDate ? '· Vence: ' + t.certDate.split('T')[0] : ''}
+            ${t.certDays !== null ? '(' + t.certDays + ' días)' : ''}
+          </div>
+        </div>`;
+    } else {
+      certBlock.className = 'cert-warn';
+      certBlock.innerHTML = `<span style="font-size:18px">⚠️</span><div><div class="fw-600 fs-12">Sin certificado cargado</div><div class="fs-12 text-2">Subí el archivo .p12 para poder emitir documentos</div></div>`;
+    }
   }
 
-  // Config fields
-  document.getElementById('cfg-ruc').value     = t.ruc      || '';
-  document.getElementById('cfg-razon').value   = t.name     || '';
-  document.getElementById('cfg-fantasia').value= t.nombreFantasia || '';
-  document.getElementById('cfg-dir').value     = t.direccion || '';
-  document.getElementById('cfg-tel').value     = t.telefono  || '';
-  document.getElementById('cfg-email').value   = t.email     || '';
-  document.getElementById('cfg-csc').value     = t.csc       || '';
-  document.getElementById('cfg-id-csc').value  = t.idCsc     || '0001';
+  // Campos de configuración del certificado
+  const aliasInput = document.getElementById('cfg-cert-alias');
+  if (aliasInput) aliasInput.value = t.certAlias || '';
+
+  // Logo
+  const logoPreview = document.getElementById('cfg-logo-preview');
+  if (logoPreview) {
+    logoPreview.innerHTML = t.logo
+      ? `<img src="${t.logo}" alt="logo">`
+      : `<span class="logo-preview-placeholder">🏢</span>`;
+  }
+
+  // Datos fiscales
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+  set('cfg-ruc',      t.ruc);
+  set('cfg-razon',    t.name);
+  set('cfg-fantasia', t.nombreFantasia);
+  set('cfg-dir',      t.direccion + (t.numeroCasa ? ' ' + t.numeroCasa : ''));
+  set('cfg-tel',      t.telefono);
+  set('cfg-email',    t.email);
+  set('cfg-csc',      t.csc);
+  set('cfg-id-csc',   t.idCsc || '0001');
+
+  // Selectores
+  const tipoEl = document.getElementById('cfg-tipo');
+  if (tipoEl) tipoEl.value = t.tipoContribuyente === 2 ? 'Persona física' : 'Empresa';
+
+  // Departamento / ciudad
+  const deptEl = document.getElementById('cfg-dept');
+  if (deptEl && t.departamentoDesc) {
+    // Intentar seleccionar si existe la opción
+    const opt = [...deptEl.options].find(o => o.text.toLowerCase().includes(t.departamentoDesc.toLowerCase()));
+    if (opt) deptEl.value = opt.value;
+  }
 
   // Ambiente
   if (t.env === 'prod') {
-    document.getElementById('env-test').classList.remove('on');
-    document.getElementById('env-prod').classList.add('on');
+    document.getElementById('env-test')?.classList.remove('on');
+    document.getElementById('env-prod')?.classList.add('on');
+  } else {
+    document.getElementById('env-test')?.classList.add('on');
+    document.getElementById('env-prod')?.classList.remove('on');
   }
 
   // SMTP
-  document.getElementById('smtp-host').value     = t.smtpHost     || '';
-  document.getElementById('smtp-port').value     = t.smtpPort     || 587;
-  document.getElementById('smtp-user').value     = t.smtpUser     || '';
-  document.getElementById('smtp-from').value     = t.smtpFrom     || '';
-  document.getElementById('smtp-fromname').value = t.smtpFromName || '';
-  document.getElementById('smtp-ssl').checked    = t.smtpSsl !== undefined ? t.smtpSsl : true;
+  set('smtp-host',     t.smtpHost);
+  set('smtp-from',     t.smtpFrom);
+  set('smtp-fromname', t.smtpFromName);
+  set('smtp-user',     t.smtpUser);
+  const portEl = document.getElementById('smtp-port');
+  if (portEl) portEl.value = t.smtpPort || 587;
+  const sslEl = document.getElementById('smtp-ssl');
+  if (sslEl) sslEl.checked = t.smtpSsl !== false;
 
-  // Actividades
-  renderActividades(t.actividades || []);
+  // Actividades económicas
+  renderActividades(t.actividadesEconomicas || t.actividades || []);
 
-  // Puntos
-  renderPuntos(t.puntos || []);
+  // Puntos de expedición — cargar desde BD
+  loadPuntos(t.id);
 }
 
-// ── ACTIVIDADES ───────────────────────────────────────────────
+// ── ESTABLECIMIENTOS Y TIMBRADOS (estilo Facturasend) ─────────
+async function loadPuntos(tenantId) {
+  const wrap = document.getElementById('establecimientos-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = `<div style="color:var(--text3);font-size:13px;padding:8px 0">Cargando...</div>`;
+
+  try {
+    const [estabs, puntos, timbrados] = await Promise.all([
+      fetch(`${SUPA_URL}/rest/v1/establecimientos?tenant_id=eq.${tenantId}&order=codigo.asc`, { headers: SB_HEADERS }).then(r=>r.json()),
+      fetch(`${SUPA_URL}/rest/v1/puntos_expedicion?tenant_id=eq.${tenantId}`, { headers: SB_HEADERS }).then(r=>r.json()),
+      fetch(`${SUPA_URL}/rest/v1/timbrados?tenant_id=eq.${tenantId}&order=creado_en.desc`, { headers: SB_HEADERS }).then(r=>r.json()),
+    ]);
+
+    if (!timbrados?.length) {
+      wrap.innerHTML = `<div style="color:var(--text3);font-size:13px;padding:8px 0">Sin timbrados registrados. Agregá el primero.</div>`;
+      return;
+    }
+
+    // Agrupar por establecimiento
+    const estabMap = {};
+    timbrados.forEach(t => {
+      const est = (estabs || []).find(e => e.id === t.establecimiento_id);
+      const punto = (puntos || []).find(p => p.id === t.punto_id);
+      const estCod = est?.codigo || '001';
+      const estNom = est?.nombre || punto?.descripcion || 'Establecimiento ' + estCod;
+      if (!estabMap[estCod]) estabMap[estCod] = { codigo: estCod, nombre: estNom, timbrados: [] };
+
+      estabMap[estCod].timbrados.push({
+        id:        t.id,
+        numero:    t.numero_timbrado,
+        desde:     t.vigencia_desde?.split('T')[0] || '—',
+        hasta:     t.vigencia_hasta?.split('T')[0] || '—',
+        activo:    t.activo,
+        puntoCod:  punto?.codigo || '001',
+        tipoDoc:   t.tipo_documento,
+      });
+    });
+
+    // Tipos de documento legibles
+    const tipoDocLabel = {
+      1: 'Factura', 4: 'Autofactura', 5: 'Nota de crédito',
+      6: 'Nota de débito', 7: 'Nota de remisión',
+    };
+
+    // Verificar si el timbrado está vigente
+    function isVigente(hasta) {
+      return hasta && new Date(hasta) >= new Date();
+    }
+    function diasRestantes(hasta) {
+      if (!hasta) return null;
+      return Math.floor((new Date(hasta) - new Date()) / 86400000);
+    }
+
+    // Renderizar agrupado por establecimiento
+    wrap.innerHTML = Object.values(estabMap).map(est => `
+      <div style="margin-bottom:18px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="background:rgba(255,140,0,.1);border:1px solid rgba(255,140,0,.2);border-radius:7px;padding:6px 12px;font-size:12px;font-weight:600;color:var(--orange)">
+            Est. ${est.codigo}
+          </div>
+          <span style="font-size:13px;font-weight:500;color:var(--text)">${est.nombre}</span>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Timbrado</th>
+                <th>Vigencia</th>
+                <th>Estado</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              ${est.timbrados.map(t => {
+                const dias = diasRestantes(t.hasta);
+                const vigente = isVigente(t.hasta);
+                const statusBadge = !t.activo
+                  ? `<span class="badge badge-gray">Inactivo</span>`
+                  : !vigente
+                  ? `<span class="badge badge-red"><span class="bd"></span>Vencido</span>`
+                  : dias !== null && dias < 30
+                  ? `<span class="badge badge-yellow"><span class="bd"></span>Vence en ${dias}d</span>`
+                  : `<span class="badge badge-green"><span class="bd"></span>Vigente</span>`;
+                return `
+                  <tr>
+                    <td>
+                      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600">${t.numero}</div>
+                    </td>
+                    <td style="font-size:12px;color:var(--text2)">${t.desde} → ${t.hasta}</td>
+                    <td>${statusBadge}</td>
+                    <td>
+                      <button class="btn btn-d btn-xs" onclick="deleteTimbrado('${t.id}','${tenantId}')">Eliminar</button>
+                    </td>
+                  </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `).join('');
+
+  } catch(e) {
+    console.warn('[NODO] Error cargando timbrados:', e.message);
+    wrap.innerHTML = `<div style="color:var(--red);font-size:13px">Error cargando timbrados: ${e.message}</div>`;
+  }
+}
+
+// Guardar timbrado nuevo — crea el establecimiento y punto automáticamente
+window.saveTimbrado = async () => {
+  const tenantId = JSON.parse(sessionStorage.getItem('nodo-tenant'))?.id;
+  if (!tenantId) return;
+
+  const estCod = document.getElementById('tb-est').value.trim().padStart(3,'0');
+  const numero  = document.getElementById('tb-numero').value.trim();
+  const desde   = document.getElementById('tb-desde').value;
+  const hasta   = document.getElementById('tb-hasta').value;
+  const desc    = document.getElementById('tb-desc').value.trim();
+
+  if (!numero || !desde || !hasta) { toast('Completá número de timbrado y fechas', 'err'); return; }
+  if (numero.length !== 8) { toast('El timbrado debe tener exactamente 8 dígitos', 'err'); return; }
+
+  const btn = document.querySelector('#modal-timbrado .btn-o');
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  try {
+    // 1. Crear o reusar establecimiento
+    let estRows = await fetch(`${SUPA_URL}/rest/v1/establecimientos?tenant_id=eq.${tenantId}&codigo=eq.${estCod}`, { headers: SB_HEADERS }).then(r=>r.json());
+    let estId;
+    if (!estRows?.length) {
+      const r = await fetch(`${SUPA_URL}/rest/v1/establecimientos`, {
+        method: 'POST',
+        headers: { ...SB_HEADERS, 'Prefer': 'return=representation' },
+        body: JSON.stringify({ tenant_id: tenantId, codigo: estCod, nombre: desc || `Establecimiento ${estCod}` }),
+      }).then(r=>r.json());
+      estId = r[0].id;
+    } else { estId = estRows[0].id; }
+
+    // 2. Crear o reusar punto 001 (siempre el mismo, simplificado)
+    let pRows = await fetch(`${SUPA_URL}/rest/v1/puntos_expedicion?establecimiento_id=eq.${estId}&codigo=eq.001`, { headers: SB_HEADERS }).then(r=>r.json());
+    let pId;
+    if (!pRows?.length) {
+      const r = await fetch(`${SUPA_URL}/rest/v1/puntos_expedicion`, {
+        method: 'POST',
+        headers: { ...SB_HEADERS, 'Prefer': 'return=representation' },
+        body: JSON.stringify({ establecimiento_id: estId, tenant_id: tenantId, codigo: '001', descripcion: desc || 'Punto principal' }),
+      }).then(r=>r.json());
+      pId = r[0].id;
+    } else { pId = pRows[0].id; }
+
+    // 3. Crear timbrado (tipo 1 por defecto — el motor usa el correcto según el doc enviado)
+    await fetch(`${SUPA_URL}/rest/v1/timbrados`, {
+      method: 'POST',
+      headers: { ...SB_HEADERS, 'Prefer': 'return=representation' },
+      body: JSON.stringify({
+        tenant_id: tenantId, establecimiento_id: estId, punto_id: pId,
+        numero_timbrado: numero, tipo_documento: 1,
+        numero_max: 9999999,
+        vigencia_desde: desde, vigencia_hasta: hasta, activo: true,
+      }),
+    });
+
+    closeModal('modal-timbrado');
+    toast('✅ Timbrado guardado correctamente', 'ok');
+    loadPuntos(tenantId);
+
+    // Limpiar form
+    document.getElementById('tb-numero').value = '';
+    document.getElementById('tb-desde').value  = '';
+    document.getElementById('tb-hasta').value  = '';
+    document.getElementById('tb-desc').value   = '';
+
+  } catch(e) {
+    toast('Error guardando timbrado: ' + e.message, 'err');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Guardar timbrado →';
+  }
+};
+
+window.deleteTimbrado = async (timbradoId, tenantId) => {
+  if (!confirm('¿Eliminar este timbrado?')) return;
+  try {
+    await fetch(`${SUPA_URL}/rest/v1/timbrados?id=eq.${timbradoId}`, {
+      method: 'DELETE', headers: SB_HEADERS,
+    });
+    toast('Timbrado eliminado', 'ok');
+    loadPuntos(tenantId);
+  } catch(e) {
+    toast('Error: ' + e.message, 'err');
+  }
+};
+
+// ── SUPABASE HEADERS para llamadas directas ───────────────────
+let SUPA_URL = '', SB_HEADERS = {};
+try {
+  const cfg = await import('./js/config.js');
+  SUPA_URL   = cfg.CONFIG.SUPABASE_URL;
+  const key  = cfg.CONFIG.SUPABASE_SERVICE;
+  SB_HEADERS = { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' };
+} catch(e) { console.warn('[NODO] config no cargado'); }
+
 let actividades = [];
 function renderActividades(list) {
   actividades = list;
