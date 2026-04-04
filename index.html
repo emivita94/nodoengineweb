@@ -204,7 +204,7 @@
 
 <script type="module">
 import { getTheme, applyTheme, toggleTheme, toggleNotif, openModal, closeModal, toast, nodoSvg, showScreen } from './js/app.js';
-import { login, isLoggedIn, getAuthUser, clearSession } from './js/api.js';
+import { login, isLoggedIn, getSession, clearSession } from './js/api.js';
 import { getTenants, createTenant as apiCreateTenant, uploadLogo } from './js/api.js';
 
 // Demo session fallback (solo para credencial admin fija)
@@ -224,36 +224,21 @@ applyTheme(getTheme());
 document.getElementById('login-logo-icon').innerHTML = nodoSvg(22);
 document.getElementById('top-logo-e').innerHTML      = nodoSvg(17);
 
-// Limpiar cualquier sesión demo vieja que pueda haber quedado
-const existingToken = localStorage.getItem('nodo-auth-token');
-if (existingToken && existingToken.startsWith('demo-')) {
-  clearSession();
-}
-
-// Solo ir directo si hay sesión válida (admin-fixed o Supabase real)
+// Si hay sesión válida del panel, ir directo
 if (isLoggedIn()) {
   showEmpresasScreen();
 }
 
-// Enter key en login
 document.getElementById('login-pass').addEventListener('keydown', e => {
   if (e.key === 'Enter') doLogin();
 });
-
-// ── CREDENCIAL ADMIN FIJA ─────────────────────────────────────
-// Solo este usuario puede entrar cuando no hay Supabase configurado
-const ADMIN_EMAIL    = 'info@nodoinformatica.com';
-const ADMIN_PASSWORD = 'Abc1234*';
 
 // ── LOGIN ─────────────────────────────────────────────────────
 async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
   const pass  = document.getElementById('login-pass').value;
 
-  if (!email || !pass) {
-    showLoginError('Completá email y contraseña');
-    return;
-  }
+  if (!email || !pass) { showLoginError('Completá email y contraseña'); return; }
 
   const btn  = document.getElementById('login-btn');
   const text = document.getElementById('login-btn-text');
@@ -262,34 +247,10 @@ async function doLogin() {
   document.getElementById('login-error').style.display = 'none';
 
   try {
-    // 1. Credencial admin fija — intenta autenticar contra Supabase con esas credenciales
-    if (email.toLowerCase() === ADMIN_EMAIL.toLowerCase() && pass === ADMIN_PASSWORD) {
-      try {
-        // Primero intenta con Supabase (usuario debe existir allí también)
-        await login(email, pass);
-        showEmpresasScreen();
-        return;
-      } catch (supaErr) {
-        // Si Supabase falla pero las credenciales son correctas, igual dejamos entrar
-        // pero el token local no será JWT válido — solo funciona si RLS está desactivado
-        console.warn('[NODO] Admin fijo sin Supabase Auth:', supaErr.message);
-        saveSessionAdmin(email);
-        showEmpresasScreen();
-        return;
-      }
-    }
-
-    // 2. Cualquier otro usuario → Supabase Auth
     await login(email, pass);
     showEmpresasScreen();
-
   } catch (err) {
-    const msg = err.message || 'Error al iniciar sesión';
-    if (msg === 'CONFIG_MISSING') {
-      showLoginError('Credenciales incorrectas');
-    } else {
-      showLoginError(msg);
-    }
+    showLoginError(err.message || 'Error al iniciar sesión');
     btn.disabled = false;
     text.textContent = 'Iniciar sesión →';
   }
@@ -312,16 +273,13 @@ window.doLogout = () => {
 // ── EMPRESAS SCREEN ──────────────────────────────────────────
 function showEmpresasScreen() {
   showScreen('scr-empresas');
-
-  // Mostrar email del usuario
-  const user = getAuthUser();
-  if (user?.email) {
+  const session = getSession();
+  if (session?.email) {
     const label = document.getElementById('top-user-label');
-    if (label) label.textContent = user.email;
+    if (label) label.textContent = session.nombre || session.email;
     const avatar = document.getElementById('top-avatar');
-    if (avatar) avatar.textContent = user.email[0].toUpperCase();
+    if (avatar) avatar.textContent = (session.nombre || session.email)[0].toUpperCase();
   }
-
   loadTenants();
 }
 

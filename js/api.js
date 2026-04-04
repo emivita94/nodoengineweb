@@ -1,69 +1,43 @@
 // ============================================================
 // NODO Engine — api.js
+// Auth: tabla usuarios en Supabase
+// DB: service role key (acceso total, sin RLS)
 // ============================================================
 
 // ── CONFIG ───────────────────────────────────────────────────
-let CONFIG = { SUPABASE_URL: '', SUPABASE_ANON: '', API_URL: '' };
+let CONFIG = {
+  SUPABASE_URL:     '',
+  SUPABASE_SERVICE: '',
+  API_URL:          '',
+};
 
 try {
   const mod = await import('./config.js');
-  CONFIG = mod.CONFIG || CONFIG;
+  CONFIG = { ...CONFIG, ...(mod.CONFIG || {}) };
 } catch {
   console.warn('[NODO] config.js no encontrado');
 }
 
-function hasRealConfig() {
-  return (
-    CONFIG.SUPABASE_URL  &&
-    !CONFIG.SUPABASE_URL.includes('TUPROYECTO') &&
-    CONFIG.SUPABASE_ANON &&
-    !CONFIG.SUPABASE_ANON.includes('TUANON_KEY')
-  );
+function getKey() {
+  return CONFIG.SUPABASE_SERVICE || '';
 }
 
-// ── SESIÓN ───────────────────────────────────────────────────
-const TOKEN_KEY = 'nodo-auth-token';
-const USER_KEY  = 'nodo-auth-user';
-
-export function getAuthToken() { return localStorage.getItem(TOKEN_KEY); }
-export function getAuthUser()  {
-  try { return JSON.parse(localStorage.getItem(USER_KEY)); } catch { return null; }
-}
-
-// isLoggedIn valida que el token NO sea demo si hay config real
-export function isLoggedIn() {
-  const token = localStorage.getItem(TOKEN_KEY);
-  if (!token) return false;
-  // Si hay config real, tokens demo no son válidos
-  if (hasRealConfig() && token.startsWith('demo-')) return false;
-  return true;
-}
-
-function saveSession(session) {
-  localStorage.setItem(TOKEN_KEY, session.access_token);
-  localStorage.setItem(USER_KEY,  JSON.stringify(session.user));
-}
-
-export function clearSession() {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(USER_KEY);
+function hasConfig() {
+  return CONFIG.SUPABASE_URL &&
+         !CONFIG.SUPABASE_URL.includes('TUPROYECTO') &&
+         CONFIG.SUPABASE_SERVICE &&
+         !CONFIG.SUPABASE_SERVICE.includes('PEGAR_AQUI');
 }
 
 // ── SUPABASE REST ────────────────────────────────────────────
 async function sb(path, opts = {}) {
-  if (!hasRealConfig()) throw new Error('CONFIG_MISSING');
+  if (!hasConfig()) throw new Error('Supabase no configurado — completá js/config.js');
 
-  // Si el token es del admin fijo (no es JWT real), usar el anon key directamente
-  const rawToken = getAuthToken() || '';
-  const isRealJwt = rawToken.startsWith('eyJ') && rawToken.split('.').length === 3;
-  const bearer = isRealJwt ? rawToken : CONFIG.SUPABASE_ANON;
-
-  const url = `${CONFIG.SUPABASE_URL}/rest/v1/${path}`;
-  const res = await fetch(url, {
+  const res = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/${path}`, {
     ...opts,
     headers: {
-      'apikey':        CONFIG.SUPABASE_ANON,
-      'Authorization': `Bearer ${bearer}`,
+      'apikey':        getKey(),
+      'Authorization': `Bearer ${getKey()}`,
       'Content-Type':  'application/json',
       'Prefer':        opts.prefer || 'return=representation',
       ...(opts.headers || {}),
@@ -78,42 +52,74 @@ async function sb(path, opts = {}) {
   return res.json();
 }
 
-// ── AUTH ─────────────────────────────────────────────────────
+// ── SESIÓN ───────────────────────────────────────────────────
+const SESSION_KEY = 'nodo-session';
+
+export function getSession() {
+  try { return JSON.parse(sessionStorage.getItem(SESSION_KEY)); } catch { return null; }
+}
+
+export function isLoggedIn() {
+  const s = getSession();
+  if (!s?.email || !s?.loginAt) return false;
+  return (Date.now() - s.loginAt) < 8 * 60 * 60 * 1000; // 8 horas
+}
+
+export function clearSession() {
+  sessionStorage.removeItem(SESSION_KEY);
+}
+
+// ── LOGIN ─────────────────────────────────────────────────────
+// Valida contra la tabla `usuarios` en Supabase
+// La contraseña se guarda como SHA-256 en la tabla
 export async function login(email, password) {
-  // Sin config real → solo acepta la credencial admin fija
-  if (!hasRealConfig()) {
-    throw new Error('CONFIG_MISSING');
+  if (!hasConfig()) throw new Error('Sistema no configurado');
+
+  // Hash SHA-256 de la contraseña
+  const passHash = await sha256(password);
+
+  const rows = await sb(
+    `usuarios?email=eq.${encodeURIComponent(email.toLowerCase())}&password_hash=eq.${passHash}&activo=eq.true&limit=1`
+  );
+
+  if (!rows || rows.length === 0) {
+    throw new Error('Email o contraseña incorrectos');
   }
 
-  const res = await fetch(`${CONFIG.SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-    method:  'POST',
-    headers: {
-      'apikey':       CONFIG.SUPABASE_ANON,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ email, password }),
-  });
+  const user = rows[0];
 
-  const data = await res.json();
-  if (!res.ok) {
-    const msg = data.error_description || data.msg || data.message || '';
-    if (msg.includes('Invalid login') || msg.includes('invalid_grant')) {
-      throw new Error('Email o contraseña incorrectos');
-    }
-    if (msg.includes('Email not confirmed')) {
-      throw new Error('Confirmá tu email antes de iniciar sesión');
-    }
-    throw new Error(msg || 'Error de autenticación');
-  }
+  // Guardar sesión
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify({
+    id:      user.id,
+    email:   user.email,
+    nombre:  user.nombre,
+    rol:     user.rol,
+    loginAt: Date.now(),
+  }));
 
-  saveSession(data);
-  return data.user;
+  // Actualizar último acceso
+  sb(`usuarios?id=eq.${user.id}`, {
+    method: 'PATCH',
+    body:   JSON.stringify({ ultimo_acceso: new Date().toISOString() }),
+    prefer: 'return=minimal',
+  }).catch(() => {});
+
+  return user;
 }
 
 export function logout() {
   clearSession();
   window.location.href = 'index.html';
 }
+
+// ── SHA-256 helper ────────────────────────────────────────────
+async function sha256(text) {
+  const buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// Exportar para usarla desde otros lados si hace falta
+export { sha256 };
 
 // ── TENANTS ──────────────────────────────────────────────────
 function mapTenant(row) {
@@ -127,14 +133,16 @@ function mapTenant(row) {
     name,
     ruc:            row.ruc,
     env:            row.ambiente || 'test',
-    status:         certDays !== null && certDays < 30 ? 'cert-warn' : (row.activo ? 'active' : 'inactive'),
+    status:         certDays !== null && certDays < 30
+                      ? 'cert-warn'
+                      : (row.activo ? 'active' : 'inactive'),
     plan:           row.plan || 'starter',
     avatar:         (name[0] || '?').toUpperCase(),
     avatarGradient: avatarColor(row.ruc || ''),
     logo:           row.logo_url || null,
-    docsHoy:        0,
-    docsmes:        0,
-    aprobados:      0,
+    docsHoy:        row.docs_hoy  || 0,
+    docsmes:        row.docs_mes  || 0,
+    aprobados:      row.pct_aprobados || 0,
     lastActivity:   row.actualizado_en
       ? 'Actualizado ' + timeAgo(row.actualizado_en)
       : 'Recién creado',
@@ -216,79 +224,51 @@ export async function createTenant({ ruc, razonSocial, nombreFantasia, email, te
 export async function updateTenant(id, fields) {
   const body = {};
   const map = {
-    razonSocial: 'razon_social', nombreFantasia: 'nombre_fantasia',
-    direccion: 'direccion', telefono: 'telefono', email: 'email',
-    ambiente: 'ambiente', csc: 'codigo_seguridad', idCsc: 'id_csc',
-    smtpHost: 'smtp_host', smtpPort: 'smtp_port', smtpUser: 'smtp_user',
-    smtpPass: 'smtp_pass', smtpSsl: 'smtp_ssl', smtpFrom: 'smtp_from',
+    razonSocial:  'razon_social',    nombreFantasia: 'nombre_fantasia',
+    direccion:    'direccion',        telefono:       'telefono',
+    email:        'email',            ambiente:       'ambiente',
+    csc:          'codigo_seguridad', idCsc:          'id_csc',
+    smtpHost:     'smtp_host',        smtpPort:       'smtp_port',
+    smtpUser:     'smtp_user',        smtpPass:       'smtp_pass',
+    smtpSsl:      'smtp_ssl',         smtpFrom:       'smtp_from',
     smtpFromName: 'smtp_from_name',
   };
   Object.entries(fields).forEach(([k, v]) => {
     if (map[k] && v !== undefined) body[map[k]] = v;
   });
   const rows = await sb(`tenants?id=eq.${encodeURIComponent(id)}`, {
-    method: 'PATCH',
-    body:   JSON.stringify(body),
+    method: 'PATCH', body: JSON.stringify(body),
   });
   return rows?.[0] ? mapTenant(rows[0]) : null;
 }
 
-// ── LOGO UPLOAD ───────────────────────────────────────────────
 export async function uploadLogo(tenantId, file) {
   const ext      = file.name.split('.').pop().toLowerCase();
   const filePath = `${tenantId}/logo.${ext}`;
-  const res = await fetch(
-    `${CONFIG.SUPABASE_URL}/storage/v1/object/logos/${filePath}`,
-    {
-      method:  'POST',
-      headers: {
-        'apikey':        CONFIG.SUPABASE_ANON,
-        'Authorization': `Bearer ${getAuthToken() || CONFIG.SUPABASE_ANON}`,
-        'Content-Type':  file.type,
-        'x-upsert':      'true',
-      },
-      body: file,
-    }
-  );
-  if (!res.ok) {
-    const e = await res.json().catch(() => ({}));
-    throw new Error(e.message || 'Error subiendo logo al storage');
-  }
+  const key      = getKey();
+  const res = await fetch(`${CONFIG.SUPABASE_URL}/storage/v1/object/logos/${filePath}`, {
+    method:  'POST',
+    headers: { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Content-Type': file.type, 'x-upsert': 'true' },
+    body: file,
+  });
+  if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.message || 'Error subiendo logo'); }
   const logoUrl = `${CONFIG.SUPABASE_URL}/storage/v1/object/public/logos/${filePath}`;
   await sb(`tenants?id=eq.${encodeURIComponent(tenantId)}`, {
-    method: 'PATCH',
-    body:   JSON.stringify({ logo_url: logoUrl }),
+    method: 'PATCH', body: JSON.stringify({ logo_url: logoUrl }),
   });
   return logoUrl;
 }
 
-// ── CERTIFICADO ───────────────────────────────────────────────
-export async function uploadCertificado(tenantId, { base64, alias, password, vencimiento }) {
-  if (!CONFIG.API_URL || CONFIG.API_URL.includes('tu-api')) {
-    throw new Error('API_URL no configurada');
-  }
-  const res = await fetch(`${CONFIG.API_URL}/tenants/${tenantId}/certificado`, {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getAuthToken()}` },
-    body:    JSON.stringify({ certificadoBase64: base64, alias, password, vencimiento }),
-  });
-  if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error || 'Error subiendo certificado'); }
-  return res.json();
-}
-
-// ── API KEYS ──────────────────────────────────────────────────
 export async function getApiKeys(tenantId) {
-  return sb(`api_keys?tenant_id=eq.${encodeURIComponent(tenantId)}&order=creada_en.desc`);
+  return sb(`api_keys?tenant_id=eq.${encodeURIComponent(tenantId)}&activa=eq.true&order=creada_en.desc`);
 }
 
 export async function revokeApiKey(keyId) {
   return sb(`api_keys?id=eq.${encodeURIComponent(keyId)}`, {
-    method: 'PATCH',
-    body: JSON.stringify({ activa: false }),
+    method: 'PATCH', body: JSON.stringify({ activa: false }),
   });
 }
 
-// ── PUNTOS / TIMBRADOS ────────────────────────────────────────
 export async function createPunto({ tenantId, estCodigo, puntoCodigo, descripcion, timbrado, tipoDocumento, vigDesde, vigHasta, numeroMax }) {
   let estRows = await sb(`establecimientos?tenant_id=eq.${tenantId}&codigo=eq.${estCodigo}`);
   let estId;
@@ -322,7 +302,6 @@ export async function createPunto({ tenantId, estCodigo, puntoCodigo, descripcio
   return { estId, pId };
 }
 
-// ── DOCUMENTOS ────────────────────────────────────────────────
 export async function getDocumentos(tenantId, { estado, limit = 20, offset = 0 } = {}) {
   let q = `documentos?tenant_id=eq.${tenantId}&order=creado_en.desc&limit=${limit}&offset=${offset}`;
   if (estado) q += `&estado=eq.${estado}`;
