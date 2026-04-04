@@ -141,9 +141,9 @@ function mapTenant(row) {
     avatar:         (row.nombre_fantasia || name)[0]?.toUpperCase() || '?',
     avatarGradient: avatarColor(row.ruc || ''),
     logo:           row.logo_url || null,
-    docsHoy:        row.docs_hoy  || 0,
-    docsmes:        row.docs_mes  || 0,
-    aprobados:      row.pct_aprobados || 0,
+    docsHoy:        row.tenant_stats?.[0]?.docs_hoy        || row.docs_hoy  || 0,
+    docsmes:        row.tenant_stats?.[0]?.docs_mes        || row.docs_mes  || 0,
+    aprobados:      row.tenant_stats?.[0]?.pct_aprobados   || row.pct_aprobados || 0,
     lastActivity:   row.actualizado_en
       ? 'Actualizado ' + timeAgo(row.actualizado_en)
       : 'Recién creado',
@@ -217,7 +217,7 @@ function avatarColor(ruc) {
 }
 
 export async function getTenants() {
-  const rows = await sb('tenants?order=creado_en.desc');
+  const rows = await sb('tenants?order=creado_en.desc&select=*,tenant_stats(docs_hoy,docs_mes,notas_credito_mes,rechazados_mes,pct_aprobados)');
   return (rows || []).map(mapTenant);
 }
 

@@ -141,8 +141,8 @@
         <div class="grid-4 mb-20">
           <div class="stat"><div class="stat-ico ico-o">🧾</div><div class="stat-val" id="stat-hoy">—</div><div class="stat-lbl">Facturas hoy</div><div class="stat-ch up" id="stat-hoy-ch"></div></div>
           <div class="stat"><div class="stat-ico ico-g">✅</div><div class="stat-val" id="stat-mes">—</div><div class="stat-lbl">Este mes</div><div class="stat-ch up" id="stat-mes-ch"></div></div>
-          <div class="stat"><div class="stat-ico ico-b">🔄</div><div class="stat-val">48</div><div class="stat-lbl">Notas de crédito</div><div class="stat-ch up">Este mes</div></div>
-          <div class="stat"><div class="stat-ico ico-r">❌</div><div class="stat-val">12</div><div class="stat-lbl">Rechazadas</div><div class="stat-ch down">0.09% del total</div></div>
+          <div class="stat"><div class="stat-ico ico-b">🔄</div><div class="stat-val" id="stat-nc">—</div><div class="stat-lbl">Notas de crédito</div><div class="stat-ch up">Este mes</div></div>
+          <div class="stat"><div class="stat-ico ico-r">❌</div><div class="stat-val" id="stat-rec">—</div><div class="stat-lbl">Rechazadas</div><div class="stat-ch down" id="stat-rec-ch">Este mes</div></div>
         </div>
 
         <div class="grid-2">
@@ -887,10 +887,18 @@ function populatePanel(t) {
   document.getElementById('ph-doc-sub').textContent  = displayName;
 
   // Stats
-  document.getElementById('stat-hoy').textContent    = t.docsHoy.toLocaleString();
-  document.getElementById('stat-mes').textContent    = t.docsmes.toLocaleString();
+  const stats = t._raw?.tenant_stats?.[0] || {};
+  document.getElementById('stat-hoy').textContent    = (stats.docs_hoy  || t.docsHoy || 0).toLocaleString();
+  document.getElementById('stat-mes').textContent    = (stats.docs_mes  || t.docsmes || 0).toLocaleString();
+  document.getElementById('stat-nc').textContent     = (stats.notas_credito_mes || 0).toLocaleString();
+  document.getElementById('stat-rec').textContent    = (stats.rechazados_mes    || 0).toLocaleString();
   document.getElementById('stat-hoy-ch').textContent = '↑ vs ayer';
-  document.getElementById('stat-mes-ch').textContent = t.aprobados > 0 ? `↑ ${t.aprobados}% aprobadas` : 'Sin datos aún';
+  const pct = stats.pct_aprobados || t.aprobados || 0;
+  document.getElementById('stat-mes-ch').textContent = pct > 0 ? `↑ ${pct}% aprobadas` : 'Sin datos aún';
+  const recCh = document.getElementById('stat-rec-ch');
+  if (recCh && stats.docs_mes > 0) {
+    recCh.textContent = ((stats.rechazados_mes || 0) * 100 / stats.docs_mes).toFixed(2) + '% del total';
+  }
 
   // Cert
   if (t.certDays !== null) {
