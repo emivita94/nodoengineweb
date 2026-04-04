@@ -90,9 +90,9 @@
           <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
           Config. correo
         </div>
-        <div class="nav" onclick="showPage('apikeys')" id="n-apikeys">
-          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
-          API Keys
+        <div class="nav" onclick="showPage('integracion')" id="n-integracion">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+          Integración ERP
         </div>
       </div>
       <div class="sb-section">
@@ -354,41 +354,205 @@
         </div>
       </div>
 
-      <!-- ══════ API KEYS ══════ -->
-      <div class="pg" id="pg-apikeys">
+      <!-- ══════ INTEGRACIÓN ERP ══════ -->
+      <div class="pg" id="pg-integracion">
         <div class="ph">
-          <div><div class="ph-title">API Keys</div><div class="ph-sub">Credenciales para integración con ERP y sistemas externos</div></div>
-          <div class="ph-right"><button class="btn btn-o btn-sm" onclick="openModal('modal-nueva-key')">+ Nueva API Key</button></div>
+          <div><div class="ph-title">Integración con ERP</div><div class="ph-sub" id="ph-int-sub">Credenciales y guía para conectar el sistema del cliente</div></div>
+          <div class="ph-right">
+            <button class="btn btn-o btn-sm" onclick="openModal('modal-nueva-key')">+ Nueva API Key</button>
+          </div>
         </div>
-        <div class="alert alert-info" style="margin-bottom:20px">
-          <span style="font-size:16px">ℹ️</span>
-          <div>Las API Keys se muestran <strong>una sola vez</strong> al crearlas. Guardá el valor completo en un lugar seguro. El endpoint de integración ERP es: <code class="mono" style="background:var(--bg4);padding:2px 6px;border-radius:4px">POST /api/v1/documentos/erp</code></div>
+
+        <!-- DATOS DE CONEXIÓN -->
+        <div class="fsec" style="margin-bottom:18px">
+          <div class="fsec-head">
+            <div class="fsec-ico">🔌</div>
+            <div><div class="fsec-title">Datos de conexión</div><div class="fsec-desc">Estos son los datos que el cliente necesita cargar en su ERP</div></div>
+          </div>
+          <div class="fsec-body">
+            <div style="display:grid;gap:14px">
+
+              <!-- Tenant ID -->
+              <div>
+                <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Tenant ID</div>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <div style="flex:1;background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text)" id="display-tenant-id">—</div>
+                  <button class="btn btn-g btn-sm" onclick="copyField('display-tenant-id','Tenant ID')">📋 Copiar</button>
+                </div>
+                <div style="font-size:11px;color:var(--text3);margin-top:5px">Identificador único de esta empresa en el sistema. Algunos ERP lo piden para configurar el emisor.</div>
+              </div>
+
+              <!-- URL del endpoint -->
+              <div>
+                <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">URL del endpoint (emisión de facturas)</div>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <div style="flex:1;background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--orange)" id="display-api-url">—</div>
+                  <button class="btn btn-g btn-sm" onclick="copyField('display-api-url','URL del endpoint')">📋 Copiar</button>
+                </div>
+                <div style="font-size:11px;color:var(--text3);margin-top:5px">El ERP hace un POST a esta URL con los datos de la factura. Método: POST · Content-Type: application/json</div>
+              </div>
+
+              <!-- Header de autenticación -->
+              <div>
+                <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Header de autenticación</div>
+                <div style="background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2)">
+                  X-API-Key: <span style="color:var(--orange)">sk_live_XXXXXXXXXX</span>
+                </div>
+                <div style="font-size:11px;color:var(--text3);margin-top:5px">Cada request debe incluir este header con la API Key del tenant.</div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="tw">
-          <div class="tw-head"><div class="tw-title">Keys activas</div></div>
-          <table>
-            <thead><tr><th>Nombre</th><th>Prefijo</th><th>Ambiente</th><th>Último uso</th><th>Creada</th><th>Estado</th><th></th></tr></thead>
-            <tbody>
-              <tr>
-                <td class="fw-600">Default</td>
-                <td><code class="mono" style="background:var(--bg4);padding:2px 8px;border-radius:4px;font-size:12px">sk_test_aB3x</code></td>
-                <td><span class="badge badge-yellow">Test</span></td>
-                <td class="fs-12 text-2">Hace 5 min</td>
-                <td class="fs-12 text-2">01/01/2025</td>
-                <td><span class="badge badge-green">Activa</span></td>
-                <td><div class="td-act"><button class="btn btn-d btn-xs">Revocar</button></div></td>
-              </tr>
-              <tr>
-                <td class="fw-600">Producción ERP</td>
-                <td><code class="mono" style="background:var(--bg4);padding:2px 8px;border-radius:4px;font-size:12px">sk_live_cD7y</code></td>
-                <td><span class="badge badge-green">Prod</span></td>
-                <td class="fs-12 text-2">Hace 1 hora</td>
-                <td class="fs-12 text-2">15/03/2025</td>
-                <td><span class="badge badge-green">Activa</span></td>
-                <td><div class="td-act"><button class="btn btn-d btn-xs">Revocar</button></div></td>
-              </tr>
-            </tbody>
-          </table>
+
+        <!-- API KEYS -->
+        <div class="fsec" style="margin-bottom:18px">
+          <div class="fsec-head">
+            <div class="fsec-ico">🔑</div>
+            <div><div class="fsec-title">API Keys activas</div><div class="fsec-desc">Las keys se muestran una sola vez al crearlas — guardá el valor completo</div></div>
+          </div>
+          <div class="fsec-body" style="padding:0">
+            <div style="overflow-x:auto">
+              <table id="keys-table">
+                <thead>
+                  <tr><th>Nombre</th><th>Prefijo</th><th>Ambiente</th><th>Último uso</th><th>Creada</th><th>Estado</th><th></th></tr>
+                </thead>
+                <tbody id="keys-body">
+                  <tr><td colspan="7" style="text-align:center;color:var(--text3);padding:20px;font-size:13px">Cargando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div style="padding:14px 18px;border-top:1px solid var(--border)">
+              <button class="btn btn-o btn-sm" onclick="openModal('modal-nueva-key')">+ Generar nueva API Key</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- GUÍA DE INTEGRACIÓN -->
+        <div class="fsec">
+          <div class="fsec-head">
+            <div class="fsec-ico">📖</div>
+            <div><div class="fsec-title">Guía de integración</div><div class="fsec-desc">Cómo configurar el ERP del cliente paso a paso</div></div>
+          </div>
+          <div class="fsec-body">
+
+            <div style="display:grid;gap:20px">
+
+              <!-- Paso 1 -->
+              <div style="display:flex;gap:14px">
+                <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--orange-light));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#000;flex-shrink:0">1</div>
+                <div>
+                  <div style="font-weight:600;font-size:13px;margin-bottom:4px">Configurar el ERP con la URL y API Key</div>
+                  <div style="font-size:12px;color:var(--text2);line-height:1.6">En el ERP del cliente (Qualita, SAP, etc.) buscar la sección de "Facturación electrónica" o "SET" y cargar la URL del endpoint y la API Key que generaste arriba.</div>
+                </div>
+              </div>
+
+              <!-- Paso 2 + ejemplo JSON -->
+              <div style="display:flex;gap:14px">
+                <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--orange-light));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#000;flex-shrink:0">2</div>
+                <div style="flex:1">
+                  <div style="font-weight:600;font-size:13px;margin-bottom:8px">El ERP envía cada factura con este formato</div>
+                  <div style="background:var(--bg4);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+                    <div style="padding:8px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+                      <span style="font-size:11px;color:var(--text3);font-family:monospace">POST /api/v1/documentos/erp</span>
+                      <button class="btn btn-g btn-sm" style="font-size:10px;padding:3px 8px" onclick="copyCode('json-example')">Copiar</button>
+                    </div>
+                    <pre id="json-example" style="padding:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2);line-height:1.7;overflow-x:auto;margin:0">{
+  "tipoDocumento": 1,
+  "fecha": "2025-04-03T10:30:00",
+  "moneda": "PYG",
+  "cliente": {
+    "tipo": 1,
+    "documento": "4567890",
+    "razonSocial": "Juan Pérez"
+  },
+  "items": [
+    {
+      "descripcion": "Producto A",
+      "cantidad": 2,
+      "precioUnitario": 75000,
+      "precioTotal": 150000,
+      "tasaIVA": 10
+    }
+  ],
+  "referenciaExterna": "FAC-2025-001",
+  "webhookUrl": "https://mi-erp.py/webhook/nodo"
+}</pre>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Paso 3 + respuesta -->
+              <div style="display:flex;gap:14px">
+                <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--orange-light));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#000;flex-shrink:0">3</div>
+                <div style="flex:1">
+                  <div style="font-weight:600;font-size:13px;margin-bottom:8px">La API responde con el resultado</div>
+                  <div style="background:var(--bg4);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+                    <div style="padding:8px 14px;border-bottom:1px solid var(--border)">
+                      <span style="font-size:11px;color:var(--green);font-family:monospace">HTTP 201 Created</span>
+                    </div>
+                    <pre style="padding:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2);line-height:1.7;overflow-x:auto;margin:0">{
+  "ok": true,
+  "data": {
+    "cdc": "01800123456001001000001200120251234567890",
+    "numero": "001-001-0000001",
+    "estado": "aprobado",
+    "sifen_codigo": "0260",
+    "sifen_mensaje": "Documento aprobado",
+    "kude_url": "/api/v1/documentos/01800.../kude",
+    "xml_url": "/api/v1/documentos/01800.../xml"
+  }
+}</pre>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Paso 4 - webhook -->
+              <div style="display:flex;gap:14px">
+                <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--orange-light));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#000;flex-shrink:0">4</div>
+                <div style="flex:1">
+                  <div style="font-weight:600;font-size:13px;margin-bottom:8px">Si configuraste webhookUrl, el ERP recibe una notificación</div>
+                  <div style="background:var(--bg4);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+                    <div style="padding:8px 14px;border-bottom:1px solid var(--border)">
+                      <span style="font-size:11px;color:var(--text3);font-family:monospace">POST → tu-erp.py/webhook/nodo</span>
+                    </div>
+                    <pre style="padding:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2);line-height:1.7;overflow-x:auto;margin:0">{
+  "evento": "de.aprobado",
+  "cdc": "01800123456001001000001200120251234567890",
+  "numero": "001-001-0000001",
+  "estado": "aprobado",
+  "referenciaExterna": "FAC-2025-001",
+  "timestamp": "2025-04-03T10:30:45Z"
+}</pre>
+                  </div>
+                  <div style="font-size:12px;color:var(--text2);margin-top:8px">Con la <span style="font-family:monospace;color:var(--orange);font-size:11px">referenciaExterna</span> el ERP sabe exactamente a qué factura interna corresponde.</div>
+                </div>
+              </div>
+
+              <!-- Errores comunes -->
+              <div style="background:var(--red-bg);border:1px solid rgba(255,77,77,.2);border-radius:8px;padding:16px">
+                <div style="font-weight:600;font-size:13px;color:var(--red);margin-bottom:10px">Errores comunes y cómo resolverlos</div>
+                <div style="display:grid;gap:8px">
+                  <div style="display:flex;gap:10px;font-size:12px">
+                    <span style="font-family:monospace;color:var(--red);white-space:nowrap;padding:2px 6px;background:rgba(255,77,77,.1);border-radius:4px">401</span>
+                    <span style="color:var(--text2)">API Key inválida o revocada — verificar el header <span style="font-family:monospace;color:var(--orange)">X-API-Key</span></span>
+                  </div>
+                  <div style="display:flex;gap:10px;font-size:12px">
+                    <span style="font-family:monospace;color:var(--red);white-space:nowrap;padding:2px 6px;background:rgba(255,77,77,.1);border-radius:4px">422</span>
+                    <span style="color:var(--text2)">Datos inválidos — revisar formato RUC, montos, tasaIVA (0, 5 ó 10)</span>
+                  </div>
+                  <div style="display:flex;gap:10px;font-size:12px">
+                    <span style="font-family:monospace;color:var(--red);white-space:nowrap;padding:2px 6px;background:rgba(255,77,77,.1);border-radius:4px">0300</span>
+                    <span style="color:var(--text2)">SET rechazó el documento — revisar logs para el detalle del campo con error</span>
+                  </div>
+                  <div style="display:flex;gap:10px;font-size:12px">
+                    <span style="font-family:monospace;color:var(--yellow);white-space:nowrap;padding:2px 6px;background:rgba(255,200,87,.1);border-radius:4px">cert</span>
+                    <span style="color:var(--text2)">Certificado vencido — renovar en Configuración → Certificado digital</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
         </div>
       </div>
 
@@ -688,10 +852,13 @@ const raw = sessionStorage.getItem('nodo-tenant');
 const tenant = raw ? JSON.parse(raw) : null;
 
 if (!tenant) {
-  // Fallback demo data
   window.location.href = 'index.html';
 } else {
+  window._currentTenant = tenant;
   populatePanel(tenant);
+  populateIntegracion(tenant);
+  // Load config for API URL
+  import('./js/config.js').then(m => { window._CONFIG = m.CONFIG; populateIntegracion(tenant); }).catch(()=>{});
 }
 
 function populatePanel(t) {
@@ -827,7 +994,122 @@ window.addPunto = () => {
 };
 window.removePunto = (i) => { puntos.splice(i,1); renderPuntos(puntos); };
 
-// ── DOCS TABLE ────────────────────────────────────────────────
+// ── INTEGRATION PAGE ──────────────────────────────────────────
+function populateIntegracion(t) {
+  // Tenant ID
+  const tidEl = document.getElementById('display-tenant-id');
+  if (tidEl) tidEl.textContent = t.id;
+
+  // API URL  
+  const apiUrl = (window._CONFIG?.API_URL || 'https://tu-api.railway.app/api/v1') + '/documentos/erp';
+  const urlEl = document.getElementById('display-api-url');
+  if (urlEl) urlEl.textContent = apiUrl;
+
+  // Page subtitle
+  const sub = document.getElementById('ph-int-sub');
+  if (sub) sub.textContent = t.name + ' · RUC ' + t.ruc;
+
+  // Load API keys
+  loadApiKeys(t.id);
+}
+
+async function loadApiKeys(tenantId) {
+  const tbody = document.getElementById('keys-body');
+  if (!tbody) return;
+  try {
+    const { getApiKeys } = await import('./js/api.js');
+    const keys = await getApiKeys(tenantId);
+    if (!keys || keys.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:20px;font-size:13px">Sin API Keys — generá la primera para el cliente</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = keys.map(k => `
+      <tr>
+        <td class="fw-600">${k.nombre || 'Sin nombre'}</td>
+        <td><code style="background:var(--bg4);padding:2px 8px;border-radius:4px;font-size:12px;font-family:monospace">${k.key_prefix || '—'}</code></td>
+        <td><span class="badge ${k.key_prefix?.includes('live') ? 'badge-green' : 'badge-yellow'}">${k.key_prefix?.includes('live') ? '🚀 Prod' : '⚙ Test'}</span></td>
+        <td class="fs-12 text-2">${k.ultimo_uso ? timeAgoStr(k.ultimo_uso) : 'Nunca'}</td>
+        <td class="fs-12 text-2">${k.creada_en ? new Date(k.creada_en).toLocaleDateString('es-PY') : '—'}</td>
+        <td><span class="badge ${k.activa ? 'badge-green' : 'badge-red'}">${k.activa ? 'Activa' : 'Revocada'}</span></td>
+        <td><div class="td-act">
+          ${k.activa ? `<button class="btn btn-d btn-xs" onclick="revokeKey('${k.id}')">Revocar</button>` : ''}
+        </div></td>
+      </tr>
+    `).join('');
+  } catch (e) {
+    // Demo mode: show placeholder keys
+    tbody.innerHTML = `
+      <tr>
+        <td class="fw-600">Default</td>
+        <td><code style="background:var(--bg4);padding:2px 8px;border-radius:4px;font-size:12px;font-family:monospace">sk_test_aB3x</code></td>
+        <td><span class="badge badge-yellow">⚙ Test</span></td>
+        <td class="fs-12 text-2">Hace 5 min</td>
+        <td class="fs-12 text-2">01/01/2025</td>
+        <td><span class="badge badge-green">Activa</span></td>
+        <td><div class="td-act"><button class="btn btn-d btn-xs" onclick="toast('Demo: revocar key','warn')">Revocar</button></div></td>
+      </tr>
+      <tr>
+        <td class="fw-600">ERP Producción</td>
+        <td><code style="background:var(--bg4);padding:2px 8px;border-radius:4px;font-size:12px;font-family:monospace">sk_live_cD7y</code></td>
+        <td><span class="badge badge-green">🚀 Prod</span></td>
+        <td class="fs-12 text-2">Hace 1 hora</td>
+        <td class="fs-12 text-2">15/03/2025</td>
+        <td><span class="badge badge-green">Activa</span></td>
+        <td><div class="td-act"><button class="btn btn-d btn-xs" onclick="toast('Demo: revocar key','warn')">Revocar</button></div></td>
+      </tr>
+    `;
+  }
+}
+
+function timeAgoStr(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 2)  return 'Hace un momento';
+  if (m < 60) return `Hace ${m} min`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `Hace ${h}h`;
+  return `Hace ${Math.floor(h / 24)} días`;
+}
+
+// ── COPY HELPERS ──────────────────────────────────────────────
+window.copyField = (elId, label) => {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const text = el.textContent.trim();
+  if (!text || text === '—') { toast('No hay valor para copiar', 'warn'); return; }
+  navigator.clipboard.writeText(text)
+    .then(() => toast(`${label} copiado ✓`, 'ok'))
+    .catch(() => {
+      // Fallback para navegadores sin clipboard API
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+      toast(`${label} copiado ✓`, 'ok');
+    });
+};
+
+window.copyCode = (elId) => {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  navigator.clipboard.writeText(el.textContent.trim())
+    .then(() => toast('Código copiado ✓', 'ok'))
+    .catch(() => toast('Seleccioná el texto manualmente', 'warn'));
+};
+
+window.revokeKey = async (keyId) => {
+  if (!confirm('¿Revocar esta API Key? El cliente dejará de poder emitir facturas hasta que generes una nueva.')) return;
+  try {
+    const { revokeApiKey } = await import('./js/api.js');
+    await revokeApiKey(keyId);
+    toast('API Key revocada', 'ok');
+    if (window._currentTenant) loadApiKeys(window._currentTenant.id);
+  } catch (e) {
+    toast('Error revocando key: ' + e.message, 'err');
+  }
+};
 function estadoBadge(e) {
   if (e==='approved') return `<span class="badge badge-green"><span class="bd"></span>Aprobado</span>`;
   if (e==='rejected') return `<span class="badge badge-red"><span class="bd"></span>Rechazado</span>`;
@@ -923,10 +1205,13 @@ window.createApiKey = () => {
   const env    = document.getElementById('key-env').value;
   if (!nombre) { toast('Ingresá un nombre para la key', 'err'); return; }
   const prefix = env === 'live' ? 'sk_live_' : 'sk_test_';
-  const key    = prefix + Math.random().toString(36).slice(2, 10).toUpperCase();
+  const key    = prefix + Math.random().toString(36).slice(2, 6).toUpperCase() +
+                 Math.random().toString(36).slice(2, 6).toUpperCase();
   closeModal('modal-nueva-key');
   document.getElementById('key-valor').value = key;
   openModal('modal-key-generada');
+  // Reload keys table
+  if (window._currentTenant) setTimeout(() => loadApiKeys(window._currentTenant.id), 500);
 };
 window.copyKey = () => {
   const v = document.getElementById('key-valor').value;
