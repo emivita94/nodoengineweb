@@ -217,7 +217,7 @@ function avatarColor(ruc) {
 }
 
 export async function getTenants() {
-  const rows = await sb('tenants?order=creado_en.desc&select=*,tenant_stats(docs_hoy,docs_mes,notas_credito_mes,rechazados_mes,pct_aprobados)');
+  const rows = await sb('tenants?order=creado_en.desc');
   return (rows || []).map(mapTenant);
 }
 
