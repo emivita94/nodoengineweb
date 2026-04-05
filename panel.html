@@ -313,41 +313,109 @@
       <!-- ══════ CORREO ══════ -->
       <div class="pg" id="pg-correo">
         <div class="ph">
-          <div><div class="ph-title">Configuración de correo</div><div class="ph-sub">SMTP para envío de KUDE y notificaciones</div></div>
+          <div><div class="ph-title">Configuración de correo</div><div class="ph-sub">SMTP y plantillas de mensajes para envío de KUDE</div></div>
           <div class="ph-right">
             <button class="btn btn-g btn-sm" onclick="testSmtp()">🧪 Probar conexión</button>
-            <button class="btn btn-o btn-sm" onclick="saveSmtp()">💾 Guardar</button>
+            <button class="btn btn-o btn-sm" onclick="saveSmtp()">💾 Guardar todo</button>
           </div>
         </div>
-        <div class="fsec">
-          <div class="fsec-head"><div class="fsec-ico">📧</div><div><div class="fsec-title">Servidor SMTP</div><div class="fsec-desc">Configuración del correo saliente para facturas y alertas</div></div></div>
+
+        <!-- SMTP -->
+        <div class="fsec" style="margin-bottom:18px">
+          <div class="fsec-head"><div class="fsec-ico">📧</div><div><div class="fsec-title">Servidor SMTP</div><div class="fsec-desc">Configuración del correo saliente</div></div></div>
           <div class="fsec-body">
             <div class="grid-2" style="gap:14px">
-              <div class="field"><label>SMTP Host</label><input id="smtp-host" placeholder="smtp.gmail.com"></div>
-              <div class="field"><label>Puerto</label><input id="smtp-port" type="number" placeholder="587"></div>
-              <div class="field"><label>Usuario</label><input id="smtp-user" placeholder="usuario@empresa.py"></div>
+              <div class="field"><label>SMTP Host</label><input id="smtp-host" placeholder="smtp.hostinger.com"></div>
+              <div class="field"><label>Puerto</label><input id="smtp-port" type="number" placeholder="465"></div>
+              <div class="field"><label>Usuario</label><input id="smtp-user" placeholder="info@empresa.py"></div>
               <div class="field"><label>Contraseña</label><input type="password" id="smtp-pass" placeholder="••••••••"></div>
-              <div class="field"><label>Email remitente</label><input id="smtp-from" placeholder="no-reply@empresa.py"></div>
-              <div class="field"><label>Nombre remitente</label><input id="smtp-fromname" placeholder="Mi Empresa Facturación"></div>
+              <div class="field"><label>Email remitente</label><input id="smtp-from" placeholder="info@empresa.py"></div>
+              <div class="field"><label>Nombre remitente</label><input id="smtp-fromname" placeholder="NODO Informatica"></div>
             </div>
             <div style="margin-top:18px">
               <div class="tog-row">
-                <div><div class="tog-lbl">Usar TLS/SSL</div><div class="tog-desc">Cifrado de conexión recomendado (puerto 587 o 465)</div></div>
+                <div><div class="tog-lbl">Usar TLS/SSL</div><div class="tog-desc">Recomendado — puerto 465 con SSL activado</div></div>
                 <label class="toggle"><input type="checkbox" id="smtp-ssl" checked><span class="ts"></span></label>
               </div>
               <div class="tog-row">
-                <div><div class="tog-lbl">Enviar KUDE al cliente automáticamente</div><div class="tog-desc">Adjunta el PDF al email del receptor al aprobar el DE</div></div>
+                <div><div class="tog-lbl">Enviar KUDE al cliente automáticamente</div><div class="tog-desc">Adjunta el PDF al email del receptor al aprobarse el DE</div></div>
                 <label class="toggle"><input type="checkbox" id="smtp-kude" checked><span class="ts"></span></label>
               </div>
-              <div class="tog-row">
-                <div><div class="tog-lbl">Notificar errores de SET por email</div><div class="tog-desc">Alerta al administrador cuando falle un lote</div></div>
-                <label class="toggle"><input type="checkbox" id="smtp-errs" checked><span class="ts"></span></label>
-              </div>
-              <div class="tog-row">
-                <div><div class="tog-lbl">Enviar XML junto al KUDE</div><div class="tog-desc">Adjunta también el XML firmado al correo del receptor</div></div>
-                <label class="toggle"><input type="checkbox" id="smtp-xml"><span class="ts"></span></label>
+            </div>
+          </div>
+        </div>
+
+        <!-- PLANTILLAS -->
+        <div class="fsec">
+          <div class="fsec-head"><div class="fsec-ico">✏️</div><div><div class="fsec-title">Plantillas de mensajes</div><div class="fsec-desc">Personalizá el asunto y cuerpo del email que recibe el cliente</div></div></div>
+          <div class="fsec-body">
+
+            <div style="background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:20px">
+              <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Variables disponibles — clic para insertar</div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px">
+                <code style="font-size:11px;cursor:pointer;border-color:var(--orange)" onclick="insertarVar('email-asunto','${tipoDocumento}')">${tipoDocumento}</code>
+                <code style="font-size:11px;cursor:pointer;border-color:var(--orange)" onclick="insertarVar('email-asunto','${numeroFactura}')">${numeroFactura}</code>
+                <code style="font-size:11px;cursor:pointer" onclick="insertarVar('email-cuerpo','${receptor_nombre}')">${receptor_nombre}</code>
+                <code style="font-size:11px;cursor:pointer" onclick="insertarVar('email-cuerpo','${receptor_ruc}')">${receptor_ruc}</code>
+                <code style="font-size:11px;cursor:pointer" onclick="insertarVar('email-cuerpo','${emisor_nombre}')">${emisor_nombre}</code>
+                <code style="font-size:11px;cursor:pointer" onclick="insertarVar('email-cuerpo','${emisor_ruc}')">${emisor_ruc}</code>
+                <code style="font-size:11px;cursor:pointer" onclick="insertarVar('email-cuerpo','${monto_total}')">${monto_total}</code>
+                <code style="font-size:11px;cursor:pointer" onclick="insertarVar('email-cuerpo','${fecha}')">${fecha}</code>
+                <code style="font-size:11px;cursor:pointer" onclick="insertarVar('email-cuerpo','${cdc}')">${cdc}</code>
+                <code style="font-size:11px;cursor:pointer" onclick="insertarVar('email-cuerpo','${emisor_telefono}')">${emisor_telefono}</code>
+                <code style="font-size:11px;cursor:pointer" onclick="insertarVar('email-cuerpo','${emisor_email}')">${emisor_email}</code>
               </div>
             </div>
+
+            <div class="field" style="margin-bottom:18px">
+              <label style="display:flex;justify-content:space-between;align-items:center">
+                Asunto del email
+                <button class="btn btn-g btn-xs" onclick="resetAsunto()">↺ Predeterminado</button>
+              </label>
+              <input id="email-asunto" style="font-family:monospace;font-size:13px">
+            </div>
+
+            <div class="field" style="margin-bottom:18px">
+              <label style="display:flex;justify-content:space-between;align-items:center">
+                Cuerpo del email
+                <button class="btn btn-g btn-xs" onclick="resetCuerpo()">↺ Predeterminado</button>
+              </label>
+              <textarea id="email-cuerpo" rows="8" style="font-size:13px;line-height:1.7;resize:vertical;width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--text);outline:none;font-family:inherit"></textarea>
+              <div style="font-size:11px;color:var(--text3);margin-top:5px">Texto principal del email. El PDF del KUDE se adjunta automáticamente.</div>
+            </div>
+
+            <!-- INFORMACIÓN ADICIONAL -->
+            <div class="field" style="margin-bottom:18px">
+              <label style="display:flex;justify-content:space-between;align-items:center">
+                Información adicional (al final del cuerpo)
+                <span style="font-size:11px;color:var(--text3);font-weight:400">Opcional</span>
+              </label>
+              <textarea id="email-info-adicional" rows="4" placeholder="Ej: Métodos de pago aceptados: Efectivo, Transferencia bancaria&#10;Banco: Itaú · Cuenta: 123456-7 · Alias: miempresa&#10;&#10;Para consultas: info@miempresa.py" style="font-size:13px;line-height:1.7;resize:vertical;width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--text);outline:none;font-family:inherit"></textarea>
+              <div style="font-size:11px;color:var(--text3);margin-top:5px">Se muestra después del cuerpo principal. Ideal para métodos de pago, datos bancarios o información de contacto.</div>
+            </div>
+
+            <!-- FIRMA -->
+            <div class="field" style="margin-bottom:20px">
+              <label style="display:flex;justify-content:space-between;align-items:center">
+                Firma del correo
+                <button class="btn btn-g btn-xs" onclick="resetFirma()">↺ Predeterminado</button>
+              </label>
+              <textarea id="email-firma" rows="3" style="font-size:13px;line-height:1.7;resize:vertical;width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--text);outline:none;font-family:inherit"></textarea>
+              <div style="font-size:11px;color:var(--text3);margin-top:5px">Se muestra al final del email, después de la información adicional.</div>
+            </div>
+
+            <!-- PREVIEW -->
+            <div>
+              <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px">Vista previa</div>
+              <div style="background:var(--bg4);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+                <div style="background:var(--bg3);padding:10px 16px;border-bottom:1px solid var(--border)">
+                  <div style="font-size:12px;font-weight:600;color:var(--text)" id="preview-asunto">—</div>
+                  <div style="font-size:11px;color:var(--text3);margin-top:2px">De: <span id="preview-from">—</span></div>
+                </div>
+                <div style="padding:16px;font-size:13px;color:var(--text2);line-height:1.8;white-space:pre-wrap;max-height:220px;overflow-y:auto" id="preview-cuerpo">—</div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -956,9 +1024,20 @@ function populatePanel(t) {
   set('smtp-fromname', t.smtpFromName);
   set('smtp-user',     t.smtpUser);
   const portEl = document.getElementById('smtp-port');
-  if (portEl) portEl.value = t.smtpPort || 587;
+  if (portEl) portEl.value = t.smtpPort || 465;
   const sslEl = document.getElementById('smtp-ssl');
   if (sslEl) sslEl.checked = t.smtpSsl !== false;
+
+  // Plantillas de email
+  const asuntoEl    = document.getElementById('email-asunto');
+  const cuerpoEl    = document.getElementById('email-cuerpo');
+  const adicionalEl = document.getElementById('email-info-adicional');
+  const firmaEl     = document.getElementById('email-firma');
+  if (asuntoEl)    asuntoEl.value    = t.emailAsunto        || t.email_asunto        || ASUNTO_DEFAULT;
+  if (cuerpoEl)    cuerpoEl.value    = t.emailCuerpo        || t.email_cuerpo        || CUERPO_DEFAULT;
+  if (adicionalEl) adicionalEl.value = t.emailInfoAdicional || t.email_info_adicional || '';
+  if (firmaEl)     firmaEl.value     = t.emailFirma         || t.email_firma         || FIRMA_DEFAULT;
+  actualizarPreview();
 
   // Actividades económicas
   renderActividades(t.actividadesEconomicas || t.actividades || []);
@@ -1746,6 +1825,76 @@ window.certFileSelected = (input) => {
   toast('Certificado seleccionado. Completá alias y contraseña.', 'ok');
 };
 
+// ── PLANTILLAS DE EMAIL ───────────────────────────────────────
+const ASUNTO_DEFAULT = '${tipoDocumento} N° ${numeroFactura} — ${emisor_nombre}';
+const CUERPO_DEFAULT = `Estimado/a \${receptor_nombre},
+
+Adjunto encontrará su \${tipoDocumento} N° \${numeroFactura} emitida por \${emisor_nombre} (RUC: \${emisor_ruc}), aprobada por la Subsecretaría de Estado de Tributación (SET) de Paraguay.
+
+Monto total: \${monto_total}
+Fecha de emisión: \${fecha}
+CDC: \${cdc}
+
+El archivo PDF adjunto es el comprobante oficial (KUDE). Puede verificar su autenticidad en ekuatia.set.gov.py ingresando el CDC.`;
+
+const FIRMA_DEFAULT = `Atentamente,
+\${emisor_nombre}
+Tel: \${emisor_telefono} | Email: \${emisor_email}`;
+
+window.insertarVar = (campoId, variable) => {
+  const el = document.getElementById(campoId);
+  if (!el) return;
+  el.focus();
+  const start = el.selectionStart ?? el.value.length;
+  const end   = el.selectionEnd   ?? el.value.length;
+  el.value = el.value.slice(0, start) + variable + el.value.slice(end);
+  el.selectionStart = el.selectionEnd = start + variable.length;
+  actualizarPreview();
+};
+
+window.resetAsunto = () => { const el = document.getElementById('email-asunto'); if (el) { el.value = ASUNTO_DEFAULT; actualizarPreview(); } };
+window.resetCuerpo = () => { const el = document.getElementById('email-cuerpo'); if (el) { el.value = CUERPO_DEFAULT; actualizarPreview(); } };
+window.resetFirma  = () => { const el = document.getElementById('email-firma');  if (el) { el.value = FIRMA_DEFAULT;  actualizarPreview(); } };
+
+function actualizarPreview() {
+  const t         = window._currentTenant;
+  const asunto    = document.getElementById('email-asunto')?.value || ASUNTO_DEFAULT;
+  const cuerpo    = document.getElementById('email-cuerpo')?.value || CUERPO_DEFAULT;
+  const adicional = document.getElementById('email-info-adicional')?.value || '';
+  const firma     = document.getElementById('email-firma')?.value || FIRMA_DEFAULT;
+  const from      = document.getElementById('smtp-fromname')?.value || document.getElementById('smtp-from')?.value || '—';
+
+  const vars = {
+    tipoDocumento:   'Factura electrónica',
+    numeroFactura:   '001-002-0000001',
+    receptor_nombre: 'Juan Pérez',
+    receptor_ruc:    '4567890',
+    emisor_nombre:   t?.name || 'Mi Empresa',
+    emisor_ruc:      t?.ruc  || '12345678-9',
+    monto_total:     '₲ 550.000',
+    fecha:           new Date().toLocaleDateString('es-PY'),
+    cdc:             '01803778760001002...',
+    emisor_telefono: t?.telefono || '021 555 000',
+    emisor_email:    t?.email    || 'info@empresa.py',
+  };
+  const r = str => str.replace(/\$\{(\w+)\}/g, (_, k) => vars[k] || `\${${k}}`);
+
+  const partes = [r(cuerpo)];
+  if (adicional.trim()) partes.push('\n─────────────────\n' + adicional.trim());
+  partes.push('\n' + r(firma));
+
+  const preAsunto = document.getElementById('preview-asunto');
+  const preCuerpo = document.getElementById('preview-cuerpo');
+  const preFrom   = document.getElementById('preview-from');
+  if (preAsunto) preAsunto.textContent = r(asunto);
+  if (preCuerpo) preCuerpo.textContent = partes.join('\n');
+  if (preFrom)   preFrom.textContent   = from;
+}
+
+document.addEventListener('input', e => {
+  if (['email-asunto','email-cuerpo','email-info-adicional','email-firma','smtp-fromname'].includes(e.target?.id)) actualizarPreview();
+});
+
 // ── SAVE ACTIONS ──────────────────────────────────────────────
 window.saveConfig = async () => {
   const tenantId = window._currentTenant?.id;
@@ -1798,12 +1947,16 @@ window.saveSmtp = async () => {
 
   try {
     const body = {
-      smtp_host:      host,
-      smtp_port:      port,
-      smtp_user:      user  || null,
-      smtp_from:      from,
-      smtp_from_name: fromName || null,
-      smtp_ssl:       ssl,
+      smtp_host:           host,
+      smtp_port:           port,
+      smtp_user:           user  || null,
+      smtp_from:           from,
+      smtp_from_name:      fromName || null,
+      smtp_ssl:            ssl,
+      email_asunto:        document.getElementById('email-asunto')?.value.trim()         || ASUNTO_DEFAULT,
+      email_cuerpo:        document.getElementById('email-cuerpo')?.value.trim()         || CUERPO_DEFAULT,
+      email_info_adicional: document.getElementById('email-info-adicional')?.value.trim() || null,
+      email_firma:         document.getElementById('email-firma')?.value.trim()          || FIRMA_DEFAULT,
     };
     // Solo actualizar contraseña si se ingresó una nueva
     if (pass && pass !== '••••••••') body.smtp_pass = pass;
