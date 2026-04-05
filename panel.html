@@ -845,6 +845,21 @@ import { MOCK_LOTES } from './js/data.js';
 let SUPA_URL = '', SB_HEADERS = {};
 let actividades = [];
 
+// ── Constantes de plantillas de email (deben estar antes de populatePanel) ──
+const ASUNTO_DEFAULT = '${tipoDocumento} N° ${numeroFactura} — ${emisor_nombre}';
+const CUERPO_DEFAULT = `Estimado/a \${receptor_nombre},
+
+Adjunto encontrará su \${tipoDocumento} N° \${numeroFactura} emitida por \${emisor_nombre} (RUC: \${emisor_ruc}), aprobada por la Subsecretaría de Estado de Tributación (SET) de Paraguay.
+
+Monto total: \${monto_total}
+Fecha de emisión: \${fecha}
+CDC: \${cdc}
+
+El archivo PDF adjunto es el comprobante oficial (KUDE). Puede verificar su autenticidad en ekuatia.set.gov.py ingresando el CDC.`;
+const FIRMA_DEFAULT = `Atentamente,
+\${emisor_nombre}
+Tel: \${emisor_telefono} | Email: \${emisor_email}`;
+
 // Expose globals
 window.toggleTheme = toggleTheme;
 window.toggleNotif = toggleNotif;
@@ -1855,21 +1870,6 @@ window.certFileSelected = (input) => {
 };
 
 // ── PLANTILLAS DE EMAIL ───────────────────────────────────────
-const ASUNTO_DEFAULT = '${tipoDocumento} N° ${numeroFactura} — ${emisor_nombre}';
-const CUERPO_DEFAULT = `Estimado/a \${receptor_nombre},
-
-Adjunto encontrará su \${tipoDocumento} N° \${numeroFactura} emitida por \${emisor_nombre} (RUC: \${emisor_ruc}), aprobada por la Subsecretaría de Estado de Tributación (SET) de Paraguay.
-
-Monto total: \${monto_total}
-Fecha de emisión: \${fecha}
-CDC: \${cdc}
-
-El archivo PDF adjunto es el comprobante oficial (KUDE). Puede verificar su autenticidad en ekuatia.set.gov.py ingresando el CDC.`;
-
-const FIRMA_DEFAULT = `Atentamente,
-\${emisor_nombre}
-Tel: \${emisor_telefono} | Email: \${emisor_email}`;
-
 window.insertarVar = (campoId, variable) => {
   const el = document.getElementById(campoId);
   if (!el) return;
