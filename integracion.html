@@ -1,1724 +1,768 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="dark">
+<html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NODO Engine — Guía de integración para desarrolladores</title>
+<title>NODO Engine — Guía de integración</title>
 <style>
-/* ============================================================
-   NODO Engine — Theme System
-   Light / Dark mode via [data-theme] on <html>
-   ============================================================ */
-
-/* ── DARK (default) ── */
-:root,
-[data-theme="dark"] {
-  --orange:       #FF8C00;
-  --orange-mid:   #FFA500;
-  --orange-light: #FFC857;
-
-  --bg:           #0D0D0D;
-  --bg2:          #111111;
-  --bg3:          #181818;
-  --bg4:          #222222;
-  --bg5:          #2A2A2A;
-
-  --border:       #2A2A2A;
-  --border2:      #383838;
-
-  --text:         #EAEAEA;
-  --text2:        #AAAAAA;
-  --text3:        #555555;
-
-  --green:        #00C48C;
-  --green-bg:     rgba(0,196,140,.10);
-  --red:          #FF4D4D;
-  --red-bg:       rgba(255,77,77,.10);
-  --yellow:       #FFC857;
-  --yellow-bg:    rgba(255,200,87,.10);
-  --blue:         #4D9EFF;
-  --blue-bg:      rgba(77,158,255,.10);
-
-  --glow:         0 0 24px rgba(255,140,0,.30);
-  --glow-sm:      0 0 12px rgba(255,140,0,.18);
-  --shadow:       0 4px 24px rgba(0,0,0,.5);
-  --shadow-lg:    0 20px 60px rgba(0,0,0,.7);
-
-  --login-bg-grid: rgba(255,140,0,.035);
-  --card-inset:    0 0 0 1px rgba(255,255,255,.03);
-}
-
-/* ── LIGHT ── */
-[data-theme="light"] {
-  --bg:           #F5F5F5;
-  --bg2:          #FFFFFF;
-  --bg3:          #FAFAFA;
-  --bg4:          #F0F0F0;
-  --bg5:          #E8E8E8;
-
-  --border:       #E2E2E2;
-  --border2:      #CFCFCF;
-
-  --text:         #1A1A1A;
-  --text2:        #555555;
-  --text3:        #AAAAAA;
-
-  --green:        #008F68;
-  --green-bg:     rgba(0,143,104,.09);
-  --red:          #D93025;
-  --red-bg:       rgba(217,48,37,.09);
-  --yellow:       #B8860B;
-  --yellow-bg:    rgba(184,134,11,.09);
-  --blue:         #1A6FD4;
-  --blue-bg:      rgba(26,111,212,.09);
-
-  --glow:         0 0 20px rgba(255,140,0,.22);
-  --glow-sm:      0 0 10px rgba(255,140,0,.14);
-  --shadow:       0 2px 12px rgba(0,0,0,.08);
-  --shadow-lg:    0 12px 40px rgba(0,0,0,.14);
-
-  --login-bg-grid: rgba(255,140,0,.05);
-  --card-inset:    0 0 0 1px rgba(0,0,0,.03);
-}
-
-/* ============================================================
-   NODO Engine — Base / Reset / Utilities
-   ============================================================ */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
-
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-html, body {
-  height: 100%;
-  font-family: 'Poppins', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  font-size: 14px;
-  line-height: 1.5;
-  overflow: hidden;
-  transition: background .2s, color .2s;
-}
-
-button   { font-family: 'Poppins', sans-serif; cursor: pointer; border: none; outline: none; }
-input, select, textarea { font-family: 'Poppins', sans-serif; outline: none; }
-a { text-decoration: none; color: inherit; }
-
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
-
-/* ── TRANSITIONS ── */
-.bg-transition {
-  transition: background .2s, border-color .2s, color .2s;
-}
-
-/* ── TYPOGRAPHY HELPERS ── */
-.mono { font-family: 'JetBrains Mono', monospace; }
-.text-2 { color: var(--text2); }
-.text-3 { color: var(--text3); }
-.fw-600 { font-weight: 600; }
-.fw-700 { font-weight: 700; }
-.fs-12  { font-size: 12px; }
-.fs-11  { font-size: 11px; }
-
-/* ── LAYOUT HELPERS ── */
-.flex     { display: flex; }
-.flex-col { display: flex; flex-direction: column; }
-.items-center { align-items: center; }
-.justify-between { justify-content: space-between; }
-.gap-8  { gap: 8px; }
-.gap-10 { gap: 10px; }
-.gap-12 { gap: 12px; }
-.gap-14 { gap: 14px; }
-.gap-16 { gap: 16px; }
-.gap-20 { gap: 20px; }
-.flex-1 { flex: 1; }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
-.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
-
-/* ── RADIUS / SPACING ── */
-.r    { border-radius: 10px; }
-.rsm  { border-radius: 6px; }
-.rlg  { border-radius: 14px; }
-.p-20 { padding: 20px; }
-.p-22 { padding: 22px; }
-.mb-16 { margin-bottom: 16px; }
-.mb-18 { margin-bottom: 18px; }
-.mb-20 { margin-bottom: 20px; }
-.mb-24 { margin-bottom: 24px; }
-
-/* ── DIVIDER ── */
-.divider      { width: 1px; height: 22px; background: var(--border); }
-.divider-h    { width: 100%; height: 1px; background: var(--border); }
-
-/* ── BADGE ── */
-.badge {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 3px 10px; border-radius: 20px;
-  font-size: 11px; font-weight: 600;
-}
-.bd { width: 5px; height: 5px; border-radius: 50%; }
-.badge-green  { background: var(--green-bg);  color: var(--green);  border: 1px solid rgba(0,196,140,.2);  }
-.badge-green  .bd { background: var(--green); }
-.badge-red    { background: var(--red-bg);    color: var(--red);    border: 1px solid rgba(255,77,77,.2);  }
-.badge-red    .bd { background: var(--red); }
-.badge-yellow { background: var(--yellow-bg); color: var(--yellow); border: 1px solid rgba(255,200,87,.2); }
-.badge-yellow .bd { background: var(--yellow); }
-.badge-blue   { background: var(--blue-bg);   color: var(--blue);   border: 1px solid rgba(77,158,255,.2); }
-.badge-gray   { background: rgba(128,128,128,.1); color: var(--text2); border: 1px solid var(--border); }
-
-/* ── BUTTONS ── */
-.btn {
-  display: inline-flex; align-items: center; gap: 7px;
-  padding: 9px 18px; border-radius: 6px;
-  font-size: 13px; font-weight: 500; cursor: pointer;
-  transition: all .18s; font-family: 'Poppins', sans-serif;
-  white-space: nowrap;
-}
-.btn-sm  { padding: 7px 14px; font-size: 12px; }
-.btn-xs  { padding: 5px 10px; font-size: 11px; }
-.btn-o   {
-  background: linear-gradient(90deg, var(--orange), var(--orange-light));
-  color: #000; font-weight: 700; border: none;
-}
-.btn-o:hover  { box-shadow: var(--glow-sm); transform: translateY(-1px); }
-.btn-o:active { transform: translateY(0); }
-.btn-g   { background: transparent; border: 1px solid var(--border); color: var(--text2); }
-.btn-g:hover { border-color: var(--border2); color: var(--text); background: var(--bg4); }
-.btn-d   { background: var(--red-bg); color: var(--red); border: 1px solid rgba(255,77,77,.2); }
-.btn-d:hover { background: rgba(255,77,77,.18); }
-
-/* ── ICON BUTTON ── */
-.icon-btn {
-  width: 32px; height: 32px;
-  background: var(--bg4); border: 1px solid var(--border);
-  border-radius: 6px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; color: var(--text2);
-  transition: .15s; position: relative;
-}
-.icon-btn:hover { color: var(--text); border-color: var(--border2); }
-.icon-btn .notif-dot {
-  position: absolute; top: 5px; right: 5px;
-  width: 7px; height: 7px; background: var(--orange);
-  border-radius: 50%; border: 1.5px solid var(--bg2);
-}
-
-/* ── AVATAR ── */
-.avatar {
-  width: 32px; height: 32px;
-  background: linear-gradient(135deg, var(--orange), var(--orange-light));
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 12px; color: #000; cursor: pointer;
-  flex-shrink: 0;
-}
-
-/* ── FORM FIELD ── */
-.field label {
-  display: block; font-size: 11px; font-weight: 600;
-  color: var(--text3); margin-bottom: 6px;
-  text-transform: uppercase; letter-spacing: .06em;
-}
-.field input, .field select, .field textarea {
-  width: 100%; background: var(--bg4); border: 1px solid var(--border);
-  border-radius: 6px; padding: 10px 13px;
-  color: var(--text); font-size: 13px;
-  transition: border-color .18s, box-shadow .18s;
-}
-.field input:focus, .field select:focus, .field textarea:focus {
-  border-color: var(--orange);
-  box-shadow: 0 0 0 3px rgba(255,140,0,.10);
-}
-.field input::placeholder, .field textarea::placeholder { color: var(--text3); }
-.field select { appearance: none; cursor: pointer; }
-.field select option { background: var(--bg3); }
-.field textarea { resize: vertical; min-height: 80px; }
-
-/* ── FORM SECTION ── */
-.fsec {
-  background: var(--bg3); border: 1px solid var(--border);
-  border-radius: 10px; overflow: hidden; margin-bottom: 18px;
-}
-.fsec-head {
-  display: flex; align-items: center; gap: 11px;
-  padding: 14px 20px; border-bottom: 1px solid var(--border);
-  background: var(--bg4);
-}
-.fsec-ico {
-  width: 28px; height: 28px; border-radius: 7px;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(255,140,0,.10); color: var(--orange); font-size: 14px;
-}
-.fsec-title { font-weight: 600; font-size: 13px; }
-.fsec-desc  { font-size: 11px; color: var(--text3); margin-top: 1px; }
-.fsec-body  { padding: 20px; }
-
-/* ── TABLE ── */
-.tw { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
-.tw-head { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--border); }
-.tw-title { font-weight: 600; font-size: 13px; flex: 1; }
-table { width: 100%; border-collapse: collapse; }
-thead th {
-  text-align: left; padding: 11px 18px;
-  font-size: 10px; font-weight: 600; text-transform: uppercase;
-  letter-spacing: .07em; color: var(--text3);
-  background: var(--bg4); border-bottom: 1px solid var(--border);
-}
-tbody tr { border-bottom: 1px solid var(--border); transition: background .12s; cursor: pointer; }
-tbody tr:last-child { border-bottom: none; }
-tbody tr:hover { background: rgba(128,128,128,.04); }
-td { padding: 12px 18px; font-size: 13px; }
-.td-act { display: flex; gap: 5px; }
-.pag { display: flex; align-items: center; gap: 7px; padding: 13px 18px; border-top: 1px solid var(--border); }
-.pag-info { color: var(--text3); font-size: 12px; flex: 1; }
-.pb {
-  width: 28px; height: 28px; border-radius: 5px;
-  background: var(--bg4); border: 1px solid var(--border);
-  color: var(--text2); font-size: 12px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: .14s;
-}
-.pb:hover { border-color: var(--border2); color: var(--text); }
-.pb.on { background: rgba(255,140,0,.14); border-color: var(--orange); color: var(--orange); font-weight: 600; }
-
-/* ── TABS ── */
-.tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 22px; }
-.tab {
-  padding: 11px 18px; font-size: 13px; font-weight: 500;
-  color: var(--text3); cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: .14s; margin-bottom: -1px;
-}
-.tab:hover { color: var(--text2); }
-.tab.on { color: var(--orange); border-bottom-color: var(--orange); }
-.tab-cnt {
-  margin-left: 6px; padding: 1px 7px; border-radius: 10px;
-  font-size: 10px; font-weight: 600;
-}
-.tab-cnt-o { background: rgba(255,140,0,.13); color: var(--orange); }
-.tab-cnt-g { background: rgba(128,128,128,.08); color: var(--text3); }
-
-/* ── ALERT ── */
-.alert {
-  display: flex; gap: 11px; align-items: flex-start;
-  padding: 13px 15px; border-radius: 6px; margin-bottom: 18px; font-size: 13px;
-}
-.alert-warn   { background: var(--yellow-bg); border: 1px solid rgba(255,200,87,.22); }
-.alert-err    { background: var(--red-bg);    border: 1px solid rgba(255,77,77,.22);  }
-.alert-ok     { background: var(--green-bg);  border: 1px solid rgba(0,196,140,.22);  }
-.alert-info   { background: var(--blue-bg);   border: 1px solid rgba(77,158,255,.22); }
-.alert-link   { color: var(--orange); cursor: pointer; font-weight: 500; }
-
-/* ── UPLOAD ZONE ── */
-.upload-zone {
-  border: 2px dashed var(--border); border-radius: 10px;
-  padding: 28px; text-align: center; cursor: pointer; transition: .18s;
-}
-.upload-zone:hover { border-color: var(--orange); background: rgba(255,140,0,.03); }
-.upload-zone.has-file { border-color: var(--green); background: var(--green-bg); border-style: solid; }
-
-/* ── LOGO UPLOAD ── */
-.logo-upload-wrap {
-  display: flex; gap: 20px; align-items: flex-start;
-}
-.logo-preview {
-  width: 120px; height: 120px; border-radius: 10px;
-  border: 1px solid var(--border); background: var(--bg4);
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; overflow: hidden;
-  position: relative;
-}
-.logo-preview img { width: 100%; height: 100%; object-fit: contain; }
-.logo-preview-placeholder { font-size: 32px; }
-
-/* ── ENV SWITCH ── */
-.env-sw  { display: flex; gap: 10px; }
-.env-opt {
-  flex: 1; padding: 14px; border: 1px solid var(--border);
-  border-radius: 10px; text-align: center; cursor: pointer; transition: .18s;
-}
-.env-opt:hover { border-color: var(--border2); }
-.env-opt.on { border-color: var(--orange); background: rgba(255,140,0,.07); }
-.env-opt-ico  { font-size: 20px; margin-bottom: 5px; }
-.env-opt-lbl  { font-weight: 600; font-size: 13px; }
-.env-opt-desc { font-size: 11px; color: var(--text3); }
-
-/* ── TOGGLE ── */
-.tog-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 13px 0; border-bottom: 1px solid var(--border);
-}
-.tog-row:last-child { border-bottom: none; }
-.tog-lbl  { font-size: 13px; font-weight: 500; }
-.tog-desc { font-size: 12px; color: var(--text3); margin-top: 1px; }
-.toggle { position: relative; width: 38px; height: 21px; cursor: pointer; flex-shrink: 0; }
-.toggle input { opacity: 0; width: 0; height: 0; }
-.ts {
-  position: absolute; inset: 0;
-  background: var(--bg5); border: 1px solid var(--border); border-radius: 21px; transition: .18s;
-}
-.ts::before {
-  content: ''; position: absolute; width: 15px; height: 15px;
-  left: 2px; top: 2px; background: var(--text3); border-radius: 50%; transition: .18s;
-}
-.toggle input:checked + .ts { background: rgba(255,140,0,.18); border-color: var(--orange); }
-.toggle input:checked + .ts::before { transform: translateX(17px); background: var(--orange); }
-
-/* ── MINI CHART ── */
-.mchart { height: 56px; display: flex; align-items: flex-end; gap: 5px; padding: 6px 0; }
-.mb { flex: 1; background: rgba(255,140,0,.18); border-radius: 3px 3px 0 0; transition: .15s; }
-.mb:hover { background: rgba(255,140,0,.45); }
-.mb.today { background: var(--orange); }
-
-/* ── FILTER PILL / SEARCHBOX ── */
-.filter-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
-.search-box {
-  display: flex; align-items: center; gap: 8px;
-  background: var(--bg3); border: 1px solid var(--border);
-  border-radius: 6px; padding: 9px 14px; flex: 1; max-width: 340px;
-}
-.search-box input { background: none; border: none; color: var(--text); font-size: 13px; flex: 1; min-width: 0; }
-.search-box input::placeholder { color: var(--text3); }
-.filter-pill {
-  display: flex; align-items: center; gap: 6px;
-  background: var(--bg3); border: 1px solid var(--border);
-  border-radius: 6px; padding: 8px 14px;
-  color: var(--text2); font-size: 12px; cursor: pointer; transition: .15s;
-}
-.filter-pill:hover { border-color: var(--border2); color: var(--text); }
-.filter-pill.on { border-color: var(--orange); color: var(--orange); background: rgba(255,140,0,.07); }
-
-/* ── STAT CARD ── */
-.stat {
-  background: var(--bg3); border: 1px solid var(--border);
-  border-radius: 10px; padding: 20px; position: relative; overflow: hidden;
-}
-.stat::before {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(135deg, rgba(255,140,0,.03) 0%, transparent 60%);
-  pointer-events: none;
-}
-.stat-ico { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; margin-bottom: 12px; }
-.ico-o { background: rgba(255,140,0,.12); color: var(--orange); }
-.ico-g { background: var(--green-bg);  color: var(--green); }
-.ico-r { background: var(--red-bg);    color: var(--red); }
-.ico-b { background: var(--blue-bg);   color: var(--blue); }
-.stat-val { font-size: 28px; font-weight: 700; line-height: 1; margin-bottom: 5px; }
-.stat-lbl { color: var(--text2); font-size: 12px; }
-.stat-ch  { font-size: 11px; font-weight: 500; margin-top: 7px; display: flex; align-items: center; gap: 3px; }
-.up   { color: var(--green); }
-.down { color: var(--red); }
-
-/* ── TIMELINE ── */
-.tl { list-style: none; padding: 16px 20px; }
-.tl-item { display: flex; gap: 13px; padding-bottom: 18px; position: relative; }
-.tl-item::before { content: ''; position: absolute; left: 14px; top: 26px; bottom: 0; width: 1px; background: var(--border); }
-.tl-item:last-child::before { display: none; }
-.tl-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; position: relative; z-index: 1; }
-.tl-ok   { background: var(--green-bg); color: var(--green); border: 1px solid rgba(0,196,140,.3); }
-.tl-err  { background: var(--red-bg);   color: var(--red);   border: 1px solid rgba(255,77,77,.3); }
-.tl-info { background: var(--blue-bg);  color: var(--blue);  border: 1px solid rgba(77,158,255,.3); }
-.tl-body  { flex: 1; padding-top: 4px; }
-.tl-title { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
-.tl-sub   { font-size: 12px; color: var(--text3); }
-
-/* ── LOG ROWS ── */
-.lrow { display: flex; align-items: center; gap: 11px; padding: 11px 18px; border-bottom: 1px solid var(--border); font-size: 12px; }
-.lrow:last-child { border-bottom: none; }
-.ldot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-.lok  { background: var(--green); }
-.lerr { background: var(--red); }
-.lwarn{ background: var(--yellow); }
-.lmsg { flex: 1; color: var(--text2); line-height: 1.4; }
-.ltime{ color: var(--text3); font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
-
-/* ── CERT STATUS ── */
-.cert-ok   { display: flex; align-items: center; gap: 10px; padding: 11px 15px; background: var(--green-bg);  border: 1px solid rgba(0,196,140,.2);  border-radius: 6px; margin-bottom: 14px; }
-.cert-warn { display: flex; align-items: center; gap: 10px; padding: 11px 15px; background: var(--yellow-bg); border: 1px solid rgba(255,200,87,.2); border-radius: 6px; margin-bottom: 14px; }
-
-/* ── PAGE ANIMATION ── */
-@keyframes pgIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-.pg.on { animation: pgIn .18s ease; }
-
-/* ── MODAL ── */
-.modal-overlay {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,.6); backdrop-filter: blur(4px);
-  z-index: 300; align-items: center; justify-content: center;
-}
-.modal-overlay.on { display: flex; }
-.modal {
-  background: var(--bg3); border: 1px solid var(--border2);
-  border-radius: 14px; width: 520px; max-width: 95vw;
-  max-height: 90vh; overflow-y: auto;
-  box-shadow: var(--shadow-lg);
-  animation: pgIn .18s ease;
-}
-.modal-head {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 18px 22px; border-bottom: 1px solid var(--border);
-}
-.modal-title { font-size: 16px; font-weight: 700; }
-.modal-close { cursor: pointer; color: var(--text3); font-size: 20px; line-height: 1; background: none; border: none; }
-.modal-close:hover { color: var(--text); }
-.modal-body   { padding: 22px; }
-.modal-footer { padding: 16px 22px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
-
-/* ── DROPDOWN NOTIF ── */
-.notif-overlay { display: none; position: fixed; inset: 0; z-index: 200; }
-.notif-overlay.on { display: block; }
-.notif-panel {
-  position: absolute; top: 52px; right: 16px; width: 310px;
-  background: var(--bg3); border: 1px solid var(--border2);
-  border-radius: 10px; overflow: hidden; box-shadow: var(--shadow-lg);
-}
-.np-head { padding: 13px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 13px; }
-.ni { padding: 13px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: .12s; display: flex; gap: 10px; align-items: flex-start; }
-.ni:hover { background: var(--bg4); }
-.ni:last-child { border-bottom: none; }
-.ni-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--orange); flex-shrink: 0; margin-top: 4px; }
-.ni-title { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
-.ni-sub   { font-size: 12px; color: var(--text3); }
-
-/* ── THEME TOGGLE BTN ── */
-.theme-btn {
-  width: 32px; height: 32px;
-  background: var(--bg4); border: 1px solid var(--border);
-  border-radius: 6px; cursor: pointer; color: var(--text2);
-  display: flex; align-items: center; justify-content: center;
-  transition: .15s; font-size: 15px;
-}
-.theme-btn:hover { border-color: var(--border2); color: var(--orange); }
-
-</style>
-<style>
-body { overflow:auto }
-.doc-layout { display:flex; min-height:100vh }
-.doc-sidebar {
-  width:260px; flex-shrink:0;
-  background:var(--bg2); border-right:1px solid var(--border);
-  position:sticky; top:0; height:100vh; overflow-y:auto;
-  padding:24px 0;
-}
-.doc-sidebar-logo {
-  padding:0 20px 20px; border-bottom:1px solid var(--border);
-  font-weight:700; font-size:14px; display:flex; align-items:center; gap:10px;
-}
-.doc-sidebar-logo span { color:var(--orange) }
-.doc-nav-group { padding:16px 20px 4px; font-size:10px; font-weight:700;
-  color:var(--text3); text-transform:uppercase; letter-spacing:.1em }
-.doc-nav-item {
-  display:block; padding:8px 20px; font-size:13px; color:var(--text2);
-  cursor:pointer; border-left:2px solid transparent; transition:.12s;
-  text-decoration:none;
-}
-.doc-nav-item:hover { color:var(--text); background:var(--bg3) }
-.doc-nav-item.on { color:var(--orange); border-left-color:var(--orange); background:rgba(255,140,0,.06) }
-.doc-content { flex:1; max-width:900px; padding:40px 48px 80px; }
-.doc-section { display:none }
-.doc-section.on { display:block }
-h1 { font-size:28px; font-weight:800; margin-bottom:8px }
-h2 { font-size:20px; font-weight:700; margin:40px 0 14px; padding-bottom:10px;
-  border-bottom:1px solid var(--border) }
-h3 { font-size:15px; font-weight:600; margin:24px 0 10px; color:var(--text) }
-h4 { font-size:13px; font-weight:600; margin:18px 0 8px; color:var(--text2) }
-p { font-size:14px; color:var(--text2); line-height:1.8; margin-bottom:14px }
-ul,ol { padding-left:20px; margin-bottom:14px }
-li { font-size:14px; color:var(--text2); line-height:1.9; margin-bottom:2px }
-li strong { color:var(--text) }
-a { color:var(--orange) }
-code {
-  font-family:'JetBrains Mono',monospace; font-size:12px;
-  background:var(--bg4); border:1px solid var(--border);
-  border-radius:4px; padding:2px 7px; color:var(--orange)
-}
-.endpoint {
-  background:var(--bg3); border:1px solid var(--border);
-  border-radius:10px; overflow:hidden; margin:14px 0
-}
-.endpoint-head {
-  display:flex; align-items:center; gap:10px;
-  padding:12px 16px; border-bottom:1px solid var(--border);
-  background:var(--bg4)
-}
-.method {
-  font-size:11px; font-weight:700; padding:3px 10px; border-radius:4px
-}
-.method-post { background:var(--orange); color:#000 }
-.method-get  { background:var(--blue);   color:#fff }
-.method-del  { background:var(--red);    color:#fff }
-.endpoint-url { font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text) }
-pre {
-  background:var(--bg3); border:1px solid var(--border);
-  border-radius:10px; padding:18px 20px;
-  font-family:'JetBrains Mono',monospace; font-size:12px;
-  line-height:1.9; color:var(--text2); overflow-x:auto; margin:14px 0
-}
-pre.in-endpoint { margin:0; border:none; border-radius:0; background:var(--bg3) }
-.c  { color:var(--text3) }
-.k  { color:var(--blue) }
-.s  { color:var(--green) }
-.n  { color:var(--orange) }
-.kw { color:#C792EA }
-table { width:100%; border-collapse:collapse; margin:14px 0; font-size:13px }
-thead th { text-align:left; padding:10px 14px; font-size:11px; font-weight:700;
-  text-transform:uppercase; letter-spacing:.06em; color:var(--text3);
-  background:var(--bg4); border-bottom:1px solid var(--border) }
-tbody td { padding:11px 14px; border-bottom:1px solid var(--border); color:var(--text2); line-height:1.6 }
-tbody tr:last-child td { border-bottom:none }
-.badge-req { background:rgba(255,77,77,.15); color:var(--red);
-  font-size:11px; padding:2px 7px; border-radius:4px; font-weight:600 }
-.badge-opt { background:var(--bg4); color:var(--text3);
-  font-size:11px; padding:2px 7px; border-radius:4px }
-.info { background:var(--blue-bg); border:1px solid rgba(77,158,255,.2);
-  border-radius:8px; padding:14px 16px; margin:14px 0; font-size:13px;
-  color:var(--text2); line-height:1.7 }
-.warn { background:var(--yellow-bg); border:1px solid rgba(255,200,87,.2);
-  border-radius:8px; padding:14px 16px; margin:14px 0; font-size:13px;
-  color:var(--text2); line-height:1.7 }
-.ok   { background:var(--green-bg); border:1px solid rgba(0,196,140,.2);
-  border-radius:8px; padding:14px 16px; margin:14px 0; font-size:13px;
-  color:var(--text2); line-height:1.7 }
-.err  { background:var(--red-bg); border:1px solid rgba(255,77,77,.2);
-  border-radius:8px; padding:14px 16px; margin:14px 0; font-size:13px;
-  color:var(--text2); line-height:1.7 }
-.step { display:flex; gap:16px; margin-bottom:24px; align-items:flex-start }
-.step-num {
-  width:34px; height:34px; border-radius:50%; flex-shrink:0;
-  background:linear-gradient(135deg,var(--orange),#FFC857);
-  display:flex; align-items:center; justify-content:center;
-  font-weight:800; font-size:14px; color:#000
-}
-.step-body { flex:1 }
-.step-title { font-size:15px; font-weight:600; margin-bottom:6px }
-.step-desc  { font-size:13px; color:var(--text2); line-height:1.7 }
-.topbar {
-  position:sticky; top:0; z-index:10;
-  background:var(--bg2); border-bottom:1px solid var(--border);
-  padding:0 20px; height:52px;
-  display:flex; align-items:center; gap:14px
-}
-.topbar-title { font-size:13px; font-weight:600; color:var(--text) }
-.topbar-back { font-size:12px; color:var(--text3); text-decoration:none }
-.topbar-back:hover { color:var(--text) }
-.lang-tabs { display:flex; gap:0; margin-bottom:0; border-bottom:1px solid var(--border) }
-.lang-tab {
-  padding:8px 16px; font-size:12px; font-weight:500; cursor:pointer;
-  color:var(--text3); border-bottom:2px solid transparent; transition:.12s
-}
-.lang-tab:hover { color:var(--text2) }
-.lang-tab.on { color:var(--orange); border-bottom-color:var(--orange) }
-.lang-pane { display:none }
-.lang-pane.on { display:block }
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0d0d0d;color:#e0e0e0}
+a{color:#FF8C00}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:256px;flex-shrink:0;background:#111;border-right:1px solid #2a2a2a;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column}
+.sidebar-logo{padding:20px;border-bottom:1px solid #2a2a2a;display:flex;align-items:center;gap:12px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,#FF8C00,#FFC857);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.logo-text{font-weight:700;font-size:14px;line-height:1.4;color:#e0e0e0}
+.logo-text span{color:#FF8C00}
+.logo-sub{font-size:11px;color:#555;font-weight:400}
+.nav-group{padding:16px 16px 4px;font-size:10px;font-weight:700;color:#444;text-transform:uppercase;letter-spacing:.1em}
+.nav-item{display:flex;align-items:center;gap:8px;padding:9px 16px;font-size:13px;color:#888;cursor:pointer;border-left:2px solid transparent;transition:.1s;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{color:#e0e0e0;background:#181818}
+.nav-item.active{color:#FF8C00;border-left-color:#FF8C00;background:rgba(255,140,0,.08)}
+.sidebar-footer{margin-top:auto;padding:16px;border-top:1px solid #2a2a2a;font-size:12px;color:#555}
+.sidebar-footer a{color:#555}
+.content{flex:1;padding:40px 52px 80px;max-width:920px}
+.section{display:none}
+.section.active{display:block}
+h1{font-size:26px;font-weight:800;margin-bottom:6px;color:#fff}
+.page-sub{font-size:14px;color:#555;margin-bottom:32px}
+h2{font-size:18px;font-weight:700;margin:36px 0 12px;padding-bottom:10px;border-bottom:1px solid #222;color:#fff}
+h3{font-size:14px;font-weight:600;margin:22px 0 8px;color:#ccc}
+p{font-size:13px;color:#999;line-height:1.8;margin-bottom:12px}
+ul,ol{padding-left:20px;margin-bottom:12px}
+li{font-size:13px;color:#999;line-height:1.9}
+strong{color:#ccc}
+code{font-family:'JetBrains Mono',Consolas,monospace;font-size:12px;background:#222;border:1px solid #333;border-radius:4px;padding:2px 7px;color:#FF8C00}
+pre{background:#181818;border:1px solid #2a2a2a;border-radius:10px;padding:18px 20px;font-family:'JetBrains Mono',Consolas,monospace;font-size:12px;line-height:1.9;color:#bbb;overflow-x:auto;margin:12px 0;white-space:pre}
+pre .c{color:#4a4a4a}
+pre .k{color:#82aaff}
+pre .s{color:#c3e88d}
+pre .n{color:#FF8C00}
+.endpoint{background:#181818;border:1px solid #2a2a2a;border-radius:10px;overflow:hidden;margin:12px 0}
+.endpoint-head{display:flex;align-items:center;gap:10px;padding:11px 16px;background:#1e1e1e;border-bottom:1px solid #2a2a2a}
+.method{font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;flex-shrink:0}
+.post{background:#FF8C00;color:#000}
+.get{background:#4d9eff;color:#fff}
+.ep-url{font-family:'JetBrains Mono',Consolas,monospace;font-size:13px;color:#e0e0e0}
+.endpoint pre{border:none;border-radius:0;margin:0;background:#181818}
+.info{background:rgba(77,158,255,.07);border:1px solid rgba(77,158,255,.18);border-radius:8px;padding:14px 16px;margin:12px 0;font-size:13px;color:#999;line-height:1.7}
+.info strong{color:#4d9eff}
+.warn{background:rgba(255,200,87,.05);border:1px solid rgba(255,200,87,.18);border-radius:8px;padding:14px 16px;margin:12px 0;font-size:13px;color:#999;line-height:1.7}
+.warn strong{color:#FFC857}
+.ok{background:rgba(0,196,140,.06);border:1px solid rgba(0,196,140,.18);border-radius:8px;padding:14px 16px;margin:12px 0;font-size:13px;color:#999;line-height:1.7}
+.ok strong{color:#00c48c}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+thead th{text-align:left;padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#555;background:#181818;border-bottom:1px solid #2a2a2a}
+tbody td{padding:10px 14px;border-bottom:1px solid #1e1e1e;color:#999;vertical-align:top;line-height:1.6}
+tbody tr:last-child td{border-bottom:none}
+.req{background:rgba(255,77,77,.12);color:#ff6b6b;font-size:11px;padding:2px 7px;border-radius:4px;font-weight:600}
+.opt{background:#1e1e1e;color:#555;font-size:11px;padding:2px 7px;border-radius:4px}
+.step{display:flex;gap:16px;margin-bottom:24px}
+.step-num{width:34px;height:34px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,#FF8C00,#FFC857);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#000}
+.step-body{flex:1}
+.step-title{font-size:14px;font-weight:600;margin-bottom:6px;color:#ddd}
 </style>
 </head>
 <body>
+<div class="layout">
 
-<div class="doc-layout">
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">⚡</div>
+    <div class="logo-text"><span>NODO</span> Engine<div class="logo-sub">API v1 · Documentación</div></div>
+  </div>
+  <div class="nav-group">Inicio</div>
+  <button class="nav-item active" onclick="show('s-inicio',this)">🚀 Inicio rápido</button>
+  <button class="nav-item" onclick="show('s-auth',this)">🔐 Autenticación</button>
+  <div class="nav-group">Documentos</div>
+  <button class="nav-item" onclick="show('s-factura',this)">📄 Emitir factura</button>
+  <button class="nav-item" onclick="show('s-nc',this)">🔄 Nota de crédito</button>
+  <button class="nav-item" onclick="show('s-consultar',this)">🔍 Consultar estado</button>
+  <button class="nav-item" onclick="show('s-cancelar',this)">❌ Cancelar</button>
+  <button class="nav-item" onclick="show('s-kude',this)">📥 KUDE y XML</button>
+  <div class="nav-group">Notificaciones</div>
+  <button class="nav-item" onclick="show('s-webhook',this)">🔔 Webhooks</button>
+  <div class="nav-group">Referencia</div>
+  <button class="nav-item" onclick="show('s-campos',this)">📋 Campos</button>
+  <button class="nav-item" onclick="show('s-errores',this)">⚠️ Errores</button>
+  <button class="nav-item" onclick="show('s-tablas',this)">📚 Tablas SET</button>
+  <div class="nav-group">Código</div>
+  <button class="nav-item" onclick="show('s-vbnet',this)">🖥️ VB.NET (completo)</button>
+  <button class="nav-item" onclick="show('s-otros',this)">💻 Python / PHP / cURL</button>
+  <div class="sidebar-footer"><a href="../panel.html">← Volver al panel</a></div>
+</nav>
 
-  <!-- SIDEBAR -->
-  <nav class="doc-sidebar">
-    <div class="doc-sidebar-logo">
-      <div style="width:28px;height:28px;background:linear-gradient(135deg,#FF8C00,#FFC857);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px">⚡</div>
-      <div><span>NODO</span> Engine<br><span style="font-size:10px;font-weight:400;color:var(--text3)">API v1 — Documentación</span></div>
+<main class="content">
+
+<div class="section active" id="s-inicio">
+  <h1>Guía de integración NODO Engine</h1>
+  <div class="page-sub">API REST · Facturación electrónica Paraguay · SET / SIFEN · v1</div>
+  <h2>De cero a primera factura en 5 pasos</h2>
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <div class="step-title">Obtener las credenciales</div>
+      <p>En el panel NODO Engine → empresa → <strong>Integración ERP</strong> encontrás la <strong>URL base</strong> y la <strong>API Key</strong>. Guardá ambos en la configuración de tu sistema — no los hardcodees en el código fuente.</p>
+      <pre><span class="c">' VB.NET — guardar en app.config</span>
+<span class="c">' &lt;appSettings&gt;</span>
+<span class="c">'   &lt;add key="NodoApiUrl" value="https://sifen-engine-production-f96e.up.railway.app/api/v1"/&gt;</span>
+<span class="c">'   &lt;add key="NodoApiKey" value="sk_live_XXXX"/&gt;</span>
+<span class="c">' &lt;/appSettings&gt;</span>
+<span class="k">Dim</span> NODO_URL <span class="k">As String</span> = ConfigurationManager.AppSettings(<span class="s">"NodoApiUrl"</span>)
+<span class="k">Dim</span> NODO_KEY <span class="k">As String</span> = ConfigurationManager.AppSettings(<span class="s">"NodoApiKey"</span>)</pre>
     </div>
-
-    <div class="doc-nav-group">Inicio</div>
-    <a class="doc-nav-item on" onclick="showSection('s-inicio')">🚀 Inicio rápido</a>
-    <a class="doc-nav-item" onclick="showSection('s-auth')">🔐 Autenticación</a>
-
-    <div class="doc-nav-group">Documentos</div>
-    <a class="doc-nav-item" onclick="showSection('s-factura')">📄 Emitir factura</a>
-    <a class="doc-nav-item" onclick="showSection('s-nc')">🔄 Nota de crédito</a>
-    <a class="doc-nav-item" onclick="showSection('s-consultar')">🔍 Consultar estado</a>
-    <a class="doc-nav-item" onclick="showSection('s-cancelar')">❌ Cancelar</a>
-    <a class="doc-nav-item" onclick="showSection('s-kude')">📥 KUDE y XML</a>
-
-    <div class="doc-nav-group">Notificaciones</div>
-    <a class="doc-nav-item" onclick="showSection('s-webhook')">🔔 Webhooks</a>
-
-    <div class="doc-nav-group">Referencia</div>
-    <a class="doc-nav-item" onclick="showSection('s-campos')">📋 Campos del request</a>
-    <a class="doc-nav-item" onclick="showSection('s-errores')">⚠️ Errores</a>
-    <a class="doc-nav-item" onclick="showSection('s-tipos')">📚 Tablas de valores</a>
-
-    <div class="doc-nav-group">Ejemplos</div>
-    <a class="doc-nav-item" onclick="showSection('s-vbnet')">🖥️ VB.NET</a>
-    <a class="doc-nav-item" onclick="showSection('s-otros')">💻 Python / PHP / cURL</a>
-
-    <div style="padding:20px;margin-top:8px;border-top:1px solid var(--border)">
-      <a href="../panel.html" style="font-size:12px;color:var(--text3)">← Volver al panel</a>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <div class="step-title">Verificar conectividad</div>
+      <p>Este endpoint no requiere API Key. Si devuelve <code>200 OK</code>, la API está disponible.</p>
+      <div class="endpoint">
+        <div class="endpoint-head"><span class="method get">GET</span><span class="ep-url">/health</span></div>
+        <pre><span class="c">// Respuesta: {"ok":true,"version":"0.1.0","ambiente":"prod"}</span></pre>
+      </div>
     </div>
-  </nav>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <div class="step-title">Emitir una factura de prueba (innominado)</div>
+      <p>El cliente innominado (<code>tipo: 4</code>) no requiere RUC ni CI. Usá una key <code>sk_test_</code> para no enviar documentos reales a la SET.</p>
+      <div class="endpoint">
+        <div class="endpoint-head"><span class="method post">POST</span><span class="ep-url">/api/v1/documentos/erp</span></div>
+        <pre><span class="c">// Headers obligatorios en TODOS los requests:</span>
+Content-Type: application/json
+X-API-Key: sk_test_XXXX
 
-  <!-- CONTENT -->
-  <main class="doc-content">
-
-    <!-- ══════════════════════════ INICIO RÁPIDO ══════════════════════════ -->
-    <div class="doc-section on" id="s-inicio">
-      <h1>Guía de integración NODO Engine</h1>
-      <p style="color:var(--text3);margin-bottom:32px">API REST para facturación electrónica Paraguay · SET / SIFEN · v1</p>
-
-      <h2>Inicio rápido — de cero a primera factura</h2>
-
-      <div class="step">
-        <div class="step-num">1</div>
-        <div class="step-body">
-          <div class="step-title">Obtener las credenciales</div>
-          <div class="step-desc">
-            En el panel NODO Engine → empresa → <strong>Integración ERP</strong> encontrás dos datos:<br>
-            • <strong>URL base</strong> — la dirección del servidor de la API<br>
-            • <strong>API Key</strong> — la clave secreta que identifica a la empresa emisora<br>
-            Guardá estos dos valores en la configuración de tu sistema. <strong>No los pongas hardcodeados en el código fuente.</strong>
-          </div>
-          <pre>
-<span class="c">' Variables de configuración recomendadas (VB.NET)</span>
-<span class="c">' En app.config, web.config, o tabla de parámetros de tu BD</span>
-Dim NODO_URL <span class="k">As String</span> = ConfigurationManager.AppSettings(<span class="s">"NodoApiUrl"</span>)
-Dim NODO_KEY <span class="k">As String</span> = ConfigurationManager.AppSettings(<span class="s">"NodoApiKey"</span>)</pre>
-        </div>
+<span class="c">// Body mínimo:</span>
+{
+  <span class="s">"tipoDocumento"</span>: 1,
+  <span class="s">"cliente"</span>: { <span class="s">"tipo"</span>: 4 },
+  <span class="s">"items"</span>: [{
+    <span class="s">"descripcion"</span>:    <span class="s">"Producto de prueba"</span>,
+    <span class="s">"cantidad"</span>:       1,
+    <span class="s">"precioUnitario"</span>: 100000,
+    <span class="s">"precioTotal"</span>:    100000,
+    <span class="s">"tasaIVA"</span>:        10
+  }],
+  <span class="s">"referenciaExterna"</span>: <span class="s">"PRUEBA-001"</span>
+}</pre>
       </div>
-
-      <div class="step">
-        <div class="step-num">2</div>
-        <div class="step-body">
-          <div class="step-title">Verificar que la API está disponible</div>
-          <div class="step-desc">Antes de integrar, verificá que tu sistema puede alcanzar el servidor. Este endpoint no requiere API Key.</div>
-          <div class="endpoint">
-            <div class="endpoint-head">
-              <span class="method method-get">GET</span>
-              <span class="endpoint-url">/health</span>
-            </div>
-            <pre class="in-endpoint">
-<span class="c">' VB.NET — verificar conectividad</span>
-<span class="k">Dim</span> client <span class="k">As New</span> HttpClient()
-<span class="k">Dim</span> response <span class="k">As</span> HttpResponseMessage = <span class="k">Await</span> client.GetAsync(NODO_URL.Replace(<span class="s">"/api/v1"</span>, <span class="s">""</span>) & <span class="s">"/health"</span>)
-<span class="k">Dim</span> json <span class="k">As String</span> = <span class="k">Await</span> response.Content.ReadAsStringAsync()
-<span class="c">' Respuesta esperada: {"ok":true,"version":"0.1.0","ambiente":"prod"}</span></pre>
-          </div>
-        </div>
-      </div>
-
-      <div class="step">
-        <div class="step-num">3</div>
-        <div class="step-body">
-          <div class="step-title">Emitir la primera factura de prueba</div>
-          <div class="step-desc">
-            Usá una API Key que empiece con <code>sk_test_</code> para probar — los documentos de test no van a la SET real.<br>
-            El cliente innominado (<code>tipo: 4</code>) es el más simple porque no requiere RUC ni CI.
-          </div>
-          <pre>
-<span class="c">' VB.NET — factura mínima de prueba</span>
-<span class="k">Dim</span> json <span class="k">As String</span> = <span class="s">"{""tipoDocumento"":1,""cliente"":{""tipo"":4},""items"":[{""descripcion"":""Prueba"",""cantidad"":1,""precioUnitario"":100000,""precioTotal"":100000,""tasaIVA"":10}],""referenciaExterna"":""PRUEBA-001""}"</span>
-<span class="k">Dim</span> result <span class="k">As</span> JObject = <span class="k">Await</span> NodoPost(<span class="s">"/documentos/erp"</span>, json)
-MessageBox.Show(<span class="s">"Estado: "</span> & result(<span class="s">"data"</span>)(<span class="s">"estado"</span>).ToString())</pre>
-        </div>
-      </div>
-
-      <div class="step">
-        <div class="step-num">4</div>
-        <div class="step-body">
-          <div class="step-title">Guardar el CDC y verificar el resultado</div>
-          <div class="step-desc">
-            Si el documento fue aprobado, la respuesta tiene un <code>cdc</code> de 44 dígitos. <strong>Guardalo en tu base de datos</strong> — es el identificador oficial ante la SET.
-          </div>
-          <pre>
-<span class="c">' Estructura de respuesta exitosa</span>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <div class="step-title">Guardar el CDC — siempre</div>
+      <pre><span class="c">// Respuesta de aprobación (HTTP 201):</span>
 {
   <span class="s">"ok"</span>: <span class="k">true</span>,
   <span class="s">"data"</span>: {
-    <span class="s">"cdc"</span>:           <span class="s">"01803778760001002000001..."</span>,  <span class="c">// ← GUARDAR EN BD (44 dígitos)</span>
-    <span class="s">"numero"</span>:        <span class="s">"001-002-0000001"</span>,            <span class="c">// Número visible en el KUDE</span>
-    <span class="s">"estado"</span>:        <span class="s">"aprobado"</span>,                   <span class="c">// aprobado | rechazado | pendiente</span>
-    <span class="s">"sifen_codigo"</span>:  <span class="s">"0260"</span>,                       <span class="c">// 0260 = SET aprobó</span>
+    <span class="s">"cdc"</span>:           <span class="s">"01803778760001002000001..."</span>, <span class="c">// ← GUARDAR EN BD (44 dígitos)</span>
+    <span class="s">"numero"</span>:        <span class="s">"001-002-0000001"</span>,
+    <span class="s">"estado"</span>:        <span class="s">"aprobado"</span>,
+    <span class="s">"sifen_codigo"</span>:  <span class="s">"0260"</span>,
     <span class="s">"sifen_mensaje"</span>: <span class="s">"Documento aprobado"</span>
   }
 }</pre>
-        </div>
-      </div>
-
-      <div class="ok">
-        <strong>✅ Si llegaste hasta acá, la integración básica está funcionando.</strong> Navegá por el menú de la izquierda para ver todos los endpoints en detalle, el manejo de errores y los ejemplos completos en VB.NET.
-      </div>
     </div>
-
-    <!-- ══════════════════════════ AUTENTICACIÓN ══════════════════════════ -->
-    <div class="doc-section" id="s-auth">
-      <h1>Autenticación</h1>
-
-      <p>Todos los endpoints (excepto <code>/health</code>) requieren una API Key válida. La clave se envía como header HTTP en cada request.</p>
-
-      <h3>Header obligatorio</h3>
-      <pre>X-API-Key: sk_live_XXXXXXXXXXXXXXXX</pre>
-
-      <div class="warn">
-        <strong>⚠️ La API Key es secreta.</strong> No la incluyas en logs, no la expongas en el frontend web, no la hardcodees en el código fuente. Guardala en variables de entorno, app.config cifrado, o una tabla de parámetros de tu base de datos.
-      </div>
-
-      <h3>Tipos de API Key</h3>
-      <table>
-        <thead><tr><th>Prefijo</th><th>Ambiente</th><th>Descripción</th></tr></thead>
-        <tbody>
-          <tr><td><code>sk_test_</code></td><td>Test / Pruebas</td><td>Los documentos se validan localmente pero NO se envían a la SET. Usar para desarrollo y pruebas de integración.</td></tr>
-          <tr><td><code>sk_live_</code></td><td>Producción</td><td>Los documentos se envían a la SET real y quedan registrados oficialmente. Usar solo cuando la integración esté probada.</td></tr>
-        </tbody>
-      </table>
-
-      <h3>Implementación en VB.NET</h3>
-      <p>Lo más práctico es crear una clase helper que maneje todas las llamadas a la API:</p>
-      <pre>
-<span class="c">' NodoApiClient.vb — Clase helper para llamadas a NODO Engine</span>
-<span class="k">Imports</span> System.Net.Http
-<span class="k">Imports</span> System.Net.Http.Headers
-<span class="k">Imports</span> Newtonsoft.Json.Linq
-
-<span class="k">Public Class</span> NodoApiClient
-
-    <span class="k">Private Shared ReadOnly</span> _http <span class="k">As New</span> HttpClient()
-    <span class="k">Private Shared</span> _baseUrl <span class="k">As String</span>
-    <span class="k">Private Shared</span> _apiKey  <span class="k">As String</span>
-
-    <span class="k">Public Shared Sub</span> Inicializar(baseUrl <span class="k">As String</span>, apiKey <span class="k">As String</span>)
-        _baseUrl = baseUrl.TrimEnd(<span class="s">"/"c</span>)
-        _apiKey  = apiKey
-        _http.DefaultRequestHeaders.Clear()
-        _http.DefaultRequestHeaders.Add(<span class="s">"X-API-Key"</span>, _apiKey)
-        _http.Timeout = TimeSpan.FromSeconds(30)
-    <span class="k">End Sub</span>
-
-    <span class="c">' POST — envía JSON y retorna el objeto "data" de la respuesta</span>
-    <span class="k">Public Shared Async Function</span> Post(endpoint <span class="k">As String</span>, payload <span class="k">As Object</span>) <span class="k">As Task(Of JObject)</span>
-        <span class="k">Dim</span> json    <span class="k">As String</span>          = Newtonsoft.Json.JsonConvert.SerializeObject(payload)
-        <span class="k">Dim</span> content <span class="k">As New</span> StringContent(json, System.Text.Encoding.UTF8, <span class="s">"application/json"</span>)
-        <span class="k">Dim</span> res     <span class="k">As</span> HttpResponseMessage = <span class="k">Await</span> _http.PostAsync(_baseUrl & endpoint, content)
-        <span class="k">Return Await</span> ParseResponse(res)
-    <span class="k">End Function</span>
-
-    <span class="c">' GET — retorna el objeto "data"</span>
-    <span class="k">Public Shared Async Function</span> [Get](endpoint <span class="k">As String</span>) <span class="k">As Task(Of JObject)</span>
-        <span class="k">Dim</span> res <span class="k">As</span> HttpResponseMessage = <span class="k">Await</span> _http.GetAsync(_baseUrl & endpoint)
-        <span class="k">Return Await</span> ParseResponse(res)
-    <span class="k">End Function</span>
-
-    <span class="c">' GET binario — para descargar PDF/XML</span>
-    <span class="k">Public Shared Async Function</span> GetBytes(endpoint <span class="k">As String</span>) <span class="k">As Task(Of Byte())</span>
-        <span class="k">Dim</span> res <span class="k">As</span> HttpResponseMessage = <span class="k">Await</span> _http.GetAsync(_baseUrl & endpoint)
-        <span class="k">If Not</span> res.IsSuccessStatusCode <span class="k">Then</span>
-            <span class="k">Throw New</span> Exception(<span class="s">"Error "</span> & res.StatusCode.ToString())
-        <span class="k">End If</span>
-        <span class="k">Return Await</span> res.Content.ReadAsByteArrayAsync()
-    <span class="k">End Function</span>
-
-    <span class="k">Private Shared Async Function</span> ParseResponse(res <span class="k">As</span> HttpResponseMessage) <span class="k">As Task(Of JObject)</span>
-        <span class="k">Dim</span> body <span class="k">As String</span> = <span class="k">Await</span> res.Content.ReadAsStringAsync()
-        <span class="k">Dim</span> obj  <span class="k">As</span> JObject = JObject.Parse(body)
-
-        <span class="c">' Si hay error HTTP (4xx, 5xx)</span>
-        <span class="k">If Not</span> res.IsSuccessStatusCode <span class="k">Then</span>
-            <span class="k">Dim</span> msg <span class="k">As String</span> = obj(<span class="s">"error"</span>)?.ToString() ?? res.StatusCode.ToString()
-            <span class="k">Throw New</span> Exception(<span class="s">"Error API: "</span> & msg)
-        <span class="k">End If</span>
-
-        <span class="k">Return</span> obj
-    <span class="k">End Function</span>
-
-<span class="k">End Class</span>
-
-<span class="c">' Inicializar al arrancar la aplicación (Form_Load o Sub Main):</span>
-NodoApiClient.Inicializar(
-    ConfigurationManager.AppSettings(<span class="s">"NodoApiUrl"</span>),
-    ConfigurationManager.AppSettings(<span class="s">"NodoApiKey"</span>)
-)</pre>
-
-      <div class="info">
-        <strong>Dependencia requerida:</strong> esta clase usa <code>Newtonsoft.Json</code> para manejar JSON. Instalala vía NuGet: <code>Install-Package Newtonsoft.Json</code>. También podés usar <code>System.Text.Json</code> si preferís no agregar dependencias.
-      </div>
-    </div>
-
-    <!-- ══════════════════════════ FACTURA ══════════════════════════ -->
-    <div class="doc-section" id="s-factura">
-      <h1>Emitir una factura electrónica</h1>
-      <p>Este es el endpoint principal. Recibe los datos de la transacción, genera el XML según la norma SIFEN, lo firma digitalmente con el certificado del emisor y lo envía a la SET — todo en una sola llamada sincrónica.</p>
-
+  </div>
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-body">
+      <div class="step-title">Descargar el KUDE (PDF)</div>
       <div class="endpoint">
-        <div class="endpoint-head">
-          <span class="method method-post">POST</span>
-          <span class="endpoint-url">/api/v1/documentos/erp</span>
-        </div>
-      </div>
-
-      <h3>Estructura del request</h3>
-      <pre>
-{
-  <span class="c">// ── TIPO DE DOCUMENTO ──────────────────────────────────────────────────────</span>
-  <span class="s">"tipoDocumento"</span>: 1,              <span class="c">// 1=Factura, 4=Autofactura, 5=NC, 6=ND, 7=Remisión</span>
-
-  <span class="c">// ── FECHA Y CONDICIONES ─────────────────────────────────────────────────────</span>
-  <span class="s">"fecha"</span>: <span class="s">"2025-04-03T10:30:00"</span>,  <span class="c">// ISO 8601. Si se omite, se usa la hora actual</span>
-  <span class="s">"moneda"</span>: <span class="s">"PYG"</span>,                 <span class="c">// PYG (defecto) | USD | BRL | EUR | ARS</span>
-  <span class="s">"condicionVenta"</span>: 1,             <span class="c">// 1=Contado (defecto) | 2=Crédito</span>
-
-  <span class="c">// ── RECEPTOR ────────────────────────────────────────────────────────────────</span>
-  <span class="s">"cliente"</span>: {
-    <span class="s">"tipo"</span>: 1,                      <span class="c">// 1=RUC | 2=CI | 3=Pasaporte/extranjero | 4=Innominado</span>
-    <span class="s">"documento"</span>: <span class="s">"80012345-6"</span>,     <span class="c">// RUC con dígito verificador. No enviar si tipo=4</span>
-    <span class="s">"razonSocial"</span>: <span class="s">"Mi Empresa SA"</span>, <span class="c">// Nombre completo. No enviar si tipo=4</span>
-    <span class="s">"email"</span>: <span class="s">"fe@empresa.py"</span>,       <span class="c">// Opcional — NODO envía el KUDE por email automáticamente</span>
-    <span class="s">"telefono"</span>: <span class="s">"021555000"</span>,        <span class="c">// Opcional</span>
-    <span class="s">"direccion"</span>: <span class="s">"Av. Principal 123"</span> <span class="c">// Opcional</span>
-  },
-
-  <span class="c">// ── LÍNEAS DE DETALLE ────────────────────────────────────────────────────────</span>
-  <span class="s">"items"</span>: [
-    {
-      <span class="s">"descripcion"</span>: <span class="s">"Notebook HP 15"</span>,  <span class="c">// Descripción del bien o servicio</span>
-      <span class="s">"cantidad"</span>: 2,                     <span class="c">// Puede ser decimal: 1.5</span>
-      <span class="s">"precioUnitario"</span>: 2500000,          <span class="c">// Sin IVA incluido. Sin decimales en PYG.</span>
-      <span class="s">"precioTotal"</span>: 5000000,            <span class="c">// cantidad × precioUnitario (el motor valida coherencia)</span>
-      <span class="s">"tasaIVA"</span>: 10,                     <span class="c">// 0=Exento | 5=IVA 5% | 10=IVA 10%</span>
-      <span class="s">"unidadMedida"</span>: 77,                <span class="c">// 77=Unidad (defecto) | 83=Servicio | ver tabla</span>
-      <span class="s">"codigoProducto"</span>: <span class="s">"NB-HP-15"</span>      <span class="c">// Opcional — código interno del ERP</span>
-    },
-    {
-      <span class="s">"descripcion"</span>: <span class="s">"Soporte técnico"</span>,
-      <span class="s">"cantidad"</span>: 1,
-      <span class="s">"precioUnitario"</span>: 500000,
-      <span class="s">"precioTotal"</span>: 500000,
-      <span class="s">"tasaIVA"</span>: 0                      <span class="c">// Exento de IVA — mismo comprobante puede tener distintas tasas</span>
-    }
-  ],
-
-  <span class="c">// ── TRAZABILIDAD ─────────────────────────────────────────────────────────────</span>
-  <span class="s">"referenciaExterna"</span>: <span class="s">"FAC-2025-0042"</span>, <span class="c">// Tu ID interno — se devuelve en el webhook</span>
-  <span class="s">"webhookUrl"</span>: <span class="s">"https://mi-erp.py/webhook/nodo"</span> <span class="c">// Opcional — NODO notifica aquí cuando la SET responde</span>
-}</pre>
-
-      <h3>Ejemplo completo en VB.NET</h3>
-      <pre>
-<span class="k">Public Async Function</span> EmitirFactura(venta <span class="k">As</span> VentaDTO) <span class="k">As Task(Of ResultadoNodo)</span>
-    <span class="c">' Construir el objeto a enviar</span>
-    <span class="k">Dim</span> payload = <span class="k">New</span> With {
-        .tipoDocumento  = 1,
-        .fecha          = venta.Fecha.ToString(<span class="s">"yyyy-MM-ddTHH:mm:ss"</span>),
-        .moneda         = <span class="s">"PYG"</span>,
-        .condicionVenta = <span class="k">If</span>(venta.EsCredito, 2, 1),
-        .cliente = <span class="k">New</span> With {
-            .tipo       = venta.TipoDocCliente,  <span class="c">' 1=RUC, 2=CI, 4=Sin doc</span>
-            .documento  = venta.RucCiCliente,
-            .razonSocial = venta.NombreCliente,
-            .email      = venta.EmailCliente      <span class="c">' NODO envía el KUDE por email</span>
-        },
-        .items = venta.Detalles.Select(<span class="k">Function</span>(d) <span class="k">New</span> With {
-            .descripcion    = d.Descripcion,
-            .cantidad       = d.Cantidad,
-            .precioUnitario = d.PrecioUnitario,
-            .precioTotal    = d.PrecioTotal,
-            .tasaIVA        = d.TasaIVA,          <span class="c">' 0, 5 ó 10</span>
-            .codigoProducto = d.CodigoInterno
-        }).ToArray(),
-        .referenciaExterna = venta.NroFacturaInterno,
-        .webhookUrl        = ConfigurationManager.AppSettings(<span class="s">"NodoWebhookUrl"</span>)
-    }
-
-    <span class="k">Try</span>
-        <span class="k">Dim</span> respuesta = <span class="k">Await</span> NodoApiClient.Post(<span class="s">"/documentos/erp"</span>, payload)
-        <span class="k">Dim</span> data      = respuesta(<span class="s">"data"</span>)
-
-        <span class="c">' Guardar el CDC en tu BD SIEMPRE — aunque sea rechazado</span>
-        <span class="k">Dim</span> resultado <span class="k">As New</span> ResultadoNodo With {
-            .CDC           = data(<span class="s">"cdc"</span>).ToString(),
-            .Numero        = data(<span class="s">"numero"</span>).ToString(),
-            .Estado        = data(<span class="s">"estado"</span>).ToString(),
-            .SifenCodigo   = data(<span class="s">"sifen_codigo"</span>).ToString(),
-            .SifenMensaje  = data(<span class="s">"sifen_mensaje"</span>).ToString()
-        }
-
-        <span class="c">' Actualizar en tu BD</span>
-        FacturasDao.ActualizarCDC(venta.NroFacturaInterno, resultado.CDC, resultado.Estado)
-
-        <span class="k">If</span> resultado.Estado = <span class="s">"aprobado"</span> <span class="k">Then</span>
-            <span class="c">' Descargar y guardar el KUDE automáticamente</span>
-            <span class="k">Await</span> DescargarYGuardarKude(resultado.CDC, venta.NroFacturaInterno)
-        <span class="k">Else</span>
-            <span class="c">' Documento rechazado — mostrar el motivo al usuario</span>
-            MessageBox.Show(<span class="s">"SET rechazó el documento: "</span> & resultado.SifenMensaje,
-                           <span class="s">"Factura rechazada"</span>, MessageBoxButtons.OK, MessageBoxIcon.Warning)
-        <span class="k">End If</span>
-
-        <span class="k">Return</span> resultado
-
-    <span class="k">Catch</span> ex <span class="k">As</span> Exception
-        <span class="c">' Error de red o de la API (4xx, 5xx)</span>
-        LogError(ex.Message)
-        MessageBox.Show(<span class="s">"Error al enviar factura: "</span> & ex.Message)
-        <span class="k">Return Nothing</span>
-    <span class="k">End Try</span>
-<span class="k">End Function</span></pre>
-
-      <div class="info">
-        <strong>Importante sobre documentos rechazados:</strong> cuando la SET rechaza un documento, la API igualmente devuelve <code>HTTP 201</code> con <code>estado: "rechazado"</code>. El documento queda registrado con un número secuencial asignado. Si necesitás corregirlo, debés crear un documento nuevo (con nuevo número) — no se puede reenviar el mismo CDC.
+        <div class="endpoint-head"><span class="method get">GET</span><span class="ep-url">/api/v1/documentos/{cdc}/kude?formato=a4</span></div>
+        <pre><span class="c">// Devuelve binario PDF. Requiere X-API-Key igual que el resto.</span>
+<span class="c">// formato: a4 (defecto) | carta | ticket</span></pre>
       </div>
     </div>
-
-    <!-- ══════════════════════════ NOTA DE CRÉDITO ══════════════════════════ -->
-    <div class="doc-section" id="s-nc">
-      <h1>Emitir una nota de crédito</h1>
-      <p>La nota de crédito ajusta o anula parcial o totalmente una factura aprobada. Usa el mismo endpoint que la factura, con <code>tipoDocumento: 5</code> y referenciando la factura original con su CDC.</p>
-
-      <div class="endpoint">
-        <div class="endpoint-head">
-          <span class="method method-post">POST</span>
-          <span class="endpoint-url">/api/v1/documentos/erp</span>
-        </div>
-      </div>
-
-      <h3>Request</h3>
-      <pre>
-{
-  <span class="s">"tipoDocumento"</span>: 5,              <span class="c">// 5 = Nota de crédito electrónica</span>
-  <span class="s">"fecha"</span>: <span class="s">"2025-04-05T09:00:00"</span>,
-  <span class="s">"moneda"</span>: <span class="s">"PYG"</span>,
-
-  <span class="c">// OBLIGATORIO: referencia a la factura original</span>
-  <span class="s">"documentoAsociado"</span>: {
-    <span class="s">"cdc"</span>: <span class="s">"01803778760001002000001..."</span>, <span class="c">// CDC de la factura original</span>
-    <span class="s">"tipoDocumentoAsociado"</span>: 1       <span class="c">// 1 = Era una factura</span>
-  },
-
-  <span class="s">"motivoEmision"</span>: 1,              <span class="c">// Ver tabla de motivos abajo</span>
-
-  <span class="c">// Mismo receptor que la factura original</span>
-  <span class="s">"cliente"</span>: {
-    <span class="s">"tipo"</span>: 1,
-    <span class="s">"documento"</span>: <span class="s">"80012345-6"</span>,
-    <span class="s">"razonSocial"</span>: <span class="s">"Mi Empresa SA"</span>
-  },
-
-  <span class="c">// Los ítems que se devuelven o ajustan</span>
-  <span class="s">"items"</span>: [
-    {
-      <span class="s">"descripcion"</span>: <span class="s">"Devolución Notebook HP 15"</span>,
-      <span class="s">"cantidad"</span>: 1,
-      <span class="s">"precioUnitario"</span>: 2500000,
-      <span class="s">"precioTotal"</span>: 2500000,
-      <span class="s">"tasaIVA"</span>: 10
-    }
-  ],
-  <span class="s">"referenciaExterna"</span>: <span class="s">"NC-2025-0001"</span>
-}</pre>
-
-      <h3>Motivos de emisión</h3>
-      <table>
-        <thead><tr><th>Código</th><th>Descripción</th></tr></thead>
-        <tbody>
-          <tr><td>1</td><td>Devolución de mercadería</td></tr>
-          <tr><td>2</td><td>Anulación de factura</td></tr>
-          <tr><td>3</td><td>Descuento aplicado</td></tr>
-          <tr><td>4</td><td>Bonificación</td></tr>
-          <tr><td>5</td><td>Crédito incobrable</td></tr>
-          <tr><td>6</td><td>Recupero de costo</td></tr>
-          <tr><td>7</td><td>Recupero de gasto</td></tr>
-          <tr><td>8</td><td>Ajuste de precio</td></tr>
-        </tbody>
-      </table>
-
-      <h3>Ejemplo en VB.NET</h3>
-      <pre>
-<span class="k">Public Async Function</span> EmitirNotaCredito(cdcFacturaOriginal <span class="k">As String</span>, devolucion <span class="k">As</span> DevolucionDTO) <span class="k">As Task(Of ResultadoNodo)</span>
-    <span class="k">Dim</span> payload = <span class="k">New</span> With {
-        .tipoDocumento = 5,
-        .fecha         = DateTime.Now.ToString(<span class="s">"yyyy-MM-ddTHH:mm:ss"</span>),
-        .moneda        = <span class="s">"PYG"</span>,
-        .documentoAsociado = <span class="k">New</span> With {
-            .cdc                    = cdcFacturaOriginal,
-            .tipoDocumentoAsociado  = 1
-        },
-        .motivoEmision = devolucion.Motivo,  <span class="c">' 1=Devolución, 2=Anulación, etc.</span>
-        .cliente = <span class="k">New</span> With {
-            .tipo        = devolucion.TipoDocCliente,
-            .documento   = devolucion.RucCiCliente,
-            .razonSocial = devolucion.NombreCliente
-        },
-        .items = devolucion.Items.Select(<span class="k">Function</span>(i) <span class="k">New</span> With {
-            .descripcion    = <span class="s">"Devolución: "</span> & i.Descripcion,
-            .cantidad       = i.CantidadDevuelta,
-            .precioUnitario = i.PrecioUnitario,
-            .precioTotal    = i.PrecioUnitario * i.CantidadDevuelta,
-            .tasaIVA        = i.TasaIVA
-        }).ToArray(),
-        .referenciaExterna = devolucion.NroInternoNC
-    }
-
-    <span class="k">Return Await</span> EnviarDocumento(payload)
-<span class="k">End Function</span></pre>
-    </div>
-
-    <!-- ══════════════════════════ CONSULTAR ══════════════════════════ -->
-    <div class="doc-section" id="s-consultar">
-      <h1>Consultar estado de un documento</h1>
-
-      <h3>Por CDC</h3>
-      <div class="endpoint">
-        <div class="endpoint-head">
-          <span class="method method-get">GET</span>
-          <span class="endpoint-url">/api/v1/documentos/{cdc}</span>
-        </div>
-      </div>
-      <pre>
-<span class="c">' VB.NET</span>
-<span class="k">Dim</span> data = <span class="k">Await</span> NodoApiClient.[Get](<span class="s">"/documentos/"</span> & cdc)
-<span class="k">Dim</span> estado = data(<span class="s">"data"</span>)(<span class="s">"estado"</span>).ToString()
-<span class="c">' estados posibles: "aprobado" | "rechazado" | "pendiente" | "cancelado"</span></pre>
-
-      <h3>Por referencia externa (tu ID interno)</h3>
-      <div class="endpoint">
-        <div class="endpoint-head">
-          <span class="method method-get">GET</span>
-          <span class="endpoint-url">/api/v1/documentos?referenciaExterna=FAC-2025-0042</span>
-        </div>
-      </div>
-
-      <h3>Con filtros</h3>
-      <pre>
-<span class="c">' Filtros disponibles en la query string:</span>
-GET /api/v1/documentos?estado=rechazado
-GET /api/v1/documentos?tipo=5               <span class="c">// Solo notas de crédito</span>
-GET /api/v1/documentos?desde=2025-04-01&hasta=2025-04-30
-GET /api/v1/documentos?limit=50&offset=0   <span class="c">// Paginación (defecto: limit=20)</span></pre>
-
-      <h3>Respuesta</h3>
-      <pre>
-{
-  <span class="s">"ok"</span>: <span class="k">true</span>,
-  <span class="s">"data"</span>: {
-    <span class="s">"cdc"</span>:           <span class="s">"01803778760001002000001..."</span>,
-    <span class="s">"numero"</span>:        <span class="s">"001-002-0000001"</span>,
-    <span class="s">"tipo"</span>:          1,
-    <span class="s">"estado"</span>:        <span class="s">"aprobado"</span>,
-    <span class="s">"sifen_codigo"</span>:  <span class="s">"0260"</span>,
-    <span class="s">"sifen_mensaje"</span>: <span class="s">"Documento aprobado"</span>,
-    <span class="s">"monto_total"</span>:   5200000,
-    <span class="s">"monto_iva_10"</span>:  472727,   <span class="c">// monto_total / 11</span>
-    <span class="s">"monto_iva_5"</span>:   9524,     <span class="c">// monto_total / 21</span>
-    <span class="s">"receptor_razon"</span>:<span class="s">"Mi Empresa SA"</span>,
-    <span class="s">"receptor_doc"</span>:  <span class="s">"80012345-6"</span>,
-    <span class="s">"creado_en"</span>:     <span class="s">"2025-04-03T10:30:45Z"</span>
-  }
-}</pre>
-    </div>
-
-    <!-- ══════════════════════════ CANCELAR ══════════════════════════ -->
-    <div class="doc-section" id="s-cancelar">
-      <h1>Cancelar un documento aprobado</h1>
-      <p>Solo se pueden cancelar documentos con <code>estado: "aprobado"</code>. La cancelación se registra en la SET.</p>
-
-      <div class="endpoint">
-        <div class="endpoint-head">
-          <span class="method method-post">POST</span>
-          <span class="endpoint-url">/api/v1/documentos/{cdc}/cancelar</span>
-        </div>
-      </div>
-
-      <pre>
-<span class="c">// Body:</span>
-{ <span class="s">"motivo"</span>: <span class="s">"Error en datos del cliente"</span> }
-
-<span class="c">// Respuesta:</span>
-{ <span class="s">"ok"</span>: <span class="k">true</span>, <span class="s">"data"</span>: { <span class="s">"cdc"</span>: <span class="s">"..."</span>, <span class="s">"estado"</span>: <span class="s">"cancelado"</span> } }</pre>
-
-      <h3>VB.NET</h3>
-      <pre>
-<span class="k">Public Async Function</span> CancelarDocumento(cdc <span class="k">As String</span>, motivo <span class="k">As String</span>) <span class="k">As Task(Of Boolean)</span>
-    <span class="k">Try</span>
-        <span class="k">Dim</span> payload = <span class="k">New</span> With { .motivo = motivo }
-        <span class="k">Dim</span> resp    = <span class="k">Await</span> NodoApiClient.Post(<span class="s">"/documentos/"</span> & cdc & <span class="s">"/cancelar"</span>, payload)
-        <span class="k">Return</span> resp(<span class="s">"ok"</span>).Value(<span class="k">Of Boolean</span>)()
-    <span class="k">Catch</span> ex <span class="k">As</span> Exception
-        MessageBox.Show(<span class="s">"Error cancelando: "</span> & ex.Message)
-        <span class="k">Return False</span>
-    <span class="k">End Try</span>
-<span class="k">End Function</span></pre>
-    </div>
-
-    <!-- ══════════════════════════ KUDE Y XML ══════════════════════════ -->
-    <div class="doc-section" id="s-kude">
-      <h1>Descargar KUDE (PDF) y XML firmado</h1>
-      <p>Solo disponible para documentos con <code>estado: "aprobado"</code>. Ambos endpoints devuelven el archivo binario directamente.</p>
-
-      <div class="warn">
-        <strong>⚠️ Estos endpoints no son URLs públicas.</strong> Requieren el header <code>X-API-Key</code> igual que el resto. No funcionan abriéndolos directo en el browser sin autenticación.
-      </div>
-
-      <h3>Descargar KUDE en PDF</h3>
-      <div class="endpoint">
-        <div class="endpoint-head">
-          <span class="method method-get">GET</span>
-          <span class="endpoint-url">/api/v1/documentos/{cdc}/kude?formato=a4</span>
-        </div>
-      </div>
-      <p>Parámetro <code>formato</code>: <code>a4</code> (defecto) · <code>carta</code> · <code>ticket</code></p>
-
-      <h3>Descargar XML firmado</h3>
-      <div class="endpoint">
-        <div class="endpoint-head">
-          <span class="method method-get">GET</span>
-          <span class="endpoint-url">/api/v1/documentos/{cdc}/xml</span>
-        </div>
-      </div>
-
-      <h3>VB.NET — descargar KUDE y guardarlo o mostrarlo</h3>
-      <pre>
-<span class="c">' Opción 1: Guardar el PDF en disco</span>
-<span class="k">Public Async Sub</span> GuardarKudeEnDisco(cdc <span class="k">As String</span>, rutaArchivo <span class="k">As String</span>)
-    <span class="k">Dim</span> bytes() <span class="k">As Byte</span> = <span class="k">Await</span> NodoApiClient.GetBytes(<span class="s">"/documentos/"</span> & cdc & <span class="s">"/kude?formato=a4"</span>)
-    File.WriteAllBytes(rutaArchivo, bytes)
-    <span class="c">' Ej: "C:\Facturas\KUDE-001-002-0000001.pdf"</span>
-<span class="k">End Sub</span>
-
-<span class="c">' Opción 2: Abrir el PDF en el visor predeterminado del sistema</span>
-<span class="k">Public Async Sub</span> AbrirKude(cdc <span class="k">As String</span>)
-    <span class="k">Dim</span> bytes()  <span class="k">As Byte</span>  = <span class="k">Await</span> NodoApiClient.GetBytes(<span class="s">"/documentos/"</span> & cdc & <span class="s">"/kude?formato=a4"</span>)
-    <span class="k">Dim</span> tempPath <span class="k">As String</span> = Path.Combine(Path.GetTempPath(), cdc & <span class="s">".pdf"</span>)
-    File.WriteAllBytes(tempPath, bytes)
-    Process.Start(tempPath)  <span class="c">' Abre con Adobe Reader, Foxit, etc.</span>
-<span class="k">End Sub</span>
-
-<span class="c">' Opción 3: Mostrar en un PictureBox o WebBrowser dentro del formulario</span>
-<span class="k">Public Async Sub</span> MostrarKudeEnFormulario(cdc <span class="k">As String</span>, viewer <span class="k">As</span> WebBrowser)
-    <span class="k">Dim</span> bytes()  <span class="k">As Byte</span>  = <span class="k">Await</span> NodoApiClient.GetBytes(<span class="s">"/documentos/"</span> & cdc & <span class="s">"/kude?formato=a4"</span>)
-    <span class="k">Dim</span> tempPath <span class="k">As String</span> = Path.Combine(Path.GetTempPath(), cdc & <span class="s">".pdf"</span>)
-    File.WriteAllBytes(tempPath, bytes)
-    viewer.Navigate(tempPath)
-<span class="k">End Sub</span>
-
-<span class="c">' Opción 4: Enviar el PDF por email desde tu sistema</span>
-<span class="k">Public Async Sub</span> EnviarKudePorEmail(cdc <span class="k">As String</span>, destinatario <span class="k">As String</span>)
-    <span class="k">Dim</span> bytes() <span class="k">As Byte</span> = <span class="k">Await</span> NodoApiClient.GetBytes(<span class="s">"/documentos/"</span> & cdc & <span class="s">"/kude?formato=a4"</span>)
-    <span class="k">Dim</span> mail    <span class="k">As New</span> MailMessage()
-    mail.To.Add(destinatario)
-    mail.Subject    = <span class="s">"Factura electrónica"</span>
-    mail.Attachments.Add(<span class="k">New</span> Attachment(<span class="k">New</span> MemoryStream(bytes), <span class="s">"factura.pdf"</span>, <span class="s">"application/pdf"</span>))
-    <span class="c">' ... enviar con SmtpClient</span>
-<span class="k">End Sub</span></pre>
-
-      <div class="info">
-        <strong>Tip:</strong> si el campo <code>cliente.email</code> se incluyó al emitir el documento, NODO Engine envía automáticamente el KUDE por email al cliente al momento de la aprobación. No necesitás descargarlo y reenviarlo manualmente.
-      </div>
-    </div>
-
-    <!-- ══════════════════════════ WEBHOOKS ══════════════════════════ -->
-    <div class="doc-section" id="s-webhook">
-      <h1>Webhooks — notificaciones automáticas</h1>
-      <p>Si al emitir el documento incluís el campo <code>webhookUrl</code>, NODO hace un POST a esa URL cuando la SET responde. Así tu sistema se actualiza en tiempo real sin tener que hacer polling.</p>
-
-      <h3>Payload que recibe tu endpoint</h3>
-      <pre>
-{
-  <span class="s">"evento"</span>:    <span class="s">"de.aprobado"</span>,         <span class="c">// de.aprobado | de.rechazado | de.cancelado</span>
-  <span class="s">"timestamp"</span>: <span class="s">"2025-04-03T10:30:45Z"</span>,
-  <span class="s">"documento"</span>: {
-    <span class="s">"id"</span>:                <span class="s">"uuid-interno"</span>,
-    <span class="s">"cdc"</span>:               <span class="s">"01803778760001002000001..."</span>,
-    <span class="s">"numero"</span>:            <span class="s">"001-002-0000001"</span>,
-    <span class="s">"tipoDocumento"</span>:     1,
-    <span class="s">"estado"</span>:            <span class="s">"aprobado"</span>,
-    <span class="s">"referenciaExterna"</span>: <span class="s">"FAC-2025-0042"</span>,  <span class="c">// ← con esto actualizás tu BD</span>
-    <span class="s">"receptor"</span>: {
-      <span class="s">"documento"</span>:   <span class="s">"80012345-6"</span>,
-      <span class="s">"razonSocial"</span>: <span class="s">"Mi Empresa SA"</span>
-    },
-    <span class="s">"montoTotal"</span>:  5200000,
-    <span class="s">"montoIVA10"</span>:  472727,
-    <span class="s">"sifen"</span>: {
-      <span class="s">"codigo"</span>:  <span class="s">"0260"</span>,
-      <span class="s">"mensaje"</span>: <span class="s">"Documento aprobado"</span>
-    }
-  }
-}</pre>
-
-      <h3>Implementar el endpoint webhook en VB.NET (ASP.NET WebAPI)</h3>
-      <pre>
-<span class="c">' WebhookController.vb</span>
-<Public Class</span> WebhookController
-    <span class="k">Inherits</span> ApiController
-
-    <HttpPost>
-    <Route(<span class="s">"webhook/nodo"</span>)>
-    <span class="k">Public Async Function</span> RecibirWebhook(payload <span class="k">As</span> JObject) <span class="k">As Task(Of IHttpActionResult)</span>
-
-        <span class="c">' PASO 1: Responder 200 INMEDIATAMENTE (antes de procesar)</span>
-        <span class="c">' NODO considera el webhook como fallido si no responde en 10 segundos</span>
-        <span class="k">Dim</span> response = Ok()
-        Task.Run(<span class="k">Sub</span>() ProcesarWebhookAsync(payload))  <span class="c">' Procesar en background</span>
-        <span class="k">Return</span> response
-
-    <span class="k">End Function</span>
-
-    <span class="k">Private Async Sub</span> ProcesarWebhookAsync(payload <span class="k">As</span> JObject)
-        <span class="k">Try</span>
-            <span class="k">Dim</span> evento     <span class="k">As String</span> = payload(<span class="s">"evento"</span>).ToString()
-            <span class="k">Dim</span> documento           = payload(<span class="s">"documento"</span>)
-            <span class="k">Dim</span> cdc        <span class="k">As String</span> = documento(<span class="s">"cdc"</span>).ToString()
-            <span class="k">Dim</span> refExterna <span class="k">As String</span> = documento(<span class="s">"referenciaExterna"</span>)?.ToString()
-            <span class="k">Dim</span> estado     <span class="k">As String</span> = documento(<span class="s">"estado"</span>).ToString()
-
-            <span class="k">Select Case</span> evento
-                <span class="k">Case</span> <span class="s">"de.aprobado"</span>
-                    <span class="c">' Actualizar estado en tu BD usando la referencia interna</span>
-                    <span class="c">' IMPORTANTE: usar refExterna como clave para evitar duplicados</span>
-                    FacturasDao.ActualizarEstado(refExterna, cdc, <span class="s">"APROBADA"</span>)
-
-                <span class="k">Case</span> <span class="s">"de.rechazado"</span>
-                    <span class="k">Dim</span> motivo = documento(<span class="s">"sifen"</span>)(<span class="s">"mensaje"</span>).ToString()
-                    FacturasDao.ActualizarEstado(refExterna, cdc, <span class="s">"RECHAZADA"</span>, motivo)
-                    <span class="c">' Notificar al usuario que debe corregir y reemitir</span>
-
-                <span class="k">Case</span> <span class="s">"de.cancelado"</span>
-                    FacturasDao.ActualizarEstado(refExterna, cdc, <span class="s">"CANCELADA"</span>)
-            <span class="k">End Select</span>
-
-        <span class="k">Catch</span> ex <span class="k">As</span> Exception
-            LogError(<span class="s">"Error procesando webhook: "</span> & ex.Message)
-        <span class="k">End Try</span>
-    <span class="k">End Sub</span>
-
-<span class="k">End Class</span></pre>
-
-      <h3>Comportamiento de reintentos</h3>
-      <table>
-        <thead><tr><th>Intento</th><th>Delay</th><th>Condición</th></tr></thead>
-        <tbody>
-          <tr><td>1 (inmediato)</td><td>0s</td><td>Siempre</td></tr>
-          <tr><td>2</td><td>10 segundos</td><td>Si el anterior falló o no respondió</td></tr>
-          <tr><td>3</td><td>30 segundos</td><td>Si el anterior falló</td></tr>
-          <tr><td>4</td><td>2 minutos</td><td>Si el anterior falló</td></tr>
-          <tr><td>5</td><td>10 minutos</td><td>Si el anterior falló</td></tr>
-        </tbody>
-      </table>
-      <div class="info">
-        <strong>Idempotencia:</strong> por los reintentos, tu endpoint puede recibir el mismo webhook más de una vez. Usá el campo <code>cdc</code> o <code>referenciaExterna</code> como clave única para detectar y descartar duplicados antes de actualizar tu BD.
-      </div>
-    </div>
-
-    <!-- ══════════════════════════ CAMPOS ══════════════════════════ -->
-    <div class="doc-section" id="s-campos">
-      <h1>Referencia completa de campos</h1>
-
-      <h3>Campos raíz del request</h3>
-      <table>
-        <thead><tr><th>Campo</th><th>Tipo</th><th>Req.</th><th>Descripción</th></tr></thead>
-        <tbody>
-          <tr><td><code>tipoDocumento</code></td><td>number</td><td><span class="badge-req">SI</span></td><td>1=Factura · 4=Autofactura · 5=Nota crédito · 6=Nota débito · 7=Remisión</td></tr>
-          <tr><td><code>fecha</code></td><td>string</td><td><span class="badge-opt">NO</span></td><td>ISO 8601: <code>2025-04-03T10:30:00</code>. Defecto: hora actual del servidor</td></tr>
-          <tr><td><code>moneda</code></td><td>string</td><td><span class="badge-opt">NO</span></td><td>PYG (defecto) · USD · BRL · EUR · ARS</td></tr>
-          <tr><td><code>condicionVenta</code></td><td>number</td><td><span class="badge-opt">NO</span></td><td>1=Contado (defecto) · 2=Crédito</td></tr>
-          <tr><td><code>referenciaExterna</code></td><td>string</td><td><span class="badge-opt">NO</span></td><td>Tu ID interno (nro. factura del ERP). Se devuelve en el webhook para identificar el documento.</td></tr>
-          <tr><td><code>webhookUrl</code></td><td>string</td><td><span class="badge-opt">NO</span></td><td>URL HTTPS donde NODO notifica el resultado. Debe responder HTTP 200.</td></tr>
-          <tr><td><code>documentoAsociado.cdc</code></td><td>string</td><td>NC/ND</td><td>CDC del documento original. Obligatorio para notas de crédito/débito.</td></tr>
-          <tr><td><code>motivoEmision</code></td><td>number</td><td>NC/ND</td><td>Ver tabla de motivos en la sección Nota de crédito.</td></tr>
-        </tbody>
-      </table>
-
-      <h3>Objeto <code>cliente</code></h3>
-      <table>
-        <thead><tr><th>Campo</th><th>Tipo</th><th>Req.</th><th>Descripción</th></tr></thead>
-        <tbody>
-          <tr><td><code>tipo</code></td><td>number</td><td><span class="badge-req">SI</span></td><td>1=RUC · 2=Cédula paraguaya · 3=Pasaporte/extranjero · 4=Sin documento (innominado)</td></tr>
-          <tr><td><code>documento</code></td><td>string</td><td>Si tipo≠4</td><td>RUC: <code>80012345-6</code> (con dígito). CI: <code>4567890</code> (sin puntos). Pasaporte: tal cual.</td></tr>
-          <tr><td><code>razonSocial</code></td><td>string</td><td>Si tipo≠4</td><td>Nombre completo o razón social del receptor.</td></tr>
-          <tr><td><code>email</code></td><td>string</td><td><span class="badge-opt">NO</span></td><td>Si se incluye, NODO envía el KUDE en PDF automáticamente al aprobarse (requiere SMTP configurado).</td></tr>
-          <tr><td><code>telefono</code></td><td>string</td><td><span class="badge-opt">NO</span></td><td>Teléfono del receptor.</td></tr>
-          <tr><td><code>direccion</code></td><td>string</td><td><span class="badge-opt">NO</span></td><td>Dirección del receptor.</td></tr>
-        </tbody>
-      </table>
-
-      <h3>Objeto <code>items[]</code></h3>
-      <table>
-        <thead><tr><th>Campo</th><th>Tipo</th><th>Req.</th><th>Descripción</th></tr></thead>
-        <tbody>
-          <tr><td><code>descripcion</code></td><td>string</td><td><span class="badge-req">SI</span></td><td>Descripción del bien o servicio.</td></tr>
-          <tr><td><code>cantidad</code></td><td>number</td><td><span class="badge-req">SI</span></td><td>Puede ser decimal: <code>1.5</code>, <code>0.25</code>.</td></tr>
-          <tr><td><code>precioUnitario</code></td><td>number</td><td><span class="badge-req">SI</span></td><td>Precio por unidad <strong>sin IVA incluido</strong>. Sin decimales en guaraníes.</td></tr>
-          <tr><td><code>precioTotal</code></td><td>number</td><td><span class="badge-req">SI</span></td><td>cantidad × precioUnitario. El motor verifica coherencia y rechaza si hay diferencia.</td></tr>
-          <tr><td><code>tasaIVA</code></td><td>number</td><td><span class="badge-req">SI</span></td><td>0=Exento · 5=IVA 5% · 10=IVA 10%. Un mismo comprobante puede tener ítems con distintas tasas.</td></tr>
-          <tr><td><code>unidadMedida</code></td><td>number</td><td><span class="badge-opt">NO</span></td><td>Código SET. Defecto: 77 (Unidad). Ver tabla de unidades abajo.</td></tr>
-          <tr><td><code>codigoProducto</code></td><td>string</td><td><span class="badge-opt">NO</span></td><td>Código interno del ERP. No afecta el XML — solo para trazabilidad.</td></tr>
-          <tr><td><code>descuento</code></td><td>number</td><td><span class="badge-opt">NO</span></td><td>Monto del descuento aplicado al ítem.</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- ══════════════════════════ ERRORES ══════════════════════════ -->
-    <div class="doc-section" id="s-errores">
-      <h1>Manejo de errores</h1>
-
-      <h3>Errores HTTP de la API NODO</h3>
-      <table>
-        <thead><tr><th>HTTP</th><th>Significado</th><th>Qué hacer</th></tr></thead>
-        <tbody>
-          <tr><td><code style="color:var(--red)">400</code></td><td>JSON inválido o campo obligatorio faltante</td><td>Revisar la estructura del body. El mensaje indica el campo exacto.</td></tr>
-          <tr><td><code style="color:var(--red)">401</code></td><td>Header <code>X-API-Key</code> faltante o inválido</td><td>Verificar que se envía el header en cada request y que la key está activa.</td></tr>
-          <tr><td><code style="color:var(--red)">403</code></td><td>Key revocada o sin permisos</td><td>Generar una nueva API Key desde el panel.</td></tr>
-          <tr><td><code style="color:var(--yellow)">422</code></td><td>Datos inválidos (RUC mal formado, monto negativo, tasaIVA inválida)</td><td>Revisar los valores. El mensaje indica qué falló.</td></tr>
-          <tr><td><code style="color:var(--yellow)">429</code></td><td>Rate limit: más de 100 requests por minuto</td><td>Implementar queue o throttling. Reintentar después de 60 segundos.</td></tr>
-          <tr><td><code style="color:var(--red)">500</code></td><td>Error interno del servidor</td><td>Reintentar después de 30 segundos. Si persiste, contactar soporte con el timestamp.</td></tr>
-        </tbody>
-      </table>
-
-      <div class="warn">
-        <strong>⚠️ Diferencia importante:</strong> cuando la SET rechaza un documento, el HTTP status es <code>201</code> (no <code>4xx</code>), porque el documento sí fue procesado — simplemente quedó rechazado. Siempre verificar <code>data.estado</code> además del HTTP status.
-      </div>
-
-      <h3>Códigos de respuesta SET (en <code>data.sifen_codigo</code>)</h3>
-      <table>
-        <thead><tr><th>Código</th><th>Significado</th><th>Solución</th></tr></thead>
-        <tbody>
-          <tr><td><code style="color:var(--green)">0260</code></td><td style="color:var(--green)">✅ Aprobado</td><td>Entregar el KUDE al cliente.</td></tr>
-          <tr><td><code style="color:var(--yellow)">0261</code></td><td style="color:var(--yellow)">⚠️ Aprobado con observaciones</td><td>Válido pero revisar el mensaje.</td></tr>
-          <tr><td><code style="color:var(--red)">0300</code></td><td>Datos incorrectos</td><td>Revisar el campo indicado en <code>sifen_mensaje</code>. Corregir y reemitir con nuevo número.</td></tr>
-          <tr><td><code style="color:var(--red)">0302</code></td><td>CSC inválido</td><td>Verificar el Código de Seguridad del Contribuyente en el panel → Configuración.</td></tr>
-          <tr><td><code style="color:var(--red)">0303</code></td><td>Timbrado inactivo o vencido</td><td>Renovar el timbrado en Marangatú y actualizar en el panel.</td></tr>
-          <tr><td><code style="color:var(--yellow)">0422</code></td><td>CDC duplicado</td><td>Ya fue procesado. No reintentar — consultar estado con el CDC existente.</td></tr>
-          <tr><td><code style="color:var(--red)">0500</code></td><td>Error SET</td><td>Reintentar en 5-10 minutos.</td></tr>
-        </tbody>
-      </table>
-
-      <h3>Estructura del error de la API</h3>
-      <pre>
-{
-  <span class="s">"ok"</span>: <span class="k">false</span>,
-  <span class="s">"error"</span>: <span class="s">"RUC del receptor inválido: formato incorrecto"</span>,
-  <span class="s">"campo"</span>: <span class="s">"cliente.documento"</span>  <span class="c">// cuando aplica, indica el campo exacto</span>
-}</pre>
-
-      <h3>Manejo de errores en VB.NET</h3>
-      <pre>
-<span class="k">Try</span>
-    <span class="k">Dim</span> resultado = <span class="k">Await</span> NodoApiClient.Post(<span class="s">"/documentos/erp"</span>, payload)
-    <span class="k">Dim</span> data      = resultado(<span class="s">"data"</span>)
-
-    <span class="k">Select Case</span> data(<span class="s">"estado"</span>).ToString()
-        <span class="k">Case</span> <span class="s">"aprobado"</span>
-            GuardarCDC(data(<span class="s">"cdc"</span>).ToString())
-            MostrarExito()
-        <span class="k">Case</span> <span class="s">"rechazado"</span>
-            <span class="k">Dim</span> motivo = data(<span class="s">"sifen_mensaje"</span>).ToString()
-            GuardarCDC(data(<span class="s">"cdc"</span>).ToString(), <span class="s">"RECHAZADO"</span>)
-            MessageBox.Show(<span class="s">"SET rechazó: "</span> & motivo, <span class="s">"Atención"</span>, MessageBoxButtons.OK, MessageBoxIcon.Warning)
-    <span class="k">End Select</span>
-
-<span class="k">Catch</span> ex <span class="k">As</span> HttpRequestException
-    <span class="c">' Sin conexión a internet o servidor caído</span>
-    MessageBox.Show(<span class="s">"Sin conexión con el servidor NODO: "</span> & ex.Message)
-
-<span class="k">Catch</span> ex <span class="k">As</span> Exception <span class="k">When</span> ex.Message.StartsWith(<span class="s">"Error API:"</span>)
-    <span class="c">' Error 4xx de la API (datos inválidos, key incorrecta, etc.)</span>
-    MessageBox.Show(ex.Message)
-
-<span class="k">Catch</span> ex <span class="k">As</span> Exception
-    <span class="c">' Cualquier otro error inesperado</span>
-    LogError(ex)
-    MessageBox.Show(<span class="s">"Error inesperado: "</span> & ex.Message)
-<span class="k">End Try</span></pre>
-    </div>
-
-    <!-- ══════════════════════════ TABLAS ══════════════════════════ -->
-    <div class="doc-section" id="s-tipos">
-      <h1>Tablas de valores de referencia</h1>
-
-      <h3>Unidades de medida (campo <code>unidadMedida</code>)</h3>
-      <table>
-        <thead><tr><th>Código</th><th>Descripción</th></tr></thead>
-        <tbody>
-          <tr><td>77</td><td>Unidad (defecto — para productos genéricos)</td></tr>
-          <tr><td>83</td><td>Servicio</td></tr>
-          <tr><td>57</td><td>Hora</td></tr>
-          <tr><td>74</td><td>Kilowatt hora</td></tr>
-          <tr><td>70</td><td>Litro</td></tr>
-          <tr><td>78</td><td>Metro</td></tr>
-          <tr><td>68</td><td>Metro cuadrado</td></tr>
-          <tr><td>69</td><td>Metro cúbico</td></tr>
-          <tr><td>79</td><td>Kilogramo</td></tr>
-          <tr><td>76</td><td>Tonelada</td></tr>
-          <tr><td>80</td><td>Caja</td></tr>
-          <tr><td>81</td><td>Juego</td></tr>
-          <tr><td>82</td><td>Fardo</td></tr>
-        </tbody>
-      </table>
-
-      <h3>Tipos de contribuyente (campo <code>cliente.tipo</code>)</h3>
-      <table>
-        <thead><tr><th>Código</th><th>Descripción</th><th>Campo documento</th></tr></thead>
-        <tbody>
-          <tr><td>1</td><td>RUC paraguayo</td><td>Formato: <code>XXXXXXXX-D</code></td></tr>
-          <tr><td>2</td><td>Cédula de identidad paraguaya</td><td>Solo números, sin puntos ni guiones</td></tr>
-          <tr><td>3</td><td>Pasaporte u otro documento extranjero</td><td>Tal cual aparece en el documento</td></tr>
-          <tr><td>4</td><td>Innominado / sin documento</td><td>No enviar el campo <code>documento</code></td></tr>
-        </tbody>
-      </table>
-
-      <h3>Monedas</h3>
-      <table>
-        <thead><tr><th>Código</th><th>Moneda</th></tr></thead>
-        <tbody>
-          <tr><td>PYG</td><td>Guaraní paraguayo (defecto)</td></tr>
-          <tr><td>USD</td><td>Dólar estadounidense</td></tr>
-          <tr><td>BRL</td><td>Real brasileño</td></tr>
-          <tr><td>EUR</td><td>Euro</td></tr>
-          <tr><td>ARS</td><td>Peso argentino</td></tr>
-        </tbody>
-      </table>
-
-      <h3>Cálculo del IVA</h3>
-      <pre>
-<span class="c">' El motor calcula el IVA automáticamente. Solo enviás precioTotal.</span>
-<span class="c">' NO es necesario ni correcto enviar el monto del IVA.</span>
-
-<span class="c">' Fórmula que usa el motor internamente:</span>
-IVA 10% = precioTotal / 11
-IVA  5% = precioTotal / 21
-Exento  = 0
-
-<span class="c">' Ejemplo en VB.NET (para mostrar en tu UI):</span>
-<span class="k">Function</span> CalcularIVA(precioTotal <span class="k">As Decimal</span>, tasaIVA <span class="k">As Integer</span>) <span class="k">As Decimal</span>
-    <span class="k">Select Case</span> tasaIVA
-        <span class="k">Case</span> 10 : <span class="k">Return</span> Math.Round(precioTotal / 11, 0)
-        <span class="k">Case</span>  5 : <span class="k">Return</span> Math.Round(precioTotal / 21, 0)
-        <span class="k">Case</span>  0 : <span class="k">Return</span> 0
-        <span class="k">Case Else</span> : <span class="k">Throw New</span> ArgumentException(<span class="s">"tasaIVA debe ser 0, 5 ó 10"</span>)
-    <span class="k">End Select</span>
-<span class="k">End Function</span></pre>
-    </div>
-
-    <!-- ══════════════════════════ VB.NET ══════════════════════════ -->
-    <div class="doc-section" id="s-vbnet">
-      <h1>Ejemplos completos en VB.NET</h1>
-
-      <h3>Clase NodoApiClient completa (lista para usar)</h3>
-      <p>Copiá esta clase en tu proyecto. Requiere el paquete NuGet <code>Newtonsoft.Json</code>.</p>
-      <pre>
-<span class="c">' ============================================================</span>
-<span class="c">' NodoApiClient.vb — Cliente para NODO Engine API</span>
-<span class="c">' Requiere: Newtonsoft.Json (NuGet)</span>
-<span class="c">' ============================================================</span>
+  </div>
+  <div class="ok"><strong>✅ Si llegaste hasta acá, la integración básica funciona.</strong> Navegá por el menú para ver todos los endpoints en detalle y los ejemplos completos en VB.NET.</div>
+</div>
+
+<div class="section" id="s-auth">
+  <h1>Autenticación</h1>
+  <p>Todos los endpoints (excepto <code>/health</code>) requieren una API Key válida como header HTTP.</p>
+  <h3>Header obligatorio en cada request</h3>
+  <pre>X-API-Key: sk_live_XXXXXXXXXXXXXXXX</pre>
+  <div class="warn"><strong>⚠️ La API Key es secreta.</strong> No la incluyas en logs ni en código fuente. Guardala en <code>app.config</code> o en una tabla de parámetros.</div>
+  <table>
+    <thead><tr><th>Prefijo</th><th>Ambiente</th><th>Descripción</th></tr></thead>
+    <tbody>
+      <tr><td><code>sk_test_</code></td><td>Test</td><td>No envía documentos reales a la SET. Para desarrollo y pruebas.</td></tr>
+      <tr><td><code>sk_live_</code></td><td>Producción</td><td>Documentos reales, registrados en la SET. Usar solo cuando la integración esté probada.</td></tr>
+    </tbody>
+  </table>
+  <h3>Clase NodoApiClient — VB.NET (lista para usar)</h3>
+  <pre>
+<span class="c">' Requiere NuGet: Install-Package Newtonsoft.Json</span>
 <span class="k">Imports</span> System.Net.Http
 <span class="k">Imports</span> Newtonsoft.Json
 <span class="k">Imports</span> Newtonsoft.Json.Linq
 
 <span class="k">Public Class</span> NodoApiClient
 
-    <span class="k">Private Shared ReadOnly</span> _http     <span class="k">As New</span> HttpClient() With { .Timeout = TimeSpan.FromSeconds(60) }
-    <span class="k">Private Shared</span>          _baseUrl  <span class="k">As String</span>
-    <span class="k">Private Shared</span>          _apiKey   <span class="k">As String</span>
-    <span class="k">Private Shared</span>          _listo    <span class="k">As Boolean</span> = <span class="k">False</span>
+  <span class="k">Private Shared ReadOnly</span> _http    <span class="k">As New</span> HttpClient() With {.Timeout = TimeSpan.FromSeconds(60)}
+  <span class="k">Private Shared</span>          _baseUrl <span class="k">As String</span>
 
-    <span class="k">Public Shared Sub</span> Inicializar(baseUrl <span class="k">As String</span>, apiKey <span class="k">As String</span>)
-        _baseUrl = baseUrl.TrimEnd(<span class="s">"/"c</span>)
-        _apiKey  = apiKey
-        _http.DefaultRequestHeaders.Remove(<span class="s">"X-API-Key"</span>)
-        _http.DefaultRequestHeaders.Add(<span class="s">"X-API-Key"</span>, _apiKey)
-        _listo = <span class="k">True</span>
-    <span class="k">End Sub</span>
+  <span class="k">Public Shared Sub</span> Inicializar(baseUrl <span class="k">As String</span>, apiKey <span class="k">As String</span>)
+    _baseUrl = baseUrl.TrimEnd(<span class="s">"/"c</span>)
+    _http.DefaultRequestHeaders.Remove(<span class="s">"X-API-Key"</span>)
+    _http.DefaultRequestHeaders.Add(<span class="s">"X-API-Key"</span>, apiKey)
+  <span class="k">End Sub</span>
 
-    <span class="c">' ── Verificar conectividad ──────────────────────────────────</span>
-    <span class="k">Public Shared Async Function</span> VerificarConexion() <span class="k">As Task(Of Boolean)</span>
-        <span class="k">Try</span>
-            <span class="k">Dim</span> url = _baseUrl.Replace(<span class="s">"/api/v1"</span>, <span class="s">""</span>) & <span class="s">"/health"</span>
-            <span class="k">Dim</span> res = <span class="k">Await</span> _http.GetAsync(url)
-            <span class="k">Return</span> res.IsSuccessStatusCode
-        <span class="k">Catch</span>
-            <span class="k">Return False</span>
-        <span class="k">End Try</span>
-    <span class="k">End Function</span>
+  <span class="k">Public Shared Async Function</span> EmitirDocumento(payload <span class="k">As Object</span>) <span class="k">As Task(Of ResultadoNodo)</span>
+    <span class="k">Dim</span> d = (<span class="k">Await</span> Post(<span class="s">"/documentos/erp"</span>, payload))(<span class="s">"data"</span>)
+    <span class="k">Return New</span> ResultadoNodo With {
+      .CDC = d(<span class="s">"cdc"</span>).ToString(), .Numero = d(<span class="s">"numero"</span>).ToString(),
+      .Estado = d(<span class="s">"estado"</span>).ToString(), .SifenCodigo = d(<span class="s">"sifen_codigo"</span>)?.ToString(),
+      .SifenMensaje = d(<span class="s">"sifen_mensaje"</span>)?.ToString(),
+      .Aprobado = d(<span class="s">"estado"</span>).ToString() = <span class="s">"aprobado"</span>
+    }
+  <span class="k">End Function</span>
 
-    <span class="c">' ── Emitir documento (factura, NC, etc.) ────────────────────</span>
-    <span class="k">Public Shared Async Function</span> EmitirDocumento(payload <span class="k">As Object</span>) <span class="k">As Task(Of ResultadoNodo)</span>
-        <span class="k">Dim</span> resp = <span class="k">Await</span> Post(<span class="s">"/documentos/erp"</span>, payload)
-        <span class="k">Dim</span> d    = resp(<span class="s">"data"</span>)
-        <span class="k">Return New</span> ResultadoNodo With {
-            .CDC          = d(<span class="s">"cdc"</span>).ToString(),
-            .Numero       = d(<span class="s">"numero"</span>).ToString(),
-            .Estado       = d(<span class="s">"estado"</span>).ToString(),
-            .SifenCodigo  = d(<span class="s">"sifen_codigo"</span>)?.ToString(),
-            .SifenMensaje = d(<span class="s">"sifen_mensaje"</span>)?.ToString(),
-            .Aprobado     = d(<span class="s">"estado"</span>).ToString() = <span class="s">"aprobado"</span>
-        }
-    <span class="k">End Function</span>
+  <span class="k">Public Shared Async Function</span> Consultar(cdc <span class="k">As String</span>) <span class="k">As Task(Of ResultadoNodo)</span>
+    <span class="k">Dim</span> d = (<span class="k">Await</span> [Get](<span class="s">"/documentos/"</span> & cdc))(<span class="s">"data"</span>)
+    <span class="k">Return New</span> ResultadoNodo With {
+      .CDC = d(<span class="s">"cdc"</span>).ToString(), .Estado = d(<span class="s">"estado"</span>).ToString(),
+      .SifenMensaje = d(<span class="s">"sifen_mensaje"</span>)?.ToString(),
+      .Aprobado = d(<span class="s">"estado"</span>).ToString() = <span class="s">"aprobado"</span>
+    }
+  <span class="k">End Function</span>
 
-    <span class="c">' ── Consultar estado ────────────────────────────────────────</span>
-    <span class="k">Public Shared Async Function</span> ConsultarPorCDC(cdc <span class="k">As String</span>) <span class="k">As Task(Of ResultadoNodo)</span>
-        <span class="k">Dim</span> resp = <span class="k">Await</span> [Get](<span class="s">"/documentos/"</span> & cdc)
-        <span class="k">Dim</span> d    = resp(<span class="s">"data"</span>)
-        <span class="k">Return New</span> ResultadoNodo With {
-            .CDC          = d(<span class="s">"cdc"</span>).ToString(),
-            .Estado       = d(<span class="s">"estado"</span>).ToString(),
-            .SifenMensaje = d(<span class="s">"sifen_mensaje"</span>)?.ToString(),
-            .Aprobado     = d(<span class="s">"estado"</span>).ToString() = <span class="s">"aprobado"</span>
-        }
-    <span class="k">End Function</span>
+  <span class="k">Public Shared Async Function</span> DescargarKude(cdc <span class="k">As String</span>, Optional fmt <span class="k">As String</span> = <span class="s">"a4"</span>) <span class="k">As Task(Of Byte())</span>
+    <span class="k">Return Await</span> GetBytes(<span class="s">$"/documentos/{cdc}/kude?formato={fmt}"</span>)
+  <span class="k">End Function</span>
 
-    <span class="c">' ── Descargar KUDE en bytes ─────────────────────────────────</span>
-    <span class="k">Public Shared Async Function</span> DescargarKude(cdc <span class="k">As String</span>, Optional formato <span class="k">As String</span> = <span class="s">"a4"</span>) <span class="k">As Task(Of Byte())</span>
-        <span class="k">Return Await</span> GetBytes(<span class="s">$"/documentos/{cdc}/kude?formato={formato}"</span>)
-    <span class="k">End Function</span>
+  <span class="k">Public Shared Async Function</span> DescargarXML(cdc <span class="k">As String</span>) <span class="k">As Task(Of Byte())</span>
+    <span class="k">Return Await</span> GetBytes(<span class="s">$"/documentos/{cdc}/xml"</span>)
+  <span class="k">End Function</span>
 
-    <span class="c">' ── Descargar XML en bytes ──────────────────────────────────</span>
-    <span class="k">Public Shared Async Function</span> DescargarXML(cdc <span class="k">As String</span>) <span class="k">As Task(Of Byte())</span>
-        <span class="k">Return Await</span> GetBytes(<span class="s">$"/documentos/{cdc}/xml"</span>)
-    <span class="k">End Function</span>
+  <span class="k">Public Shared Async Function</span> Cancelar(cdc <span class="k">As String</span>, motivo <span class="k">As String</span>) <span class="k">As Task(Of Boolean)</span>
+    <span class="k">Return</span> (<span class="k">Await</span> Post(<span class="s">$"/documentos/{cdc}/cancelar"</span>, <span class="k">New</span> With {.motivo = motivo}))(<span class="s">"ok"</span>).Value(<span class="k">Of Boolean</span>)()
+  <span class="k">End Function</span>
 
-    <span class="c">' ── Cancelar documento ──────────────────────────────────────</span>
-    <span class="k">Public Shared Async Function</span> Cancelar(cdc <span class="k">As String</span>, motivo <span class="k">As String</span>) <span class="k">As Task(Of Boolean)</span>
-        <span class="k">Dim</span> resp = <span class="k">Await</span> Post(<span class="s">$"/documentos/{cdc}/cancelar"</span>, <span class="k">New</span> With { .motivo = motivo })
-        <span class="k">Return</span> resp(<span class="s">"ok"</span>).Value(<span class="k">Of Boolean</span>)()
-    <span class="k">End Function</span>
+  <span class="k">Private Shared Async Function</span> Post(ep <span class="k">As String</span>, payload <span class="k">As Object</span>) <span class="k">As Task(Of JObject)</span>
+    <span class="k">Dim</span> c = <span class="k">New</span> StringContent(JsonConvert.SerializeObject(payload), System.Text.Encoding.UTF8, <span class="s">"application/json"</span>)
+    <span class="k">Return Await</span> Parse(<span class="k">Await</span> _http.PostAsync(_baseUrl & ep, c))
+  <span class="k">End Function</span>
 
-    <span class="c">' ── Métodos HTTP internos ───────────────────────────────────</span>
-    <span class="k">Private Shared Async Function</span> Post(endpoint <span class="k">As String</span>, payload <span class="k">As Object</span>) <span class="k">As Task(Of JObject)</span>
-        <span class="k">Dim</span> json    = JsonConvert.SerializeObject(payload)
-        <span class="k">Dim</span> content = <span class="k">New</span> StringContent(json, System.Text.Encoding.UTF8, <span class="s">"application/json"</span>)
-        <span class="k">Dim</span> res     = <span class="k">Await</span> _http.PostAsync(_baseUrl & endpoint, content)
-        <span class="k">Return Await</span> ParseResponse(res)
-    <span class="k">End Function</span>
+  <span class="k">Private Shared Async Function</span> [Get](ep <span class="k">As String</span>) <span class="k">As Task(Of JObject)</span>
+    <span class="k">Return Await</span> Parse(<span class="k">Await</span> _http.GetAsync(_baseUrl & ep))
+  <span class="k">End Function</span>
 
-    <span class="k">Private Shared Async Function</span> [Get](endpoint <span class="k">As String</span>) <span class="k">As Task(Of JObject)</span>
-        <span class="k">Dim</span> res = <span class="k">Await</span> _http.GetAsync(_baseUrl & endpoint)
-        <span class="k">Return Await</span> ParseResponse(res)
-    <span class="k">End Function</span>
+  <span class="k">Private Shared Async Function</span> GetBytes(ep <span class="k">As String</span>) <span class="k">As Task(Of Byte())</span>
+    <span class="k">Dim</span> res = <span class="k">Await</span> _http.GetAsync(_baseUrl & ep)
+    <span class="k">If Not</span> res.IsSuccessStatusCode <span class="k">Then Throw New</span> Exception(<span class="s">"HTTP "</span> & CInt(res.StatusCode))
+    <span class="k">Return Await</span> res.Content.ReadAsByteArrayAsync()
+  <span class="k">End Function</span>
 
-    <span class="k">Private Shared Async Function</span> GetBytes(endpoint <span class="k">As String</span>) <span class="k">As Task(Of Byte())</span>
-        <span class="k">Dim</span> res = <span class="k">Await</span> _http.GetAsync(_baseUrl & endpoint)
-        <span class="k">If Not</span> res.IsSuccessStatusCode <span class="k">Then</span>
-            <span class="k">Throw New</span> Exception(<span class="s">"Error descargando: HTTP "</span> & CInt(res.StatusCode))
-        <span class="k">End If</span>
-        <span class="k">Return Await</span> res.Content.ReadAsByteArrayAsync()
-    <span class="k">End Function</span>
-
-    <span class="k">Private Shared Async Function</span> ParseResponse(res <span class="k">As</span> HttpResponseMessage) <span class="k">As Task(Of JObject)</span>
-        <span class="k">Dim</span> body = <span class="k">Await</span> res.Content.ReadAsStringAsync()
-        <span class="k">Dim</span> obj  = JObject.Parse(body)
-        <span class="k">If Not</span> res.IsSuccessStatusCode <span class="k">Then</span>
-            <span class="k">Throw New</span> Exception(<span class="s">"Error API: "</span> & (obj(<span class="s">"error"</span>)?.ToString() ?? res.StatusCode.ToString()))
-        <span class="k">End If</span>
-        <span class="k">Return</span> obj
-    <span class="k">End Function</span>
+  <span class="k">Private Shared Async Function</span> Parse(res <span class="k">As</span> HttpResponseMessage) <span class="k">As Task(Of JObject)</span>
+    <span class="k">Dim</span> body = <span class="k">Await</span> res.Content.ReadAsStringAsync()
+    <span class="k">Dim</span> obj  = JObject.Parse(body)
+    <span class="k">If Not</span> res.IsSuccessStatusCode <span class="k">Then</span>
+      <span class="k">Throw New</span> Exception(<span class="s">"Error API: "</span> & (obj(<span class="s">"error"</span>)?.ToString() ?? res.StatusCode.ToString()))
+    <span class="k">End If</span>
+    <span class="k">Return</span> obj
+  <span class="k">End Function</span>
 
 <span class="k">End Class</span>
 
-<span class="c">' ── Clase ResultadoNodo ─────────────────────────────────────</span>
 <span class="k">Public Class</span> ResultadoNodo
-    <span class="k">Public Property</span> CDC          <span class="k">As String</span>
-    <span class="k">Public Property</span> Numero       <span class="k">As String</span>
-    <span class="k">Public Property</span> Estado       <span class="k">As String</span>
-    <span class="k">Public Property</span> SifenCodigo  <span class="k">As String</span>
-    <span class="k">Public Property</span> SifenMensaje <span class="k">As String</span>
-    <span class="k">Public Property</span> Aprobado     <span class="k">As Boolean</span>
-<span class="k">End Class</span></pre>
+  <span class="k">Public Property</span> CDC, Numero, Estado, SifenCodigo, SifenMensaje <span class="k">As String</span>
+  <span class="k">Public Property</span> Aprobado <span class="k">As Boolean</span>
+<span class="k">End Class</span>
 
-      <h3>Uso desde cualquier formulario</h3>
-      <pre>
-<span class="c">' En Form_Load o Sub Main — inicializar UNA SOLA VEZ</span>
+<span class="c">' Inicializar UNA SOLA VEZ al arrancar la app:</span>
 NodoApiClient.Inicializar(
-    My.Settings.NodoApiUrl,
-    My.Settings.NodoApiKey
+  ConfigurationManager.AppSettings(<span class="s">"NodoApiUrl"</span>),
+  ConfigurationManager.AppSettings(<span class="s">"NodoApiKey"</span>)
+)</pre>
+</div>
+
+<div class="section" id="s-factura">
+  <h1>Emitir una factura electrónica</h1>
+  <p>Genera el XML SIFEN, lo firma con el certificado digital del emisor y lo envía a la SET — en una sola llamada.</p>
+  <div class="endpoint"><div class="endpoint-head"><span class="method post">POST</span><span class="ep-url">/api/v1/documentos/erp</span></div></div>
+  <h3>Request completo comentado</h3>
+  <pre>{
+  <span class="c">// TIPO</span>
+  <span class="s">"tipoDocumento"</span>: 1,              <span class="c">// 1=Factura | 4=Autofactura | 5=NC | 6=ND | 7=Remisión</span>
+
+  <span class="c">// FECHA Y CONDICIONES</span>
+  <span class="s">"fecha"</span>: <span class="s">"2025-04-03T10:30:00"</span>,  <span class="c">// ISO 8601. Si se omite, usa la hora actual del servidor</span>
+  <span class="s">"moneda"</span>: <span class="s">"PYG"</span>,                 <span class="c">// PYG (defecto) | USD | BRL | EUR | ARS</span>
+  <span class="s">"condicionVenta"</span>: 1,             <span class="c">// 1=Contado (defecto) | 2=Crédito</span>
+
+  <span class="c">// RECEPTOR</span>
+  <span class="s">"cliente"</span>: {
+    <span class="s">"tipo"</span>: 1,                      <span class="c">// 1=RUC | 2=CI | 3=Pasaporte/extranjero | 4=Innominado</span>
+    <span class="s">"documento"</span>: <span class="s">"80012345-6"</span>,     <span class="c">// RUC con dígito. NO enviar si tipo=4</span>
+    <span class="s">"razonSocial"</span>: <span class="s">"Mi Empresa SA"</span>, <span class="c">// Nombre completo. NO enviar si tipo=4</span>
+    <span class="s">"email"</span>: <span class="s">"fe@empresa.py"</span>,       <span class="c">// Opcional — NODO envía el KUDE automáticamente al aprobarse</span>
+    <span class="s">"telefono"</span>: <span class="s">"021555000"</span>,        <span class="c">// Opcional</span>
+    <span class="s">"direccion"</span>: <span class="s">"Av. Principal 123"</span> <span class="c">// Opcional</span>
+  },
+
+  <span class="c">// ÍTEMS — mínimo 1</span>
+  <span class="s">"items"</span>: [
+    {
+      <span class="s">"descripcion"</span>: <span class="s">"Notebook HP 15"</span>,
+      <span class="s">"cantidad"</span>: 2,                 <span class="c">// Puede ser decimal: 1.5</span>
+      <span class="s">"precioUnitario"</span>: 2500000,     <span class="c">// SIN IVA incluido. Sin decimales en PYG.</span>
+      <span class="s">"precioTotal"</span>: 5000000,        <span class="c">// cantidad × precioUnitario — el motor valida la coherencia</span>
+      <span class="s">"tasaIVA"</span>: 10,                 <span class="c">// 0=Exento | 5=IVA 5% | 10=IVA 10%</span>
+      <span class="s">"unidadMedida"</span>: 77,            <span class="c">// 77=Unidad (defecto) | 83=Servicio | ver tabla</span>
+      <span class="s">"codigoProducto"</span>: <span class="s">"NB-HP-15"</span>  <span class="c">// Opcional — código interno del ERP</span>
+    },
+    {
+      <span class="s">"descripcion"</span>: <span class="s">"Soporte técnico"</span>,
+      <span class="s">"cantidad"</span>: 1, <span class="s">"precioUnitario"</span>: 500000, <span class="s">"precioTotal"</span>: 500000,
+      <span class="s">"tasaIVA"</span>: 0   <span class="c">// Exento — en un mismo comprobante puede haber distintas tasas</span>
+    }
+  ],
+
+  <span class="c">// TRAZABILIDAD</span>
+  <span class="s">"referenciaExterna"</span>: <span class="s">"FAC-2025-0042"</span>, <span class="c">// Tu ID interno — vuelve en el webhook</span>
+  <span class="s">"webhookUrl"</span>: <span class="s">"https://mi-erp.py/webhook/nodo"</span> <span class="c">// Opcional — NODO notifica cuando la SET responde</span>
+}</pre>
+  <h3>VB.NET</h3>
+  <pre>
+<span class="k">Public Async Function</span> EmitirFactura(venta <span class="k">As</span> VentaDTO) <span class="k">As Task(Of ResultadoNodo)</span>
+  <span class="k">Dim</span> payload = <span class="k">New</span> With {
+    .tipoDocumento = 1, .moneda = <span class="s">"PYG"</span>,
+    .fecha         = venta.Fecha.ToString(<span class="s">"yyyy-MM-ddTHH:mm:ss"</span>),
+    .condicionVenta = <span class="k">If</span>(venta.EsCredito, 2, 1),
+    .cliente = <span class="k">New</span> With {
+      .tipo = venta.TipoDocCliente, .documento = venta.RucCiCliente,
+      .razonSocial = venta.NombreCliente, .email = venta.EmailCliente
+    },
+    .items = venta.Detalles.Select(<span class="k">Function</span>(d) <span class="k">New</span> With {
+      .descripcion = d.Descripcion, .cantidad = d.Cantidad,
+      .precioUnitario = d.PrecioUnitario, .precioTotal = d.PrecioTotal,
+      .tasaIVA = d.TasaIVA, .codigoProducto = d.CodigoInterno
+    }).ToArray(),
+    .referenciaExterna = venta.NroFacturaInterno,
+    .webhookUrl = ConfigurationManager.AppSettings(<span class="s">"NodoWebhookUrl"</span>)
+  }
+  <span class="k">Try</span>
+    <span class="k">Dim</span> r = <span class="k">Await</span> NodoApiClient.EmitirDocumento(payload)
+    FacturasDao.ActualizarCDC(venta.NroFacturaInterno, r.CDC, r.Estado)
+    <span class="k">If</span> r.Aprobado <span class="k">Then</span>
+      <span class="k">Dim</span> tmp = Path.Combine(Path.GetTempPath(), <span class="s">$"KUDE-{r.Numero}.pdf"</span>)
+      File.WriteAllBytes(tmp, <span class="k">Await</span> NodoApiClient.DescargarKude(r.CDC))
+      Process.Start(tmp) <span class="c">' Abre en Adobe Reader</span>
+    <span class="k">Else</span>
+      MessageBox.Show(<span class="s">"SET rechazó: "</span> & r.SifenMensaje, <span class="s">"Atención"</span>, MessageBoxButtons.OK, MessageBoxIcon.Warning)
+    <span class="k">End If</span>
+    <span class="k">Return</span> r
+  <span class="k">Catch</span> ex <span class="k">As</span> Exception
+    MessageBox.Show(<span class="s">"Error: "</span> & ex.Message) : <span class="k">Return Nothing</span>
+  <span class="k">End Try</span>
+<span class="k">End Function</span></pre>
+  <div class="info"><strong>Documentos rechazados:</strong> cuando la SET rechaza, el HTTP status sigue siendo <code>201</code> con <code>estado: "rechazado"</code>. Guardar el CDC igualmente. Para corregir y reemitir, crear un documento nuevo — no se puede reenviar el mismo CDC.</div>
+</div>
+
+<div class="section" id="s-nc">
+  <h1>Nota de crédito</h1>
+  <p>Mismo endpoint que la factura, con <code>tipoDocumento: 5</code> y referenciando la factura original con su CDC.</p>
+  <div class="endpoint"><div class="endpoint-head"><span class="method post">POST</span><span class="ep-url">/api/v1/documentos/erp</span></div></div>
+  <pre>{
+  <span class="s">"tipoDocumento"</span>: 5,
+  <span class="s">"fecha"</span>: <span class="s">"2025-04-05T09:00:00"</span>, <span class="s">"moneda"</span>: <span class="s">"PYG"</span>,
+  <span class="s">"documentoAsociado"</span>: {
+    <span class="s">"cdc"</span>: <span class="s">"01803778760001002000001..."</span>, <span class="c">// CDC de la factura original</span>
+    <span class="s">"tipoDocumentoAsociado"</span>: 1          <span class="c">// 1 = era una factura</span>
+  },
+  <span class="s">"motivoEmision"</span>: 1,  <span class="c">// 1=Devolución | 2=Anulación | 3=Descuento | 4=Bonificación</span>
+                        <span class="c">// 5=Créd. incobrable | 6=Recupero costo | 7=Recupero gasto | 8=Ajuste precio</span>
+  <span class="s">"cliente"</span>: { <span class="s">"tipo"</span>: 1, <span class="s">"documento"</span>: <span class="s">"80012345-6"</span>, <span class="s">"razonSocial"</span>: <span class="s">"Mi Empresa SA"</span> },
+  <span class="s">"items"</span>: [{
+    <span class="s">"descripcion"</span>: <span class="s">"Devolución Notebook HP 15"</span>,
+    <span class="s">"cantidad"</span>: 1, <span class="s">"precioUnitario"</span>: 2500000, <span class="s">"precioTotal"</span>: 2500000, <span class="s">"tasaIVA"</span>: 10
+  }],
+  <span class="s">"referenciaExterna"</span>: <span class="s">"NC-2025-0001"</span>
+}</pre>
+  <h3>VB.NET</h3>
+  <pre>
+<span class="k">Dim</span> payload = <span class="k">New</span> With {
+  .tipoDocumento = 5, .moneda = <span class="s">"PYG"</span>,
+  .documentoAsociado = <span class="k">New</span> With {.cdc = cdcFacturaOriginal, .tipoDocumentoAsociado = 1},
+  .motivoEmision = 1,
+  .cliente = <span class="k">New</span> With {.tipo = 1, .documento = ruc, .razonSocial = nombre},
+  .items = items, .referenciaExterna = nroNC
+}
+<span class="k">Dim</span> r = <span class="k">Await</span> NodoApiClient.EmitirDocumento(payload)</pre>
+  <div class="warn"><strong>⚠️</strong> La nota de crédito no cancela automáticamente la factura en la SET. Para anular completamente, usá el endpoint de cancelación.</div>
+</div>
+
+<div class="section" id="s-consultar">
+  <h1>Consultar estado de un documento</h1>
+  <h3>Por CDC</h3>
+  <div class="endpoint">
+    <div class="endpoint-head"><span class="method get">GET</span><span class="ep-url">/api/v1/documentos/{cdc}</span></div>
+    <pre><span class="c">// VB.NET:</span>
+<span class="k">Dim</span> r = <span class="k">Await</span> NodoApiClient.Consultar(cdc)
+<span class="c">' r.Estado: "aprobado" | "rechazado" | "pendiente" | "cancelado"</span></pre>
+  </div>
+  <h3>Por referencia externa</h3>
+  <div class="endpoint"><div class="endpoint-head"><span class="method get">GET</span><span class="ep-url">/api/v1/documentos?referenciaExterna=FAC-2025-0042</span></div></div>
+  <h3>Con filtros</h3>
+  <pre>GET /api/v1/documentos?estado=rechazado
+GET /api/v1/documentos?tipo=5
+GET /api/v1/documentos?desde=2025-04-01&hasta=2025-04-30
+GET /api/v1/documentos?limit=50&offset=0</pre>
+  <h3>Respuesta</h3>
+  <pre>{
+  <span class="s">"data"</span>: {
+    <span class="s">"cdc"</span>: <span class="s">"..."</span>, <span class="s">"numero"</span>: <span class="s">"001-002-0000001"</span>, <span class="s">"estado"</span>: <span class="s">"aprobado"</span>,
+    <span class="s">"monto_total"</span>: 5200000,
+    <span class="s">"monto_iva_10"</span>: 472727,  <span class="c">// = monto_total / 11</span>
+    <span class="s">"monto_iva_5"</span>: 9524,     <span class="c">// = monto_total / 21</span>
+    <span class="s">"receptor_razon"</span>: <span class="s">"Mi Empresa SA"</span>,
+    <span class="s">"creado_en"</span>: <span class="s">"2025-04-03T10:30:45Z"</span>
+  }
+}</pre>
+</div>
+
+<div class="section" id="s-cancelar">
+  <h1>Cancelar un documento</h1>
+  <p>Solo documentos con <code>estado: "aprobado"</code>. Queda registrado en la SET.</p>
+  <div class="endpoint">
+    <div class="endpoint-head"><span class="method post">POST</span><span class="ep-url">/api/v1/documentos/{cdc}/cancelar</span></div>
+    <pre>{ <span class="s">"motivo"</span>: <span class="s">"Error en datos del cliente"</span> }
+<span class="c">// Respuesta: {"ok":true,"data":{"cdc":"...","estado":"cancelado"}}</span></pre>
+  </div>
+  <h3>VB.NET</h3>
+  <pre>
+<span class="k">Dim</span> ok = <span class="k">Await</span> NodoApiClient.Cancelar(cdc, <span class="s">"Error en datos del cliente"</span>)
+<span class="k">If</span> ok <span class="k">Then</span> MessageBox.Show(<span class="s">"Documento cancelado correctamente"</span>)</pre>
+</div>
+
+<div class="section" id="s-kude">
+  <h1>Descargar KUDE (PDF) y XML firmado</h1>
+  <p>Solo para documentos <code>aprobado</code>. Requieren el header <code>X-API-Key</code> — no son URLs públicas.</p>
+  <div class="endpoint"><div class="endpoint-head"><span class="method get">GET</span><span class="ep-url">/api/v1/documentos/{cdc}/kude?formato=a4</span></div>
+    <pre><span class="c">// formato: a4 (defecto) | carta | ticket — devuelve application/pdf</span></pre>
+  </div>
+  <div class="endpoint"><div class="endpoint-head"><span class="method get">GET</span><span class="ep-url">/api/v1/documentos/{cdc}/xml</span></div>
+    <pre><span class="c">// Devuelve application/xml — el XML firmado que quedó en la SET</span></pre>
+  </div>
+  <h3>VB.NET — 4 formas de usar el KUDE</h3>
+  <pre>
+<span class="c">' Opción 1: Guardar en disco</span>
+<span class="k">Dim</span> bytes = <span class="k">Await</span> NodoApiClient.DescargarKude(cdc)
+File.WriteAllBytes(<span class="s">"C:\Facturas\KUDE.pdf"</span>, bytes)
+
+<span class="c">' Opción 2: Abrir con el visor predeterminado (Adobe Reader, etc.)</span>
+<span class="k">Dim</span> temp = Path.Combine(Path.GetTempPath(), cdc & <span class="s">".pdf"</span>)
+File.WriteAllBytes(temp, bytes)
+Process.Start(temp)
+
+<span class="c">' Opción 3: Mostrar en WebBrowser dentro del formulario</span>
+File.WriteAllBytes(temp, bytes)
+WebBrowser1.Navigate(temp)
+
+<span class="c">' Opción 4: Adjuntar a un email desde tu sistema</span>
+<span class="k">Dim</span> mail = <span class="k">New</span> MailMessage()
+mail.To.Add(emailCliente)
+mail.Subject = <span class="s">"Tu factura electrónica"</span>
+mail.Attachments.Add(<span class="k">New</span> Attachment(
+  <span class="k">New</span> MemoryStream(bytes), <span class="s">"factura.pdf"</span>, <span class="s">"application/pdf"</span>))</pre>
+  <div class="info"><strong>Email automático:</strong> si al emitir incluiste <code>cliente.email</code>, NODO envía el KUDE automáticamente al aprobarse (requiere SMTP configurado en el panel). No necesitás descargarlo y reenviarlo manualmente.</div>
+</div>
+
+<div class="section" id="s-webhook">
+  <h1>Webhooks — notificaciones automáticas</h1>
+  <p>Si al emitir incluís <code>webhookUrl</code>, NODO hace un POST a esa URL cuando la SET responde.</p>
+  <h3>Payload que recibe tu servidor</h3>
+  <pre>{
+  <span class="s">"evento"</span>:    <span class="s">"de.aprobado"</span>,         <span class="c">// de.aprobado | de.rechazado | de.cancelado</span>
+  <span class="s">"timestamp"</span>: <span class="s">"2025-04-03T10:30:45Z"</span>,
+  <span class="s">"documento"</span>: {
+    <span class="s">"cdc"</span>: <span class="s">"01803778760..."</span>, <span class="s">"numero"</span>: <span class="s">"001-002-0000001"</span>,
+    <span class="s">"estado"</span>: <span class="s">"aprobado"</span>,
+    <span class="s">"referenciaExterna"</span>: <span class="s">"FAC-2025-0042"</span>,  <span class="c">// ← tu ID interno para actualizar tu BD</span>
+    <span class="s">"montoTotal"</span>: 5200000,
+    <span class="s">"sifen"</span>: { <span class="s">"codigo"</span>: <span class="s">"0260"</span>, <span class="s">"mensaje"</span>: <span class="s">"Documento aprobado"</span> }
+  }
+}</pre>
+  <h3>Endpoint receptor VB.NET (ASP.NET WebAPI)</h3>
+  <pre>
+&lt;HttpPost&gt; &lt;Route(<span class="s">"webhook/nodo"</span>)&gt;
+<span class="k">Public Async Function</span> RecibirWebhook(payload <span class="k">As</span> JObject) <span class="k">As Task(Of IHttpActionResult)</span>
+  <span class="c">' Responder 200 INMEDIATAMENTE — si tardás más de 10s, NODO lo reintenta</span>
+  Task.Run(<span class="k">Sub</span>()
+    <span class="k">Try</span>
+      <span class="k">Dim</span> doc = payload(<span class="s">"documento"</span>)
+      <span class="k">Dim</span> ref = doc(<span class="s">"referenciaExterna"</span>)?.ToString()
+      <span class="k">Dim</span> cdc = doc(<span class="s">"cdc"</span>).ToString()
+      <span class="k">Select Case</span> payload(<span class="s">"evento"</span>).ToString()
+        <span class="k">Case</span> <span class="s">"de.aprobado"</span>  : FacturasDao.ActualizarEstado(ref, cdc, <span class="s">"APROBADA"</span>)
+        <span class="k">Case</span> <span class="s">"de.rechazado"</span> : FacturasDao.ActualizarEstado(ref, cdc, <span class="s">"RECHAZADA"</span>)
+        <span class="k">Case</span> <span class="s">"de.cancelado"</span> : FacturasDao.ActualizarEstado(ref, cdc, <span class="s">"CANCELADA"</span>)
+      <span class="k">End Select</span>
+    <span class="k">Catch</span> ex <span class="k">As</span> Exception : LogError(ex.Message)
+    <span class="k">End Try</span>
+  <span class="k">End Sub</span>)
+  <span class="k">Return</span> Ok()
+<span class="k">End Function</span></pre>
+  <h3>Reintentos automáticos</h3>
+  <table>
+    <thead><tr><th>Intento</th><th>Delay</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Inmediato</td></tr>
+      <tr><td>2</td><td>10 segundos</td></tr>
+      <tr><td>3</td><td>30 segundos</td></tr>
+      <tr><td>4</td><td>2 minutos</td></tr>
+      <tr><td>5</td><td>10 minutos</td></tr>
+    </tbody>
+  </table>
+  <div class="info"><strong>Idempotencia:</strong> podés recibir el mismo webhook más de una vez. Usá <code>referenciaExterna</code> o <code>cdc</code> como clave única para evitar duplicados en tu BD.</div>
+</div>
+
+<div class="section" id="s-campos">
+  <h1>Referencia de campos</h1>
+  <h3>Campos raíz</h3>
+  <table>
+    <thead><tr><th>Campo</th><th>Tipo</th><th>Req.</th><th>Descripción</th></tr></thead>
+    <tbody>
+      <tr><td><code>tipoDocumento</code></td><td>number</td><td><span class="req">SÍ</span></td><td>1=Factura · 4=Autofactura · 5=NC · 6=ND · 7=Remisión</td></tr>
+      <tr><td><code>fecha</code></td><td>string</td><td><span class="opt">NO</span></td><td>ISO 8601: <code>2025-04-03T10:30:00</code>. Defecto: hora actual.</td></tr>
+      <tr><td><code>moneda</code></td><td>string</td><td><span class="opt">NO</span></td><td>PYG · USD · BRL · EUR · ARS. Defecto: PYG.</td></tr>
+      <tr><td><code>condicionVenta</code></td><td>number</td><td><span class="opt">NO</span></td><td>1=Contado (defecto) · 2=Crédito.</td></tr>
+      <tr><td><code>referenciaExterna</code></td><td>string</td><td><span class="opt">NO</span></td><td>Tu ID interno. Vuelve en el webhook.</td></tr>
+      <tr><td><code>webhookUrl</code></td><td>string</td><td><span class="opt">NO</span></td><td>URL donde NODO notifica el resultado. Debe responder HTTP 200.</td></tr>
+      <tr><td><code>documentoAsociado.cdc</code></td><td>string</td><td>NC/ND</td><td>CDC del documento original. Obligatorio para NC y ND.</td></tr>
+      <tr><td><code>motivoEmision</code></td><td>number</td><td>NC/ND</td><td>1=Devolución · 2=Anulación · 3=Descuento · 4=Bonificación · 5=Créd. incobrable · 6=Recupero costo · 7=Recupero gasto · 8=Ajuste precio.</td></tr>
+    </tbody>
+  </table>
+  <h3>Objeto <code>cliente</code></h3>
+  <table>
+    <thead><tr><th>Campo</th><th>Tipo</th><th>Req.</th><th>Descripción</th></tr></thead>
+    <tbody>
+      <tr><td><code>tipo</code></td><td>number</td><td><span class="req">SÍ</span></td><td>1=RUC · 2=CI paraguaya · 3=Pasaporte/extranjero · 4=Sin documento (innominado)</td></tr>
+      <tr><td><code>documento</code></td><td>string</td><td>tipo≠4</td><td>RUC con dígito: <code>80012345-6</code>. CI sin puntos: <code>4567890</code>.</td></tr>
+      <tr><td><code>razonSocial</code></td><td>string</td><td>tipo≠4</td><td>Nombre completo o razón social.</td></tr>
+      <tr><td><code>email</code></td><td>string</td><td><span class="opt">NO</span></td><td>NODO envía el KUDE automáticamente al aprobarse.</td></tr>
+      <tr><td><code>telefono</code></td><td>string</td><td><span class="opt">NO</span></td><td>Teléfono del receptor.</td></tr>
+      <tr><td><code>direccion</code></td><td>string</td><td><span class="opt">NO</span></td><td>Dirección del receptor.</td></tr>
+    </tbody>
+  </table>
+  <h3>Objeto <code>items[]</code></h3>
+  <table>
+    <thead><tr><th>Campo</th><th>Tipo</th><th>Req.</th><th>Descripción</th></tr></thead>
+    <tbody>
+      <tr><td><code>descripcion</code></td><td>string</td><td><span class="req">SÍ</span></td><td>Descripción del bien o servicio.</td></tr>
+      <tr><td><code>cantidad</code></td><td>number</td><td><span class="req">SÍ</span></td><td>Puede ser decimal: <code>1.5</code>.</td></tr>
+      <tr><td><code>precioUnitario</code></td><td>number</td><td><span class="req">SÍ</span></td><td>Precio por unidad <strong>sin IVA</strong>. Sin decimales en PYG.</td></tr>
+      <tr><td><code>precioTotal</code></td><td>number</td><td><span class="req">SÍ</span></td><td>cantidad × precioUnitario. El motor verifica coherencia.</td></tr>
+      <tr><td><code>tasaIVA</code></td><td>number</td><td><span class="req">SÍ</span></td><td>0=Exento · 5=IVA 5% · 10=IVA 10%.</td></tr>
+      <tr><td><code>unidadMedida</code></td><td>number</td><td><span class="opt">NO</span></td><td>Código SET. Defecto: 77. Ver tabla de unidades.</td></tr>
+      <tr><td><code>codigoProducto</code></td><td>string</td><td><span class="opt">NO</span></td><td>Código interno del ERP. Solo para trazabilidad.</td></tr>
+      <tr><td><code>descuento</code></td><td>number</td><td><span class="opt">NO</span></td><td>Monto del descuento aplicado.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section" id="s-errores">
+  <h1>Errores</h1>
+  <h3>Errores HTTP</h3>
+  <table>
+    <thead><tr><th>HTTP</th><th>Causa</th><th>Solución</th></tr></thead>
+    <tbody>
+      <tr><td><code style="color:#ff6b6b">400</code></td><td>JSON inválido o campo obligatorio faltante</td><td>Revisar el body. El mensaje indica el campo exacto.</td></tr>
+      <tr><td><code style="color:#ff6b6b">401</code></td><td>Header <code>X-API-Key</code> faltante o inválido</td><td>Verificar que se envía en cada request y que la key está activa.</td></tr>
+      <tr><td><code style="color:#ff6b6b">403</code></td><td>Key revocada</td><td>Generar nueva API Key en el panel → Integración ERP.</td></tr>
+      <tr><td><code style="color:#FFC857">422</code></td><td>Datos inválidos (RUC, tasaIVA, montos)</td><td>Revisar los valores. El mensaje indica qué falló.</td></tr>
+      <tr><td><code style="color:#FFC857">429</code></td><td>Más de 100 req/min</td><td>Implementar queue. Reintentar en 60 segundos.</td></tr>
+      <tr><td><code style="color:#ff6b6b">500</code></td><td>Error interno</td><td>Reintentar en 30 segundos.</td></tr>
+    </tbody>
+  </table>
+  <div class="warn"><strong>⚠️</strong> Cuando la SET rechaza, el HTTP status es <code>201</code> (no <code>4xx</code>). Siempre verificar <code>data.estado</code> además del HTTP status.</div>
+  <h3>Códigos SET (en <code>data.sifen_codigo</code>)</h3>
+  <table>
+    <thead><tr><th>Código</th><th>Significado</th><th>Solución</th></tr></thead>
+    <tbody>
+      <tr><td><code style="color:#00c48c">0260</code></td><td style="color:#00c48c">✅ Aprobado</td><td>Entregar el KUDE al cliente.</td></tr>
+      <tr><td><code style="color:#FFC857">0261</code></td><td style="color:#FFC857">⚠️ Aprobado con observaciones</td><td>Válido pero revisar el mensaje.</td></tr>
+      <tr><td><code style="color:#ff6b6b">0300</code></td><td>Datos incorrectos</td><td>Revisar el campo en <code>sifen_mensaje</code>. Reemitir con nuevo número.</td></tr>
+      <tr><td><code style="color:#ff6b6b">0302</code></td><td>CSC inválido</td><td>Verificar en el panel → Configuración.</td></tr>
+      <tr><td><code style="color:#ff6b6b">0303</code></td><td>Timbrado inactivo o vencido</td><td>Renovar en Marangatú y actualizar en el panel.</td></tr>
+      <tr><td><code style="color:#FFC857">0422</code></td><td>CDC duplicado</td><td>Ya procesado. Consultar estado con el CDC existente.</td></tr>
+      <tr><td><code style="color:#ff6b6b">0500</code></td><td>Error SET</td><td>Reintentar en 5-10 minutos.</td></tr>
+    </tbody>
+  </table>
+  <h3>Try/Catch VB.NET</h3>
+  <pre>
+<span class="k">Try</span>
+  <span class="k">Dim</span> r = <span class="k">Await</span> NodoApiClient.EmitirDocumento(payload)
+  <span class="k">If</span> r.Aprobado <span class="k">Then</span> GuardarCDC(r.CDC, <span class="s">"OK"</span>) <span class="k">Else</span> MostrarAlerta(r.SifenMensaje)
+<span class="k">Catch</span> ex <span class="k">As</span> HttpRequestException
+  MessageBox.Show(<span class="s">"Sin conexión: "</span> & ex.Message)
+<span class="k">Catch</span> ex <span class="k">As</span> Exception <span class="k">When</span> ex.Message.StartsWith(<span class="s">"Error API:"</span>)
+  MessageBox.Show(ex.Message)
+<span class="k">Catch</span> ex <span class="k">As</span> Exception
+  LogError(ex) : MessageBox.Show(<span class="s">"Error inesperado"</span>)
+<span class="k">End Try</span></pre>
+</div>
+
+<div class="section" id="s-tablas">
+  <h1>Tablas de valores SET</h1>
+  <h3>Unidades de medida (<code>unidadMedida</code>)</h3>
+  <table>
+    <thead><tr><th>Código</th><th>Descripción</th></tr></thead>
+    <tbody>
+      <tr><td>77</td><td>Unidad (defecto)</td></tr>
+      <tr><td>83</td><td>Servicio</td></tr>
+      <tr><td>57</td><td>Hora</td></tr>
+      <tr><td>70</td><td>Litro</td></tr>
+      <tr><td>78</td><td>Metro</td></tr>
+      <tr><td>68</td><td>Metro cuadrado</td></tr>
+      <tr><td>69</td><td>Metro cúbico</td></tr>
+      <tr><td>79</td><td>Kilogramo</td></tr>
+      <tr><td>76</td><td>Tonelada</td></tr>
+      <tr><td>80</td><td>Caja</td></tr>
+      <tr><td>82</td><td>Fardo</td></tr>
+    </tbody>
+  </table>
+  <h3>Cálculo del IVA</h3>
+  <pre>
+<span class="c">' El motor calcula el IVA automáticamente. NO enviar el monto del IVA.</span>
+IVA 10% = precioTotal / 11
+IVA  5% = precioTotal / 21
+
+<span class="c">' VB.NET — para mostrar en tu UI:</span>
+<span class="k">Function</span> CalcularIVA(total <span class="k">As Decimal</span>, tasa <span class="k">As Integer</span>) <span class="k">As Decimal</span>
+  <span class="k">Select Case</span> tasa
+    <span class="k">Case</span> 10 : <span class="k">Return</span> Math.Round(total / 11, 0)
+    <span class="k">Case</span>  5 : <span class="k">Return</span> Math.Round(total / 21, 0)
+    <span class="k">Case</span>  0 : <span class="k">Return</span> 0
+    <span class="k">Case Else</span> : <span class="k">Throw New</span> ArgumentException(<span class="s">"tasaIVA debe ser 0, 5 ó 10"</span>)
+  <span class="k">End Select</span>
+<span class="k">End Function</span></pre>
+</div>
+
+<div class="section" id="s-vbnet">
+  <h1>VB.NET — Implementación completa</h1>
+  <p>Instalá primero el paquete NuGet: <code>Install-Package Newtonsoft.Json</code></p>
+  <h3>Uso desde cualquier formulario</h3>
+  <pre>
+<span class="c">' Form_Load — inicializar UNA SOLA VEZ:</span>
+NodoApiClient.Inicializar(
+  ConfigurationManager.AppSettings(<span class="s">"NodoApiUrl"</span>),
+  ConfigurationManager.AppSettings(<span class="s">"NodoApiKey"</span>)
 )
 
-<span class="c">' Emitir una factura</span>
-<span class="k">Dim</span> resultado = <span class="k">Await</span> NodoApiClient.EmitirDocumento(<span class="k">New</span> With {
-    .tipoDocumento = 1,
-    .cliente       = <span class="k">New</span> With { .tipo = 4 },  <span class="c">' Innominado</span>
-    .items         = <span class="k">New</span>() {<span class="k">New</span> With {
-        .descripcion    = <span class="s">"Producto"</span>,
-        .cantidad       = 1,
-        .precioUnitario = 100000,
-        .precioTotal    = 100000,
-        .tasaIVA        = 10
-    }}
+<span class="c">' Emitir y abrir KUDE:</span>
+<span class="k">Dim</span> r = <span class="k">Await</span> NodoApiClient.EmitirDocumento(<span class="k">New</span> With {
+  .tipoDocumento = 1,
+  .cliente = <span class="k">New</span> With {
+    .tipo = 1, .documento = <span class="s">"80012345-6"</span>, .razonSocial = <span class="s">"Empresa SA"</span>,
+    .email = <span class="s">"cliente@empresa.py"</span>  <span class="c">' NODO envía el KUDE automáticamente</span>
+  },
+  .items = <span class="k">New</span>() {<span class="k">New</span> With {
+    .descripcion = <span class="s">"Producto A"</span>, .cantidad = 2,
+    .precioUnitario = 150000, .precioTotal = 300000, .tasaIVA = 10
+  }},
+  .referenciaExterna = <span class="s">"FAC-2025-0001"</span>
 })
 
-<span class="k">If</span> resultado.Aprobado <span class="k">Then</span>
-    <span class="c">' Descargar y abrir el KUDE automáticamente</span>
-    <span class="k">Dim</span> pdf      = <span class="k">Await</span> NodoApiClient.DescargarKude(resultado.CDC)
-    <span class="k">Dim</span> tempFile = Path.Combine(Path.GetTempPath(), <span class="s">$"KUDE-{resultado.Numero}.pdf"</span>)
-    File.WriteAllBytes(tempFile, pdf)
-    Process.Start(tempFile)
+<span class="k">If</span> r.Aprobado <span class="k">Then</span>
+  <span class="k">Dim</span> tmp = Path.Combine(Path.GetTempPath(), <span class="s">$"KUDE-{r.Numero}.pdf"</span>)
+  File.WriteAllBytes(tmp, <span class="k">Await</span> NodoApiClient.DescargarKude(r.CDC))
+  Process.Start(tmp)
 <span class="k">Else</span>
-    MessageBox.Show(<span class="s">"Rechazado: "</span> & resultado.SifenMensaje)
+  MessageBox.Show(<span class="s">"Rechazado: "</span> & r.SifenMensaje)
 <span class="k">End If</span></pre>
-    </div>
 
-    <!-- ══════════════════════════ OTROS LENGUAJES ══════════════════════════ -->
-    <div class="doc-section" id="s-otros">
-      <h1>Ejemplos en otros lenguajes</h1>
+  <h3>Emisión con condición de crédito</h3>
+  <pre>
+<span class="k">Dim</span> r = <span class="k">Await</span> NodoApiClient.EmitirDocumento(<span class="k">New</span> With {
+  .tipoDocumento  = 1,
+  .condicionVenta = 2,  <span class="c">' Crédito</span>
+  .cliente = <span class="k">New</span> With {.tipo = 1, .documento = <span class="s">"80012345-6"</span>, .razonSocial = <span class="s">"Empresa SA"</span>},
+  .items = items,
+  .referenciaExterna = nroFactura,
+  .webhookUrl = <span class="s">"https://mi-erp.py/webhook/nodo"</span>
+})</pre>
 
-      <h3>Python</h3>
-      <pre>
+  <h3>Consultar y descargar KUDE posterior</h3>
+  <pre>
+<span class="c">' Si no descargaste el KUDE al emitir, podés hacerlo después con el CDC</span>
+<span class="k">Dim</span> estado = <span class="k">Await</span> NodoApiClient.Consultar(cdc)
+<span class="k">If</span> estado.Aprobado <span class="k">Then</span>
+  <span class="k">Dim</span> pdf  = <span class="k">Await</span> NodoApiClient.DescargarKude(cdc, <span class="s">"ticket"</span>)  <span class="c">' formato ticket para impresora</span>
+  <span class="k">Dim</span> temp = Path.GetTempFileName() & <span class="s">".pdf"</span>
+  File.WriteAllBytes(temp, pdf)
+  Process.Start(temp)
+<span class="k">End If</span></pre>
+</div>
+
+<div class="section" id="s-otros">
+  <h1>Python / PHP / cURL</h1>
+  <h3>Python</h3>
+  <pre>
 <span class="k">import</span> requests, os
 
-NODO_URL = os.getenv(<span class="s">'NODO_API_URL'</span>)
-HEADERS  = {<span class="s">'X-API-Key'</span>: os.getenv(<span class="s">'NODO_API_KEY'</span>), <span class="s">'Content-Type'</span>: <span class="s">'application/json'</span>}
+URL = os.getenv(<span class="s">'NODO_API_URL'</span>)
+HDR = {<span class="s">'X-API-Key'</span>: os.getenv(<span class="s">'NODO_API_KEY'</span>), <span class="s">'Content-Type'</span>: <span class="s">'application/json'</span>}
 
-<span class="k">def</span> emitir_factura(cliente, items, referencia):
-    res = requests.post(f<span class="s">'{NODO_URL}/documentos/erp'</span>,
-        json={<span class="s">'tipoDocumento'</span>: 1, <span class="s">'cliente'</span>: cliente, <span class="s">'items'</span>: items, <span class="s">'referenciaExterna'</span>: referencia},
-        headers=HEADERS, timeout=30)
-    res.raise_for_status()
-    <span class="k">return</span> res.json()[<span class="s">'data'</span>]
+<span class="k">def</span> emitir(cliente, items, ref=None):
+    r = requests.post(f<span class="s">'{URL}/documentos/erp'</span>,
+        json={<span class="s">'tipoDocumento'</span>:1,<span class="s">'cliente'</span>:cliente,<span class="s">'items'</span>:items,<span class="s">'referenciaExterna'</span>:ref},
+        headers=HDR, timeout=30)
+    r.raise_for_status()
+    <span class="k">return</span> r.json()[<span class="s">'data'</span>]
 
-<span class="k">def</span> descargar_kude(cdc, ruta):
-    res = requests.get(f<span class="s">'{NODO_URL}/documentos/{cdc}/kude?formato=a4'</span>, headers=HEADERS)
-    res.raise_for_status()
-    <span class="k">with</span> open(ruta, <span class="s">'wb'</span>) <span class="k">as</span> f: f.write(res.content)</pre>
+<span class="k">def</span> kude(cdc, ruta=<span class="s">'factura.pdf'</span>):
+    r = requests.get(f<span class="s">'{URL}/documentos/{cdc}/kude?formato=a4'</span>, headers=HDR)
+    r.raise_for_status()
+    open(ruta,<span class="s">'wb'</span>).write(r.content)
 
-      <h3>PHP</h3>
-      <pre>
-<span class="k">function</span> nodo_post($endpoint, $data) {
-    $ch = curl_init($_ENV[<span class="s">'NODO_API_URL'</span>] . $endpoint);
-    curl_setopt_array($ch, [
-        CURLOPT_POST           => <span class="k">true</span>,
-        CURLOPT_POSTFIELDS     => json_encode($data),
-        CURLOPT_RETURNTRANSFER => <span class="k">true</span>,
-        CURLOPT_TIMEOUT        => 30,
-        CURLOPT_HTTPHEADER     => [<span class="s">'Content-Type: application/json'</span>, <span class="s">'X-API-Key: '</span> . $_ENV[<span class="s">'NODO_API_KEY'</span>]],
-    ]);
-    $res = json_decode(curl_exec($ch), <span class="k">true</span>);
-    curl_close($ch);
-    <span class="k">if</span> (!$res[<span class="s">'ok'</span>]) <span class="k">throw new</span> Exception($res[<span class="s">'error'</span>]);
-    <span class="k">return</span> $res[<span class="s">'data'</span>];
+<span class="c"># Uso:</span>
+doc = emitir({<span class="s">'tipo'</span>:4}, [{<span class="s">'descripcion'</span>:<span class="s">'Test'</span>,<span class="s">'cantidad'</span>:1,
+    <span class="s">'precioUnitario'</span>:100000,<span class="s">'precioTotal'</span>:100000,<span class="s">'tasaIVA'</span>:10}])
+<span class="k">if</span> doc[<span class="s">'estado'</span>] == <span class="s">'aprobado'</span>: kude(doc[<span class="s">'cdc'</span>])</pre>
+
+  <h3>PHP</h3>
+  <pre>
+<span class="k">function</span> nodo($ep, $data) {
+  $ch = curl_init($_ENV[<span class="s">'NODO_URL'</span>].$ep);
+  curl_setopt_array($ch,[CURLOPT_POST=>true,CURLOPT_RETURNTRANSFER=>true,CURLOPT_TIMEOUT=>30,
+    CURLOPT_POSTFIELDS=>json_encode($data),
+    CURLOPT_HTTPHEADER=>[<span class="s">'Content-Type: application/json'</span>,<span class="s">'X-API-Key: '</span>.$_ENV[<span class="s">'NODO_KEY'</span>]]]);
+  $r=json_decode(curl_exec($ch),true); curl_close($ch);
+  <span class="k">if</span>(!$r[<span class="s">'ok'</span>]) <span class="k">throw new</span> Exception($r[<span class="s">'error'</span>]);
+  <span class="k">return</span> $r[<span class="s">'data'</span>];
 }</pre>
 
-      <h3>cURL (terminal — para pruebas rápidas)</h3>
-      <pre>
+  <h3>cURL (terminal)</h3>
+  <pre>
 <span class="c"># Emitir factura mínima</span>
-curl -X POST $NODO_API_URL/documentos/erp \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: $NODO_API_KEY" \
+curl -X POST $NODO_URL/documentos/erp \
+  -H "Content-Type: application/json" -H "X-API-Key: $NODO_KEY" \
   -d '{"tipoDocumento":1,"cliente":{"tipo":4},"items":[{"descripcion":"Test","cantidad":1,"precioUnitario":100000,"precioTotal":100000,"tasaIVA":10}]}'
 
 <span class="c"># Consultar estado</span>
-curl -H "X-API-Key: $NODO_API_KEY" $NODO_API_URL/documentos/{CDC}
+curl -H "X-API-Key: $NODO_KEY" $NODO_URL/documentos/{CDC}
 
 <span class="c"># Descargar KUDE</span>
-curl -H "X-API-Key: $NODO_API_KEY" "$NODO_API_URL/documentos/{CDC}/kude?formato=a4" --output factura.pdf</pre>
-    </div>
+curl -H "X-API-Key: $NODO_KEY" "$NODO_URL/documentos/{CDC}/kude?formato=a4" -o factura.pdf</pre>
+</div>
 
-  </main>
+</main>
 </div>
 
 <script>
-function showSection(id) {
-  document.querySelectorAll('.doc-section').forEach(s => s.classList.remove('on'));
-  document.querySelectorAll('.doc-nav-item').forEach(a => a.classList.remove('on'));
-  document.getElementById(id)?.classList.add('on');
-  event.currentTarget.classList.add('on');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+function show(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo(0,0);
 }
-
-// Tema
-const saved = localStorage.getItem('nodo-theme') || 'dark';
-document.documentElement.setAttribute('data-theme', saved);
 </script>
 </body>
 </html>
