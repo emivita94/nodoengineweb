@@ -1485,6 +1485,11 @@ async function loadDocumentos(tenantId, { tipo = 1, estado = '', limit = 20, off
       } catch {}
     }
 
+    // Guardar docs en un Map para acceso seguro por ID (evita pasar JSON por atributos HTML)
+    window._docsMap = window._docsMap || {};
+    window._docsMap = {};
+    docs.forEach(d => { window._docsMap[d.id] = d; });
+
     docsBody.innerHTML = docs.map(d => {
       const est   = d.estado || 'pendiente';
       const badge = est === 'aprobado'
@@ -1499,7 +1504,7 @@ async function loadDocumentos(tenantId, { tipo = 1, estado = '', limit = 20, off
       const monto = d.monto_total ? '₲ ' + Number(d.monto_total).toLocaleString() : '—';
       const iva   = (Number(d.monto_iva_10)||0) + (Number(d.monto_iva_5)||0);
       const puede = est === 'aprobado';
-      const data  = encodeURIComponent(JSON.stringify(d));
+      const docId = d.id;
 
       // Badge de email
       const logs  = emailLogs[d.id] || [];
@@ -1517,7 +1522,7 @@ async function loadDocumentos(tenantId, { tipo = 1, estado = '', limit = 20, off
         emailBadge = `<span style="font-size:11px;color:var(--text3)">No enviado</span>`;
       }
 
-      return `<tr style="cursor:pointer" onclick="verDoc('${data}')">
+      return `<tr style="cursor:pointer" data-doc-id="${docId}">
         <td onclick="event.stopPropagation()">
           <div class="mono fs-12">${d.numero || '—'}</div>
           <div style="font-size:10px;color:var(--text3)">${tipoLabel[d.tipo_documento] || 'Documento'}</div>
@@ -1529,10 +1534,10 @@ async function loadDocumentos(tenantId, { tipo = 1, estado = '', limit = 20, off
         <td onclick="event.stopPropagation()">${emailBadge}</td>
         <td>${badge}</td>
         <td onclick="event.stopPropagation()"><div class="td-act">
-          <button class="btn btn-g btn-xs" title="Ver detalle" onclick="verDoc('${data}')">🔍</button>
-          <button class="btn btn-g btn-xs" title="XML"  ${!puede?'disabled style="opacity:.3"':''} onclick="abrirXml('${d.cdc}')">📄</button>
-          <button class="btn btn-o btn-xs" title="KUDE" ${!puede?'disabled style="opacity:.3"':''} onclick="abrirKude('${d.cdc}')">🖨</button>
-          <button class="btn btn-g btn-xs" title="Reenviar email" ${!puede?'disabled style="opacity:.3"':''} onclick="reenviarEmail('${d.id}','${d.cdc}','${d.receptor_razon||''}')">📧</button>
+          <button class="btn btn-g btn-xs" title="Ver detalle" data-action="ver" data-doc-id="${docId}">🔍</button>
+          <button class="btn btn-g btn-xs" title="XML"  ${!puede?'disabled style="opacity:.3"':''} data-action="xml" data-cdc="${d.cdc}">📄</button>
+          <button class="btn btn-o btn-xs" title="KUDE" ${!puede?'disabled style="opacity:.3"':''} data-action="kude" data-cdc="${d.cdc}">🖨</button>
+          <button class="btn btn-g btn-xs" title="Reenviar email" ${!puede?'disabled style="opacity:.3"':''} data-action="email" data-doc-id="${docId}" data-cdc="${d.cdc}">📧</button>
         </div></td>
       </tr>`;
     }).join('');
@@ -1541,6 +1546,29 @@ async function loadDocumentos(tenantId, { tipo = 1, estado = '', limit = 20, off
     docsBody.innerHTML = `<tr><td colspan="8" style="padding:20px;text-align:center;color:var(--red)">Error: ${e.message}</td></tr>`;
   }
 }
+
+// ── Delegación de eventos para la tabla de documentos ─────────
+// Maneja clicks en filas y botones sin pasar JSON por atributos HTML
+document.getElementById('docs-body')?.addEventListener('click', e => {
+  const btn = e.target.closest('button[data-action]');
+  if (btn) {
+    e.stopPropagation();
+    const action = btn.dataset.action;
+    const docId  = btn.dataset.docId;
+    const cdc    = btn.dataset.cdc;
+    const doc    = window._docsMap?.[docId];
+    if (action === 'ver'   && doc) { verDocObj(doc); return; }
+    if (action === 'xml'   && cdc) { abrirXml(cdc); return; }
+    if (action === 'kude'  && cdc) { abrirKude(cdc); return; }
+    if (action === 'email' && doc) { reenviarEmail(doc.id, doc.cdc, doc.receptor_razon || ''); return; }
+    return;
+  }
+  const tr = e.target.closest('tr[data-doc-id]');
+  if (tr) {
+    const doc = window._docsMap?.[tr.dataset.docId];
+    if (doc) verDocObj(doc);
+  }
+});
 
 window.docsPage = (dir) => {
   const off = Math.max(0, (window._docsCurrentOffset||0) + dir*(window._docsLimit||20));
@@ -1562,9 +1590,9 @@ window.filtrarDocs = (q) => {
 };
 
 let _docActual = null;
-window.verDoc = (data) => {
-  try { _docActual = JSON.parse(decodeURIComponent(data)); } catch { return; }
-  const d = _docActual;
+// verDocObj acepta el objeto documento directamente
+function verDocObj(d) {
+  _docActual = d;
   const tipoLabel = { 1:'Factura electrónica', 4:'Autofactura', 5:'Nota de crédito', 6:'Nota de débito', 7:'Nota de remisión' };
   const est = d.estado || 'pendiente';
   const badge = est==='aprobado' ? `<span class="badge badge-green"><span class="bd"></span>Aprobado</span>`
@@ -1629,7 +1657,8 @@ window.verDoc = (data) => {
   }
 
   openModal('modal-doc');
-};
+}
+window.verDocObj = verDocObj;
 window.abrirXml = async (cdc) => {
   if (!cdc || !window._CONFIG?.API_URL) return;
   const apiKey = await getApiKey();
