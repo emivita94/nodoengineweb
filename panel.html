@@ -446,7 +446,7 @@
             <div class="tab" onclick="swTab(this,'tb-nc',['tb-fac','tb-nc','tb-otros'],5)">
               🧾 Notas de crédito <span class="tab-cnt tab-cnt-g" id="cnt-nc">—</span>
             </div>
-            <div class="tab" onclick="swTab(this,'tb-otros',['tb-fac','tb-nc','tb-otros'],0)">
+            <div class="tab" onclick="swTab(this,'tb-otros',['tb-fac','tb-nc','tb-otros'],-1)">
               📑 Otros
             </div>
           </div>
@@ -470,7 +470,7 @@
           </div>
           <div style="overflow-x:auto">
             <table>
-              <thead><tr><th>Número</th><th>Cliente</th><th>Fecha</th><th>Monto</th><th>IVA</th><th>Estado</th><th>Acciones</th></tr></thead>
+              <thead><tr><th>Número</th><th>Cliente</th><th>Fecha</th><th>Monto</th><th>IVA</th><th>Email</th><th>Estado</th><th>Acciones</th></tr></thead>
               <tbody id="docs-body"></tbody>
             </table>
           </div>
@@ -614,11 +614,20 @@
         <div class="fs-11 text-3" style="text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Referencia ERP</div>
         <div class="fs-12 mono" id="mdoc-ref-ext">—</div>
       </div>
+
+      <!-- LOG DE EMAILS -->
+      <div style="margin-top:4px">
+        <div class="fs-11 text-3" style="text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Historial de envíos por email</div>
+        <div id="mdoc-email-log" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;min-height:40px;font-size:12px;color:var(--text3)">
+          Cargando...
+        </div>
+      </div>
     </div>
     <div class="modal-footer" style="justify-content:space-between">
       <button class="btn btn-g btn-sm" onclick="closeModal('modal-doc')">Cerrar</button>
       <div class="flex gap-10">
         <button class="btn btn-g btn-sm" id="mdoc-btn-xml" onclick="descargarDocXml()">📄 Descargar XML</button>
+        <button class="btn btn-g btn-sm" id="mdoc-btn-reenviar" onclick="reenviarEmailModal()" style="display:none">📧 Reenviar email</button>
         <button class="btn btn-o btn-sm" id="mdoc-btn-kude" onclick="descargarDocKude()">🖨 Descargar KUDE (PDF)</button>
       </div>
     </div>
@@ -1344,10 +1353,10 @@ window.revokeKey = async (keyId) => {
   }
 };
 // ── DOCUMENTOS — datos reales de Supabase ────────────────────
-async function loadDocumentos(tenantId, { tipo = 0, estado = '', limit = 20, offset = 0 } = {}) {
+async function loadDocumentos(tenantId, { tipo = 1, estado = '', limit = 20, offset = 0 } = {}) {
   const docsBody = document.getElementById('docs-body');
   if (!docsBody) return;
-  docsBody.innerHTML = `<tr><td colspan="7" style="padding:20px;text-align:center;color:var(--text3)">Cargando...</td></tr>`;
+  docsBody.innerHTML = `<tr><td colspan="8" style="padding:20px;text-align:center;color:var(--text3)">Cargando...</td></tr>`;
 
   window._docsCurrentTenantId = tenantId;
   window._docsCurrentTipo     = tipo;
@@ -1356,9 +1365,12 @@ async function loadDocumentos(tenantId, { tipo = 0, estado = '', limit = 20, off
   window._docsLimit           = limit;
 
   try {
+    // tipo:  1=Facturas, 5=NC, -1=Otros (todo lo que no es 1 ni 5)
     let q = `documentos?tenant_id=eq.${tenantId}&order=creado_en.desc&limit=${limit}&offset=${offset}`;
-    if (tipo   > 0) q += `&tipo_documento=eq.${tipo}`;
-    if (estado)     q += `&estado=eq.${estado}`;
+    if (tipo === 1)  q += `&tipo_documento=eq.1`;
+    else if (tipo === 5)  q += `&tipo_documento=eq.5`;
+    else if (tipo === -1) q += `&tipo_documento=not.in.(1,5)`;
+    if (estado) q += `&estado=eq.${estado}`;
 
     const res   = await fetch(`${SUPA_URL}/rest/v1/${q}`, { headers: { ...SB_HEADERS, 'Prefer': 'count=exact' } });
     const total = parseInt(res.headers.get('content-range')?.split('/')[1] || '0');
@@ -1372,11 +1384,27 @@ async function loadDocumentos(tenantId, { tipo = 0, estado = '', limit = 20, off
     if (pagNum)  pagNum.textContent  = pag;
 
     if (!docs?.length) {
-      docsBody.innerHTML = `<tr><td colspan="7" style="padding:32px;text-align:center;color:var(--text3)">Sin documentos para mostrar</td></tr>`;
+      docsBody.innerHTML = `<tr><td colspan="8" style="padding:32px;text-align:center;color:var(--text3)">Sin documentos para mostrar</td></tr>`;
       return;
     }
 
     const tipoLabel = { 1:'Factura', 4:'Autofactura', 5:'Nota crédito', 6:'Nota débito', 7:'Remisión' };
+
+    // Cargar logs de email para estos documentos
+    const docIds = docs.map(d => d.id).filter(Boolean);
+    let emailLogs = {};
+    if (docIds.length) {
+      try {
+        const elRes  = await fetch(`${SUPA_URL}/rest/v1/email_logs?documento_id=in.(${docIds.join(',')})&order=enviado_en.desc`, { headers: SB_HEADERS });
+        const elData = await elRes.json();
+        if (Array.isArray(elData)) {
+          elData.forEach(l => {
+            if (!emailLogs[l.documento_id]) emailLogs[l.documento_id] = [];
+            emailLogs[l.documento_id].push(l);
+          });
+        }
+      } catch {}
+    }
 
     docsBody.innerHTML = docs.map(d => {
       const est   = d.estado || 'pendiente';
@@ -1394,6 +1422,22 @@ async function loadDocumentos(tenantId, { tipo = 0, estado = '', limit = 20, off
       const puede = est === 'aprobado';
       const data  = encodeURIComponent(JSON.stringify(d));
 
+      // Badge de email
+      const logs  = emailLogs[d.id] || [];
+      const envOk = logs.find(l => l.estado === 'enviado');
+      const envErr= logs.find(l => l.estado === 'error');
+      let emailBadge;
+      if (!puede) {
+        emailBadge = `<span style="font-size:11px;color:var(--text3)">—</span>`;
+      } else if (envOk) {
+        const dest = envOk.tipo === 'receptor' ? '📧 Cliente' : '📧 Emisor';
+        emailBadge = `<span title="Enviado a: ${envOk.destinatario || ''}" style="font-size:11px;color:var(--green);cursor:help">✅ ${dest}</span>`;
+      } else if (envErr) {
+        emailBadge = `<span title="Error: ${envErr.error || ''}" style="font-size:11px;color:var(--red);cursor:help">❌ Error</span>`;
+      } else {
+        emailBadge = `<span style="font-size:11px;color:var(--text3)">No enviado</span>`;
+      }
+
       return `<tr style="cursor:pointer" onclick="verDoc('${data}')">
         <td onclick="event.stopPropagation()">
           <div class="mono fs-12">${d.numero || '—'}</div>
@@ -1403,23 +1447,25 @@ async function loadDocumentos(tenantId, { tipo = 0, estado = '', limit = 20, off
         <td class="fs-12 text-2">${fecha}</td>
         <td class="fw-600">${monto}</td>
         <td class="fs-12 text-2">${iva > 0 ? '₲ '+iva.toLocaleString() : '—'}</td>
+        <td onclick="event.stopPropagation()">${emailBadge}</td>
         <td>${badge}</td>
         <td onclick="event.stopPropagation()"><div class="td-act">
           <button class="btn btn-g btn-xs" title="Ver detalle" onclick="verDoc('${data}')">🔍</button>
           <button class="btn btn-g btn-xs" title="XML"  ${!puede?'disabled style="opacity:.3"':''} onclick="abrirXml('${d.cdc}')">📄</button>
           <button class="btn btn-o btn-xs" title="KUDE" ${!puede?'disabled style="opacity:.3"':''} onclick="abrirKude('${d.cdc}')">🖨</button>
+          <button class="btn btn-g btn-xs" title="Reenviar email" ${!puede?'disabled style="opacity:.3"':''} onclick="reenviarEmail('${d.id}','${d.cdc}','${d.receptor_razon||''}')">📧</button>
         </div></td>
       </tr>`;
     }).join('');
 
   } catch(e) {
-    docsBody.innerHTML = `<tr><td colspan="7" style="padding:20px;text-align:center;color:var(--red)">Error: ${e.message}</td></tr>`;
+    docsBody.innerHTML = `<tr><td colspan="8" style="padding:20px;text-align:center;color:var(--red)">Error: ${e.message}</td></tr>`;
   }
 }
 
 window.docsPage = (dir) => {
   const off = Math.max(0, (window._docsCurrentOffset||0) + dir*(window._docsLimit||20));
-  loadDocumentos(window._docsCurrentTenantId, { tipo: window._docsCurrentTipo||0, estado: window._docsCurrentEstado||'', offset: off });
+  loadDocumentos(window._docsCurrentTenantId, { tipo: window._docsCurrentTipo??1, estado: window._docsCurrentEstado||'', offset: off });
 };
 window.toggleEstadoFilter = () => {
   const opts = document.getElementById('filter-estado-opts');
@@ -1428,7 +1474,7 @@ window.toggleEstadoFilter = () => {
 window.setEstadoFilter = (estado, el) => {
   el.closest('#filter-estado-opts').querySelectorAll('.filter-pill').forEach(p=>p.classList.remove('on'));
   el.classList.add('on');
-  loadDocumentos(window._docsCurrentTenantId, { tipo: window._docsCurrentTipo||0, estado, offset:0 });
+  loadDocumentos(window._docsCurrentTenantId, { tipo: window._docsCurrentTipo??1, estado, offset:0 });
 };
 window.filtrarDocs = (q) => {
   document.querySelectorAll('#docs-body tr').forEach(r => {
@@ -1468,6 +1514,41 @@ window.verDoc = (data) => {
     const btn=document.getElementById(id);
     if(btn){btn.disabled=!puede;btn.style.opacity=puede?'1':'.4';}
   });
+  const reenviarBtn = document.getElementById('mdoc-btn-reenviar');
+  if (reenviarBtn) reenviarBtn.style.display = puede ? 'inline-flex' : 'none';
+
+  // Cargar log de emails
+  const logEl = document.getElementById('mdoc-email-log');
+  if (logEl && d.id) {
+    logEl.innerHTML = '<span style="color:var(--text3)">Cargando...</span>';
+    fetch(`${SUPA_URL}/rest/v1/email_logs?documento_id=eq.${d.id}&order=enviado_en.desc`, { headers: SB_HEADERS })
+      .then(r => r.json())
+      .then(logs => {
+        if (!logs?.length) {
+          logEl.innerHTML = '<span style="color:var(--text3)">Sin envíos registrados</span>';
+          return;
+        }
+        logEl.innerHTML = logs.map(l => {
+          const ts   = l.enviado_en ? new Date(l.enviado_en).toLocaleString('es-PY',{dateStyle:'short',timeStyle:'short'}) : '—';
+          const icon = l.estado === 'enviado' ? '✅' : '❌';
+          const tipo = l.tipo === 'receptor' ? 'Cliente' : l.tipo === 'emisor' ? 'Emisor' : l.tipo || '—';
+          const dest = l.destinatario || '—';
+          const err  = l.error ? `<div style="color:var(--red);font-size:11px;margin-top:2px">${l.error}</div>` : '';
+          return `<div style="display:flex;align-items:flex-start;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:14px;flex-shrink:0">${icon}</span>
+            <div style="flex:1">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-weight:600;color:var(--text)">${tipo} — ${dest}</span>
+                <span style="color:var(--text3)">${ts}</span>
+              </div>
+              ${err}
+            </div>
+          </div>`;
+        }).join('').replace(/border-bottom:1px solid var\(--border\)([^<]*<\/div>\s*<\/div>\s*)$/, '$1');
+      })
+      .catch(() => { logEl.innerHTML = '<span style="color:var(--red)">Error cargando logs</span>'; });
+  }
+
   openModal('modal-doc');
 };
 window.abrirXml = async (cdc) => {
@@ -1531,6 +1612,79 @@ async function descargarConKey(cdc, tipo, apiKey) {
 }
 window.descargarDocXml  = () => { if(_docActual?.cdc) abrirXml(_docActual.cdc); };
 window.descargarDocKude = () => { if(_docActual?.cdc) abrirKude(_docActual.cdc); };
+
+// ── REENVIAR EMAIL ─────────────────────────────────────────────
+window.reenviarEmail = async (docId, cdc, receptor) => {
+  const email = prompt(`Enviar KUDE por email a:\n(dejá vacío para usar el email del receptor registrado)`, '');
+  if (email === null) return; // canceló
+  await _enviarEmailDoc(docId, cdc, email || null, receptor);
+};
+
+window.reenviarEmailModal = async () => {
+  if (!_docActual) return;
+  const email = prompt(`Enviar KUDE por email a:\n(dejá vacío para usar el email del receptor registrado)`, _docActual.receptor_email || '');
+  if (email === null) return;
+  await _enviarEmailDoc(_docActual.id, _docActual.cdc, email || null, _docActual.receptor_razon || '');
+  // Recargar log de emails en el modal
+  const logEl = document.getElementById('mdoc-email-log');
+  if (logEl) {
+    logEl.innerHTML = '<span style="color:var(--text3)">Actualizando...</span>';
+    setTimeout(() => {
+      fetch(`${SUPA_URL}/rest/v1/email_logs?documento_id=eq.${_docActual.id}&order=enviado_en.desc`, { headers: SB_HEADERS })
+        .then(r => r.json())
+        .then(logs => {
+          if (!logs?.length) { logEl.innerHTML = '<span style="color:var(--text3)">Sin envíos registrados</span>'; return; }
+          logEl.innerHTML = logs.map(l => {
+            const ts   = l.enviado_en ? new Date(l.enviado_en).toLocaleString('es-PY',{dateStyle:'short',timeStyle:'short'}) : '—';
+            const icon = l.estado === 'enviado' ? '✅' : '❌';
+            const tipo = l.tipo === 'receptor' ? 'Cliente' : l.tipo === 'emisor' ? 'Emisor' : l.tipo || '—';
+            const err  = l.error ? `<div style="color:var(--red);font-size:11px;margin-top:2px">${l.error}</div>` : '';
+            return `<div style="display:flex;align-items:flex-start;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)">
+              <span style="font-size:14px;flex-shrink:0">${icon}</span>
+              <div style="flex:1">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-weight:600;color:var(--text)">${tipo} — ${l.destinatario || '—'}</span>
+                  <span style="color:var(--text3)">${ts}</span>
+                </div>${err}
+              </div>
+            </div>`;
+          }).join('');
+        }).catch(() => {});
+    }, 1500);
+  }
+};
+
+async function _enviarEmailDoc(docId, cdc, emailDest, receptor) {
+  const apiUrl = window._CONFIG?.API_URL;
+  if (!apiUrl) { toast('Sin configuración de API', 'err'); return; }
+  const apiKey = await getApiKey();
+  if (!apiKey) { toast('Sin API Key activa', 'err'); return; }
+
+  toast('📧 Enviando email...', 'warn');
+  try {
+    const body = { cdc };
+    if (emailDest) body.emailDestino = emailDest;
+    const res  = await fetch(`${apiUrl}/documentos/${cdc}/reenviar-email`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
+      body:    JSON.stringify(body),
+    });
+    if (res.ok) {
+      toast(`✅ Email enviado${emailDest ? ' a ' + emailDest : ''}`, 'ok');
+      // Recargar tabla
+      loadDocumentos(window._docsCurrentTenantId, {
+        tipo: window._docsCurrentTipo??1,
+        estado: window._docsCurrentEstado||'',
+        offset: window._docsCurrentOffset||0
+      });
+    } else {
+      const err = await res.json().catch(() => ({}));
+      toast('Error: ' + (err.error || 'No se pudo enviar'), 'err');
+    }
+  } catch(e) {
+    toast('Error: ' + e.message, 'err');
+  }
+}
 window.exportarDocsCsv = () => {
   const rows = [...document.querySelectorAll('#docs-body tr')].map(r =>
     [...r.querySelectorAll('td')].map(c=>`"${c.textContent.trim().replace(/"/g,'""')}"`).join(','));
@@ -1561,9 +1715,9 @@ window.swTab = (el, tabId, allIds, tipo) => {
   el.classList.add('on');
   const tenantId = window._currentTenant?.id;
   if (!tenantId) return;
-  window._docsCurrentTipo   = tipo || 0;
+  window._docsCurrentTipo   = tipo;
   window._docsCurrentOffset = 0;
-  loadDocumentos(tenantId, { tipo: tipo || 0, estado: window._docsCurrentEstado || '', offset: 0 });
+  loadDocumentos(tenantId, { tipo, estado: window._docsCurrentEstado || '', offset: 0 });
 };
 
 // ── LOGO UPLOAD ───────────────────────────────────────────────
