@@ -1538,7 +1538,7 @@ async function loadDocumentos(tenantId, { tipo = 1, estado = '', limit = 20, off
       }
 
       return `<tr style="cursor:pointer" data-doc-id="${docId}">
-        <td onclick="event.stopPropagation()">
+        <td>
           <div class="mono fs-12">${d.numero || '—'}</div>
           <div style="font-size:10px;color:var(--text3)">${tipoLabel[d.tipo_documento] || 'Documento'}</div>
         </td>
@@ -1546,9 +1546,9 @@ async function loadDocumentos(tenantId, { tipo = 1, estado = '', limit = 20, off
         <td class="fs-12 text-2">${fecha}</td>
         <td class="fw-600">${monto}</td>
         <td class="fs-12 text-2">${iva > 0 ? '₲ '+iva.toLocaleString() : '—'}</td>
-        <td onclick="event.stopPropagation()">${emailBadge}</td>
+        <td>${emailBadge}</td>
         <td>${badge}</td>
-        <td onclick="event.stopPropagation()"><div class="td-act">
+        <td><div class="td-act">
           <button class="btn btn-g btn-xs" title="Ver detalle" data-action="ver" data-doc-id="${docId}">🔍</button>
           <button class="btn btn-g btn-xs" title="XML"  ${!puede?'disabled style="opacity:.3"':''} data-action="xml" data-cdc="${d.cdc}">📄</button>
           <button class="btn btn-o btn-xs" title="KUDE" ${!puede?'disabled style="opacity:.3"':''} data-action="kude" data-cdc="${d.cdc}">🖨</button>
@@ -1563,11 +1563,14 @@ async function loadDocumentos(tenantId, { tipo = 1, estado = '', limit = 20, off
 }
 
 // ── Delegación de eventos para la tabla de documentos ─────────
-// Maneja clicks en filas y botones sin pasar JSON por atributos HTML
-document.getElementById('docs-body')?.addEventListener('click', e => {
+// Listener en document para que ningún stopPropagation interno lo bloquee
+document.addEventListener('click', e => {
+  // Solo actuar si el click viene de dentro de #docs-body
+  if (!e.target.closest('#docs-body')) return;
+
+  // Click en botón de acción
   const btn = e.target.closest('button[data-action]');
   if (btn) {
-    e.stopPropagation();
     const action = btn.dataset.action;
     const docId  = btn.dataset.docId;
     const cdc    = btn.dataset.cdc;
@@ -1578,8 +1581,9 @@ document.getElementById('docs-body')?.addEventListener('click', e => {
     if (action === 'email' && doc) { reenviarEmail(doc.id, doc.cdc, doc.receptor_razon || ''); return; }
     return;
   }
+  // Click en fila (no en botón) → ver detalle
   const tr = e.target.closest('tr[data-doc-id]');
-  if (tr) {
+  if (tr && !e.target.closest('button')) {
     const doc = window._docsMap?.[tr.dataset.docId];
     if (doc) verDocObj(doc);
   }
