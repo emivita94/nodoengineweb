@@ -314,8 +314,32 @@ http.DefaultRequestHeaders.Add(<span class="s">"X-API-Key"</span>, apiKey)</pre>
 
   <div class="info"><strong>Cuando usar esto?</strong> Es muy util para validar los datos en tiempo real mientras el usuario completa el formulario de facturacion, o para hacer una verificacion final antes de confirmar la emision. Asi evitas errores que despues son dificiles de corregir.</div>
 
+  <p>Tenes <strong>dos formas</strong> de validar:</p>
+
+  <table>
+    <tr><th>Forma</th><th>Endpoint</th><th>Cuando usarla</th></tr>
+    <tr>
+      <td><strong>Endpoint separado</strong></td>
+      <td><code>POST /documentos/validar</code></td>
+      <td>Durante desarrollo, pruebas, o validacion en tiempo real mientras el usuario llena el formulario</td>
+    </tr>
+    <tr>
+      <td><strong>Flag dryRun</strong></td>
+      <td><code>POST /documentos/erp</code> con <code>"dryRun": true</code></td>
+      <td><strong>Recomendado en produccion.</strong> Usa el mismo endpoint de emision — si la validacion pasa, solo cambias <code>dryRun</code> a <code>false</code> (o lo quitas) y emitis. Mismo request, sin falsos positivos.</td>
+    </tr>
+  </table>
+
+  <div class="danger"><strong>Importante:</strong> Si validas con el endpoint separado y luego emitis con otro request, puede pasar que entre ambas llamadas algo cambie (ej: se agote el timbrado). Con <code>dryRun</code> en el mismo endpoint esto no pasa porque es atomico.</div>
+
+  <h3>Opcion 1: Endpoint separado</h3>
   <div class="endpoint">
     <div class="endpoint-head"><span class="method post">POST</span><span class="ep-url">/api/v1/documentos/validar</span></div>
+  </div>
+
+  <h3>Opcion 2: Flag dryRun en /erp</h3>
+  <div class="endpoint">
+    <div class="endpoint-head"><span class="method post">POST</span><span class="ep-url">/api/v1/documentos/erp</span> con <code>"dryRun": true</code> en el body</div>
   </div>
 
   <h3>Headers requeridos</h3>
@@ -406,10 +430,19 @@ X-API-Key: sk_live_XXXX</pre>
   <span class="k">End Try</span>
 <span class="k">End Function</span>
 
-<span class="c">' Uso: validar antes de emitir</span>
+<span class="c">' Uso opcion A: validar con endpoint separado + emitir</span>
 <span class="k">If Await</span> ValidarDocumento(miPayload) <span class="k">Then</span>
   <span class="k">Dim</span> r = <span class="k">Await</span> NodoApiClient.EmitirDocumento(miPayload)
-  <span class="c">' ... procesar resultado</span>
+<span class="k">End If</span>
+
+<span class="c">' Uso opcion B (RECOMENDADO): dryRun en el mismo endpoint</span>
+<span class="c">' Primero validas:</span>
+miPayload(<span class="s">"dryRun"</span>) = <span class="k">True</span>
+<span class="k">Dim</span> val = <span class="k">Await</span> NodoApiClient.EmitirDocumento(miPayload)
+<span class="k">If</span> val.valido <span class="k">Then</span>
+  <span class="c">' Todo ok — ahora emitis de verdad quitando dryRun:</span>
+  miPayload.Remove(<span class="s">"dryRun"</span>)
+  <span class="k">Dim</span> r = <span class="k">Await</span> NodoApiClient.EmitirDocumento(miPayload)
 <span class="k">End If</span></pre>
   </div>
   <div class="tab-content" id="validar-js">
@@ -434,10 +467,17 @@ X-API-Key: sk_live_XXXX</pre>
   }
 }
 
-<span class="c">// Uso: validar antes de emitir</span>
+<span class="c">// Uso opcion A: validar con endpoint separado + emitir</span>
 <span class="k">if</span> (<span class="k">await</span> validarDocumento(miPayload)) {
   <span class="k">const</span> resultado = <span class="k">await</span> emitirDocumento(miPayload);
-  <span class="c">// ... procesar resultado</span>
+}
+
+<span class="c">// Uso opcion B (RECOMENDADO): dryRun en el mismo endpoint</span>
+<span class="c">// Primero validas:</span>
+<span class="k">const</span> valResp = <span class="k">await</span> emitirDocumento({ ...miPayload, <span class="s">dryRun</span>: <span class="k">true</span> });
+<span class="k">if</span> (valResp.valido) {
+  <span class="c">// Todo ok — emitir de verdad (sin dryRun):</span>
+  <span class="k">const</span> resultado = <span class="k">await</span> emitirDocumento(miPayload);
 }</pre>
   </div>
 </div>
@@ -455,8 +495,13 @@ X-API-Key: sk_live_XXXX</pre>
   <pre>Content-Type: application/json
 X-API-Key: sk_live_XXXX</pre>
 
+  <div class="info"><strong>Tip:</strong> Podes agregar <code>"dryRun": true</code> a este mismo body para validar sin emitir. Si la validacion pasa, quitas el campo y volves a enviar para emitir de verdad. Ver seccion <em>Validar antes de emitir</em>.</div>
+
   <h3>Body completo con explicacion de cada campo</h3>
   <pre>{
+  <span class="c">// --- MODO VALIDACION (opcional) ---</span>
+  <span class="s">"dryRun"</span>: <span class="k">false</span>,                  <span class="c">// true = solo valida sin emitir | false o ausente = emite de verdad</span>
+
   <span class="c">// --- TIPO DE DOCUMENTO ---</span>
   <span class="s">"tipoDocumento"</span>: 1,              <span class="c">// 1=Factura | 5=Nota credito | 6=Nota debito | 7=Nota remision</span>
 
